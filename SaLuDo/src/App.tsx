@@ -1,10 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
+interface Data{
+  message: string
+}
+
 function App() {
   const [count, setCount] = useState(0)
+  const [data,setData] = useState<Data|null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch('https://saludo-backend.onrender.com/api/data')
+      const json = await response.json()
+      console.log(json)
+      setData(json)
+    }
+    fetchData()
+  },[])
 
   return (
     <>
@@ -28,6 +43,10 @@ function App() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
+      <div>
+        <h1>Data from API:</h1>
+        {data != null ? <h2>{data.message}</h2> : <h2>Loading...</h2>}
+      </div>
     </>
   )
 }
