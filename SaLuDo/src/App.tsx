@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 interface Data{
@@ -20,30 +18,47 @@ function App() {
     }
     fetchData()
   },[])
-
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const tempData = {
+      name: formData.get('name'),
+      age: formData.get('age'),
+      email: formData.get('email'),
+      address: formData.get('address'),
+      resume: formData.get('resume'),
+    };
+    console.log('Form Data:', tempData);
+    // You can use tempData as needed
+  };
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <div>
+        <div>
+          <form onSubmit={handleFormSubmit}>
+            <div>
+              <label htmlFor="name">Name:</label>
+              <input type="text" id="name" name="name" />
+            </div>
+            <div>
+              <label htmlFor="age">Age:</label>
+              <input type="number" id="age" name="age" />
+            </div>
+            <div>
+              <label htmlFor="email">Email:</label>
+              <input type="email" id="email" name="email" />
+            </div>
+            <div>
+              <label htmlFor="address">Address:</label>
+              <input type="text" id="address" name="address" />
+            </div>
+            <div>
+              <label htmlFor="resume">Resume (PDF):</label>
+              <input type="file" id="resume" name="resume" accept="application/pdf" />
+            </div>
+            <button type="submit">Submit</button>
+          </form>
+        </div>
         <h1>Data from API:</h1>
         {data != null ? <h2>{data.message}</h2> : <h2>Loading...</h2>}
       </div>
