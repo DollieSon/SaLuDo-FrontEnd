@@ -1,17 +1,23 @@
 import React from 'react'
 
 const UserForm: React.FC = () => {
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const tempData = {
-      name: formData.get('name'),
-      age: formData.get('age'),
-      email: formData.get('email'),
-      address: formData.get('address'),
-      resume: formData.get('resume'),
+
+    try {
+      const response = await fetch('http://localhost:3001/api/users', {
+        method: 'POST',
+        body: formData,
+      })
+      if (response.ok) {
+        alert('User data submitted successfully!')
+      } else {
+        alert('Failed to submit user data.')
+      }
+    } catch (error) {
+      alert('An error occurred while submitting the form.')
     }
-    console.log('Form Data:', tempData)
   }
 
   return (
