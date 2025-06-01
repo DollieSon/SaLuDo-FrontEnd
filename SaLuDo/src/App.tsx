@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import UserForm from './components/UserForm'
 import ApiData from './components/ApiData'
-import Dashboard from './components/Dashboard'
+import UserDashboard from './components/UserDashboard'
+import JobDashboard from './components/JobDashboard'
+import JobForm from './components/JobForm'
 import { useEffect, useState } from 'react'
 import { fetchApiData } from './utils/api'
 import { Data } from './types/data'
@@ -17,7 +19,7 @@ function App() {
   return (
     <Router>
       <nav>
-        <Link to="/">Home</Link> | <Link to="/form">User Form</Link> | <Link to="/dashboard">Dashboard</Link>
+        <Link to="/">Home</Link> | <Link to="/userform">User Form</Link> | <Link to="/userdashboard">Users Dashboard</Link> | <Link to="/jobform">Job Form</Link> | <Link to="/jobdashboard">Job Dashboard</Link>
       </nav>
       <Routes>
         <Route path="/" element={
@@ -26,8 +28,10 @@ function App() {
             <ApiData data={data} />
           </div>
         } />
-        <Route path="/form" element={<UserForm />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/userform" element={<UserForm />} />
+        <Route path="/userdashboard" element={<UserDashboard />} />
+        <Route path="/jobform" element={<JobForm />} />
+        <Route path="/jobdashboard" element={<JobDashboard />} />
         {/* Add more routes as needed */}
       </Routes>
     </Router>
