@@ -5,10 +5,26 @@ const JobForm: React.FC = () => {
     const [title, setTitle] = useState('');
     const [details, setDetails] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const formData = new FormData(e.currentTarget);
         console.log('Job Title:', title);
         console.log('Job Details:', details);
+        try {
+        console.log('formData', formData)
+        console.log(Object.fromEntries(formData.entries()))
+        const response = await fetch('http://localhost:3000/api/job', {
+            method: 'POST',
+            body: formData,
+        })
+        if (response.ok) {
+            alert('Job data submitted successfully!')
+        } else {
+            alert('Failed to submit Job data.')
+        }
+        } catch (error) {
+        alert('An error occurred while submitting the form.')
+        }
         // Temporary: just print inputted text
     };
 
@@ -21,6 +37,7 @@ const JobForm: React.FC = () => {
                         Job Title:
                         <input
                             type="text"
+                            name = "title"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
                             required
@@ -32,6 +49,7 @@ const JobForm: React.FC = () => {
                     <label>
                         Job Details:
                         <textarea
+                            name='details'
                             value={details}
                             onChange={e => setDetails(e.target.value)}
                             required
