@@ -6,7 +6,9 @@ const UserForm: React.FC = () => {
     const formData = new FormData(event.currentTarget)
 
     try {
-      const response = await fetch('http://localhost:3001/api/users', {
+        console.log('formData', formData)
+        console.log(Object.fromEntries(formData.entries()))
+      const response = await fetch('http://localhost:3000/api/users', {
         method: 'POST',
         body: formData,
       })
