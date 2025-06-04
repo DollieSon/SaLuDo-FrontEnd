@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { apiUrl } from '../utils/api';
 
 const JobForm: React.FC = () => {
     const [title, setTitle] = useState('');
@@ -13,7 +14,7 @@ const JobForm: React.FC = () => {
         try {
         console.log('formData', formData)
         console.log(Object.fromEntries(formData.entries()))
-        const response = await fetch('http://localhost:3000/api/job', {
+        const response = await fetch( apiUrl + 'job', {
             method: 'POST',
             body: formData,
         })
