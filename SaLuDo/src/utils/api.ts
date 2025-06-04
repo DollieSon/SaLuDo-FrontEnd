@@ -5,3 +5,4 @@ export async function fetchApiData(): Promise<Data | null> {
   if (!response.ok) return null
   return response.json()
 }
+export const apiUrl: string = 'https://saludo-backend.onrender.com/api/'

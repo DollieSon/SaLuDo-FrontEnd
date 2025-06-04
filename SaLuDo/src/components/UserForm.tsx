@@ -1,4 +1,5 @@
 import React from 'react'
+import { apiUrl } from '../utils/api'
 
 const UserForm: React.FC = () => {
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -8,7 +9,7 @@ const UserForm: React.FC = () => {
     try {
         console.log('formData', formData)
         console.log(Object.fromEntries(formData.entries()))
-      const response = await fetch('http://localhost:3000/api/users', {
+      const response = await fetch( apiUrl + 'users', {
         method: 'POST',
         body: formData,
       })
