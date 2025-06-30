@@ -1,0 +1,102 @@
+.candidate-list {
+    padding: 20px;
+}
+
+.candidate-list table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 10px;
+    border: 1px solid #FFCCCC;
+  }
+  
+  .candidate-list th, td {
+    border-bottom: 1px solid #FFCCCC;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .candidate-list th img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .profile-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .profile-info img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50px;
+    margin-right: 10px;
+  }  
+
+  .profile-info a {
+    color: #e30022;
+    text-decoration: none;
+  }
+
+  .candidate-list th {
+    background-color: #FFCCCC;
+  }
+  
+  .open-profile {
+    background: #e30022;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+  
+  .summary-cards {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .summary-cards .card {
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 5px;
+  }
+
+  .candidate-list-header {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .search-candidate {
+    position: relative;
+    margin-left: 10px;
+  }
+  
+  .search-candidate input {
+    padding: 8px 30px 8px 12px;
+    border: 1px solid #FFCCCC;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  ::placeholder {
+    color: #F08080;
+  }
+  
+  .search-candidate img {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+  }
+
+  .candidate-list-header img {
+    width: 20px;
+    height: 20px;
+  }
+  

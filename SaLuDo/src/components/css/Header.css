@@ -1,0 +1,62 @@
+.topbar {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 30px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .topbar-right div {
+    position: relative;
+  }
+  
+  .topbar-right img {
+    font-size: 16px;
+    color: #888;
+    position: relative;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .topbar-right .notification-dot {
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    background-color: red;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid white;
+  }
+  
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .user-profile img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+  
+  .user-profile span {
+    font-weight: 500;
+    color: #111;
+  }
+  
+  .user-profile .down {
+    font-size: 10px;
+    margin-left: 2px;
+    color: #111;
+    width: 16px;
+    height: 16px;
+  }
