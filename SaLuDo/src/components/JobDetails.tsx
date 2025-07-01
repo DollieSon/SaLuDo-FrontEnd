@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { jobsApi, skillsApi } from '../utils/api';
+import { jobsApi, skillsApi, candidatesApi } from '../utils/api';
 import './css/CandidateForm.css'; // Using the same CSS for consistent styling
 
 interface JobSkillRequirement {
@@ -30,6 +30,7 @@ interface CandidateSkill {
 
 interface CandidateMatch {
   candidateId: string;
+  candidateName: string;
   matchScore: number;
   matchedSkills: number;
   totalSkills: number;
@@ -148,6 +149,7 @@ const JobDetails: React.FC = () => {
               if (!candidateMap.has(candidateData.candidateId)) {
                 candidateMap.set(candidateData.candidateId, {
                   candidateId: candidateData.candidateId,
+                  candidateName: null, // Will be fetched separately
                   skills: []
                 });
               }
@@ -174,8 +176,24 @@ const JobDetails: React.FC = () => {
         }
       }
 
+      // Fetch candidate names for all candidates found
+      const candidateNamesMap = new Map<string, string>();
+      try {
+        const candidatesResponse = await candidatesApi.getAllCandidates();
+        if (candidatesResponse.success && candidatesResponse.data) {
+          candidatesResponse.data.forEach((candidate: any) => {
+            candidateNamesMap.set(candidate.candidateId, candidate.name);
+          });
+        }
+      } catch (error) {
+        console.warn('Could not fetch candidate names:', error);
+      }
+
       // Calculate match scores for each candidate
       candidateMap.forEach((candidate) => {
+        // Set candidate name from the fetched names or fallback
+        candidate.candidateName = candidateNamesMap.get(candidate.candidateId) || `Candidate ${candidate.candidateId}`;
+        
         const match = calculateMatchScore(candidate, jobData);
         if (match.matchScore >= minMatchThreshold) {
           allMatches.push(match);
@@ -220,6 +238,7 @@ const JobDetails: React.FC = () => {
 
     return {
       candidateId: candidate.candidateId,
+      candidateName: candidate.candidateName,
       matchScore: Math.round(matchScore * 10) / 10, // Round to 1 decimal
       matchedSkills,
       totalSkills: jobData.skills.length,
@@ -705,10 +724,10 @@ const JobDetails: React.FC = () => {
                         <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#6b7280' }}>•</div>
                         <div>
                           <h3 style={{ margin: '0', fontSize: '18px', color: '#1f2937' }}>
-                            Candidate {candidate.candidateId}
+                            {candidate.candidateName}
                           </h3>
                           <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                            Skills Match: {candidate.matchedSkills}/{candidate.totalSkills} skills
+                            ID: {candidate.candidateId} • Skills Match: {candidate.matchedSkills}/{candidate.totalSkills} skills
                           </div>
                         </div>
                       </div>
@@ -759,7 +778,7 @@ const JobDetails: React.FC = () => {
 
                     {/* View Profile Button */}
                     <button
-                      onClick={() => navigate(`/candidate/${candidate.candidateId}`)}
+                      onClick={() => navigate(`/profile/${candidate.candidateId}`)}
                       style={{ 
                         padding: '10px 20px', 
                         backgroundColor: '#007bff', 

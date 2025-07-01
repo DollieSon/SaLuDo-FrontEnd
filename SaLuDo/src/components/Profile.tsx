@@ -2,7 +2,7 @@ import './css/Profile.css';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip} from 'recharts';
-import { candidatesApi } from '../utils/api';
+import { candidatesApi, skillsApi } from '../utils/api';
 import { CandidateProfile, PersonalityData, ProfileItem, PersonalityTrait } from '../types/profile';
 
 const Profile: React.FC = () => {
@@ -32,21 +32,37 @@ const Profile: React.FC = () => {
 
       // Fetch candidate data
       const candidateResponse = await candidatesApi.getCandidateById(id);
+      console.log('🔍 Candidate API Response:', candidateResponse);
+      
       if (candidateResponse.success) {
-        setCandidate(candidateResponse.data);
-        setEditedStatus(candidateResponse.data.status); // Initialize edited status
+        let candidateData = candidateResponse.data;
+        console.log('📊 Raw Candidate Data:', candidateData);
+        console.log('🎯 Candidate Skills (before enrichment):', candidateData.skills);
+        
+        // Enrich skills with proper names from SkillMaster database
+        if (candidateData.skills && candidateData.skills.length > 0) {
+          candidateData = await enrichSkillsWithNames(candidateData);
+          console.log('✨ Candidate Skills (after enrichment):', candidateData.skills);
+        }
+        
+        setCandidate(candidateData);
+        setEditedStatus(candidateData.status); // Initialize edited status
       } else {
+        console.error('❌ Failed to fetch candidate data:', candidateResponse);
         throw new Error('Failed to fetch candidate data');
       }
 
       // Fetch personality data (optional)
       try {
         const personalityResponse = await candidatesApi.getCandidatePersonality(id);
+        console.log('🧠 Personality API Response:', personalityResponse);
+        
         if (personalityResponse.success) {
+          console.log('🎭 Personality Data:', personalityResponse.data);
           setPersonality(personalityResponse.data);
         }
       } catch (personalityError) {
-        console.log('Personality data not available:', personalityError);
+        console.log('⚠️ Personality data not available:', personalityError);
         // Don't fail the whole component if personality data is missing
       }
 
@@ -55,6 +71,82 @@ const Profile: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to load candidate profile');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Enrich skills with proper names from SkillMaster database
+  const enrichSkillsWithNames = async (candidateData: CandidateProfile): Promise<CandidateProfile> => {
+    try {
+      // Get all master skills to use for name resolution
+      const skillResponse = await skillsApi.getAllMasterSkills();
+      console.log('🎨 SkillMaster API Response:', skillResponse);
+      
+      let masterSkills: any[] = [];
+      
+      if (skillResponse.success && skillResponse.data) {
+        masterSkills = skillResponse.data;
+        console.log('🎯 Master Skills Data:', masterSkills);
+        console.log('🔢 Total Master Skills Found:', masterSkills.length);
+      }
+
+      // Enrich each skill with the proper name from SkillMaster
+      const enrichedSkills = candidateData.skills.map((skill: any, index: number) => {
+        console.log(`🔍 Processing skill ${index + 1}:`, skill);
+        
+        if (skill.skillId && (!skill.skillName || skill.skillName === skill.skillId)) {
+          // Try to find the skill in master skills
+          const masterSkill = masterSkills.find((ms: any) => 
+            ms.skillId === skill.skillId || ms._id === skill.skillId
+          );
+          
+          if (masterSkill) {
+            console.log(`✅ Found master skill for ${skill.skillId}:`, masterSkill);
+            return {
+              ...skill,
+              skillName: masterSkill.skillName,
+              isAccepted: masterSkill.isAccepted
+            };
+          } else {
+            // Fallback: create a readable name from skillId
+            const readableName = skill.skillId.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase()).trim();
+            console.warn(`⚠️ Could not find skill name for ID: ${skill.skillId}, using fallback: ${readableName}`);
+            return {
+              ...skill,
+              skillName: readableName
+            };
+          }
+        }
+        console.log(`✨ Skill already has name, keeping as-is:`, skill);
+        return skill; // Return as-is if skillName already exists and is different from skillId
+      });
+
+      console.log('🎉 Final enriched skills:', enrichedSkills);
+
+      return {
+        ...candidateData,
+        skills: enrichedSkills
+      };
+
+    } catch (err) {
+      console.error('💥 Error enriching skills with names:', err);
+      // Fallback: ensure all skills have at least a readable name
+      const fallbackSkills = candidateData.skills.map((skill: any) => {
+        if (!skill.skillName && skill.skillId) {
+          const readableName = skill.skillId.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase()).trim();
+          return {
+            ...skill,
+            skillName: readableName
+          };
+        }
+        return skill;
+      });
+
+      console.log('🔄 Using fallback skills:', fallbackSkills);
+
+      return {
+        ...candidateData,
+        skills: fallbackSkills
+      };
     }
   };
 
@@ -73,7 +165,7 @@ const Profile: React.FC = () => {
       .map(item => ({
         text: item[textField] || item.skillName || item.evidence || item.certificationName || item.description || 'No description available',
         score: item.score || undefined,
-        skillName: item.skillName || item.certificationName || item.institution || item.company || item.title || undefined,
+        skillName: item.skillName || item.name || item.certificationName || item.institution || item.company || item.title || undefined,
         evidence: item.evidence || item.description || undefined
       }));
   };
@@ -685,7 +777,7 @@ const Profile: React.FC = () => {
                       <div className="skill-content">
                         <div className="skill-info">
                           <span className="skill-name">
-                            Strength
+                            {item.skillName || 'Strength'}
                           </span>
                           {item.evidence && (
                             <p className="skill-evidence">
@@ -716,7 +808,7 @@ const Profile: React.FC = () => {
                       <div className="skill-content">
                         <div className="skill-info">
                           <span className="skill-name">
-                            Weakness
+                            {item.skillName || 'Weakness'}
                           </span>
                           {item.evidence && (
                             <p className="skill-evidence">
