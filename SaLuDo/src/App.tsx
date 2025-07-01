@@ -16,6 +16,7 @@ import CandidateList from './components/CandidateList.tsx'
 import AddCandidate from './components/AddCandidate.tsx'
 import JobList from './components/JobList.tsx'
 import CandidateForm from './components/CandidateForm.tsx'
+import SkillsManagement from './components/SkillsManagement.tsx'
 import Profile from './components/Profile.tsx'
 
 // ✅ LOGIN PAGE AS A COMPONENT:
@@ -145,6 +146,14 @@ function JobListPage() {
   );
 }
 
+function SkillsManagementPage() {
+  return (
+    <DashboardLayout>
+      <SkillsManagement />
+    </DashboardLayout>
+  );
+}
+
 function ProfilePage() {
   return (
     <DashboardLayout>
@@ -156,9 +165,9 @@ function ProfilePage() {
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const jobTitle = searchParams.get('jobTitle') || '';
+  const jobId = searchParams.get('jobId') || '';
 
-  return <CandidateForm jobTitle={jobTitle} />;
+  return <CandidateForm jobId={jobId} />;
 }
 
 function App() {
@@ -183,7 +192,9 @@ function App() {
         <Route path="/jobform" element={<JobForm />} />
         <Route path="/add-candidate" element={<AddCandidatePage />} />
         <Route path="/job-list" element={<JobListPage />} />
+        <Route path="/skills-management" element={<SkillsManagementPage />} />
         <Route path="/candidate-form" element={<CandidateFormPage />} />
+        <Route path="/skills-management" element={<SkillsManagementPage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
       </Routes>
     </Router>
