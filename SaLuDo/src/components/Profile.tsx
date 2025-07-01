@@ -15,6 +15,8 @@ const Profile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [editedStatus, setEditedStatus] = useState<string>('');
+  const [uploadingTranscript, setUploadingTranscript] = useState(false);
 
   // Data fetching functions
   const fetchCandidateData = async () => {
@@ -32,6 +34,7 @@ const Profile: React.FC = () => {
       const candidateResponse = await candidatesApi.getCandidateById(id);
       if (candidateResponse.success) {
         setCandidate(candidateResponse.data);
+        setEditedStatus(candidateResponse.data.status); // Initialize edited status
       } else {
         throw new Error('Failed to fetch candidate data');
       }
@@ -68,11 +71,10 @@ const Profile: React.FC = () => {
     return items
       .filter(item => item) // Filter out null/undefined items
       .map(item => ({
-        source: (item.addedBy === 'AI' ? 'ai' : 'manual') as 'ai' | 'manual',
-        text: item[textField] || item.skillName || item.evidence || item.certificationName || 'No description available',
-        score: item.score || undefined, // Include score if available
-        skillName: item.skillName || undefined, // Include skill name if available
-        evidence: item.evidence || undefined // Include evidence if available
+        text: item[textField] || item.skillName || item.evidence || item.certificationName || item.description || 'No description available',
+        score: item.score || undefined,
+        skillName: item.skillName || item.certificationName || item.institution || item.company || item.title || undefined,
+        evidence: item.evidence || item.description || undefined
       }));
   };
 
@@ -230,8 +232,58 @@ const Profile: React.FC = () => {
     }, 3000);
   };
 
-  const handleEditToggle = () => {
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!id) return;
+    
+    try {
+      await candidatesApi.updateCandidate(id, { status: newStatus });
+      setCandidate((prev: CandidateProfile | null) => prev ? { ...prev, status: newStatus } : null);
+      setToastMessage(`Status updated to ${newStatus}`);
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      setToastMessage('Failed to update status');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
+  const handleTranscriptUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    setUploadingTranscript(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('transcript', file);
+      
+      await candidatesApi.uploadTranscript(id, formData);
+      setToastMessage('Transcript uploaded successfully');
+      
+      // Refresh candidate data to show new transcript
+      await fetchCandidateData();
+      
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (error) {
+      console.error('Error uploading transcript:', error);
+      setToastMessage('Failed to upload transcript');
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setUploadingTranscript(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const handleEditToggle = async () => {
+    if (isEditing && editedStatus && editedStatus !== candidate?.status) {
+      // Save the status change
+      await handleStatusUpdate(editedStatus);
+    }
     setIsEditing(!isEditing);
+    if (!isEditing && candidate) {
+      setEditedStatus(candidate.status);
+    }
   };
 
   const handleGoBack = () => {
@@ -318,7 +370,7 @@ const Profile: React.FC = () => {
     certification: transformToProfileItems(candidate.certification || [], 'description'),
     strength: transformToProfileItems(candidate.strengths || [], 'description'),
     weaknesses: transformToProfileItems(candidate.weaknesses || [], 'description'),
-    assessment: candidate.resumeAssessment ? [{ source: 'ai' as const, text: candidate.resumeAssessment }] : []
+    assessment: candidate.resumeAssessment ? [{ text: candidate.resumeAssessment }] : []
   };
 
   return (
@@ -359,10 +411,14 @@ const Profile: React.FC = () => {
               <strong>Resume:</strong>{' '}
               <a 
                 href={getFileDownloadUrl(candidate.resume.fileId)} 
+                target="_blank"
                 rel="noreferrer"
-                download={candidate.resume.filename}
                 className="download-link"
-                onClick={() => handleDownload(candidate.resume!.filename, 'resume')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.open(getFileDownloadUrl(candidate.resume!.fileId), '_blank');
+                  handleDownload(candidate.resume!.filename, 'resume');
+                }}
               >
                 📄 {candidate.resume.filename} ↓
               </a>
@@ -376,36 +432,110 @@ const Profile: React.FC = () => {
           {candidate.transcripts && candidate.transcripts.length > 0 ? (
             <p>
               <strong>Transcripts:</strong>{' '}
-              {candidate.transcripts.map((transcript, idx) => (
+              {candidate.transcripts.map((transcript: any, idx: number) => (
                 <span key={idx}>
                   <a 
                     href={getTranscriptDownloadUrl(transcript.fileId)} 
+                    target="_blank"
                     rel="noreferrer"
-                    download={transcript.filename}
                     className="download-link"
-                    onClick={() => handleDownload(transcript.filename, 'transcript')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.open(getTranscriptDownloadUrl(transcript.fileId), '_blank');
+                      handleDownload(transcript.filename, 'transcript');
+                    }}
                   >
                     📄 {transcript.filename} ↓
                   </a>
                   {idx < candidate.transcripts!.length - 1 && ', '}
                 </span>
               ))}
+              {isEditing && (
+                <div style={{ marginTop: '8px' }}>
+                  <label 
+                    htmlFor="transcript-upload" 
+                    style={{
+                      display: 'inline-block',
+                      padding: '6px 12px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {uploadingTranscript ? 'Uploading...' : 'Upload New Transcript'}
+                  </label>
+                  <input
+                    id="transcript-upload"
+                    type="file"
+                    accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
+                    onChange={handleTranscriptUpload}
+                    disabled={uploadingTranscript}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              )}
             </p>
           ) : (
             <p>
               <strong>Transcripts:</strong>{' '}
               <span style={{ color: '#6b7280', fontStyle: 'italic' }}>No transcripts uploaded</span>
+              {isEditing && (
+                <div style={{ marginTop: '8px' }}>
+                  <label 
+                    htmlFor="transcript-upload" 
+                    style={{
+                      display: 'inline-block',
+                      padding: '6px 12px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {uploadingTranscript ? 'Uploading...' : 'Upload Transcript'}
+                  </label>
+                  <input
+                    id="transcript-upload"
+                    type="file"
+                    accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
+                    onChange={handleTranscriptUpload}
+                    disabled={uploadingTranscript}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+              )}
             </p>
           )}
           <p><strong>Status:</strong> 
-            <span style={{ 
-              color: candidate.status === 'Approved' ? '#10b981' : 
-                     candidate.status === 'Rejected' ? '#ef4444' : '#f59e0b',
-              fontWeight: 'bold',
-              marginLeft: '8px'
-            }}>
-              {candidate.status}
-            </span>
+            {isEditing ? (
+              <select 
+                value={editedStatus || candidate.status} 
+                onChange={(e) => setEditedStatus(e.target.value)}
+                style={{ 
+                  marginLeft: '8px',
+                  padding: '4px 8px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px'
+                }}
+              >
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="In Review">In Review</option>
+              </select>
+            ) : (
+              <span style={{ 
+                color: candidate.status === 'Approved' ? '#10b981' : 
+                       candidate.status === 'Rejected' ? '#ef4444' : '#f59e0b',
+                fontWeight: 'bold',
+                marginLeft: '8px'
+              }}>
+                {candidate.status}
+              </span>
+            )}
           </p>
           <p><strong>Active:</strong> {candidate.isDeleted ? 'No' : 'Yes'}</p>
         </div>
@@ -416,14 +546,7 @@ const Profile: React.FC = () => {
         {/* Resume Parsed Information */}
         <div className="parsed-section">
           <div className="box-header">
-              <div className='legend'>
-                <h3>Resume Parsed Information</h3>
-                <img src="/images/redbox.png" alt="AI" />
-                <p> - AI</p>
-                <img src="/images/blackbox.png" alt="Manual" />
-                <p> - Manual</p>
-              </div>
-            
+            <h3>Resume Parsed Information</h3>
             <button className="edit-btn" onClick={handleEditToggle}>
               {isEditing ? 'Save' : 'Edit'}
             </button>
@@ -434,7 +557,7 @@ const Profile: React.FC = () => {
               {resumeParsed.skills.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.skills.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className={`skill-card ${item.source}`}>
+                    <div key={idx} className="skill-card">
                       <div className="skill-content">
                         <div className="skill-info">
                           <span className="skill-name">
@@ -452,9 +575,6 @@ const Profile: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        <span className={`skill-badge ${item.source}`}>
-                          {item.source === 'ai' ? 'AI' : 'Manual'}
-                        </span>
                       </div>
                     </div>
                   ))}
@@ -466,13 +586,30 @@ const Profile: React.FC = () => {
             <div className="section">
               <strong>Experience:</strong>
               {resumeParsed.experience.length > 0 ? (
-                <ul>
+                <div className="skills-grid">
                   {resumeParsed.experience.map((item: ProfileItem, idx: number) => (
-                    <li key={idx} className={item.source === 'ai' ? 'ai' : 'manual'}>
-                      {item.text}
-                    </li>
+                    <div key={idx} className="skill-card">
+                      <div className="skill-content">
+                        <div className="skill-info">
+                          <span className="skill-name">
+                            {item.skillName || 'Experience'}
+                          </span>
+                          {item.evidence && (
+                            <p className="skill-evidence">
+                              {item.evidence}
+                            </p>
+                          )}
+                          {item.score && (
+                            <div className="skill-score">
+                              <span className="score-label">Rating:</span>
+                              <span className="score-value">{item.score}/10</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No experience data available</p>
               )}
@@ -480,13 +617,30 @@ const Profile: React.FC = () => {
             <div className="section">
               <strong>Education:</strong>
               {resumeParsed.education.length > 0 ? (
-                <ul>
+                <div className="skills-grid">
                   {resumeParsed.education.map((item: ProfileItem, idx: number) => (
-                    <li key={idx} className={item.source === 'ai' ? 'ai' : 'manual'}>
-                      {item.text}
-                    </li>
+                    <div key={idx} className="skill-card">
+                      <div className="skill-content">
+                        <div className="skill-info">
+                          <span className="skill-name">
+                            {item.skillName || 'Education'}
+                          </span>
+                          {item.evidence && (
+                            <p className="skill-evidence">
+                              {item.evidence}
+                            </p>
+                          )}
+                          {item.score && (
+                            <div className="skill-score">
+                              <span className="score-label">Rating:</span>
+                              <span className="score-value">{item.score}/10</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No education data available</p>
               )}
@@ -494,13 +648,30 @@ const Profile: React.FC = () => {
             <div className="section">
               <strong>Certification:</strong>
               {resumeParsed.certification.length > 0 ? (
-                <ul>
+                <div className="skills-grid">
                   {resumeParsed.certification.map((item: ProfileItem, idx: number) => (
-                    <li key={idx} className={item.source === 'ai' ? 'ai' : 'manual'}>
-                      {item.text}
-                    </li>
+                    <div key={idx} className="skill-card">
+                      <div className="skill-content">
+                        <div className="skill-info">
+                          <span className="skill-name">
+                            {item.skillName || 'Certification'}
+                          </span>
+                          {item.evidence && (
+                            <p className="skill-evidence">
+                              {item.evidence}
+                            </p>
+                          )}
+                          {item.score && (
+                            <div className="skill-score">
+                              <span className="score-label">Rating:</span>
+                              <span className="score-value">{item.score}/10</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No certification data available</p>
               )}
@@ -508,13 +679,30 @@ const Profile: React.FC = () => {
             <div className="section">
               <strong>Strength:</strong>
               {resumeParsed.strength.length > 0 ? (
-                <ul>
+                <div className="skills-grid">
                   {resumeParsed.strength.map((item: ProfileItem, idx: number) => (
-                    <li key={idx} className={item.source === 'ai' ? 'ai' : 'manual'}>
-                      {item.text}
-                    </li>
+                    <div key={idx} className="skill-card">
+                      <div className="skill-content">
+                        <div className="skill-info">
+                          <span className="skill-name">
+                            Strength
+                          </span>
+                          {item.evidence && (
+                            <p className="skill-evidence">
+                              {item.evidence}
+                            </p>
+                          )}
+                          {item.score && (
+                            <div className="skill-score">
+                              <span className="score-label">Rating:</span>
+                              <span className="score-value">{item.score}/10</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No strengths data available</p>
               )}
@@ -522,13 +710,30 @@ const Profile: React.FC = () => {
             <div className="section">
               <strong>Weaknesses:</strong>
               {resumeParsed.weaknesses.length > 0 ? (
-                <ul>
+                <div className="skills-grid">
                   {resumeParsed.weaknesses.map((item: ProfileItem, idx: number) => (
-                    <li key={idx} className={item.source === 'ai' ? 'ai' : 'manual'}>
-                      {item.text}
-                    </li>
+                    <div key={idx} className="skill-card">
+                      <div className="skill-content">
+                        <div className="skill-info">
+                          <span className="skill-name">
+                            Weakness
+                          </span>
+                          {item.evidence && (
+                            <p className="skill-evidence">
+                              {item.evidence}
+                            </p>
+                          )}
+                          {item.score && (
+                            <div className="skill-score">
+                              <span className="score-label">Rating:</span>
+                              <span className="score-value">{item.score}/10</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No weaknesses data available</p>
               )}
@@ -536,13 +741,13 @@ const Profile: React.FC = () => {
             <div className="section">
               <strong>Resume Assessment:</strong>
               {resumeParsed.assessment.length > 0 ? (
-                <ul>
+                <div className="assessment-content">
                   {resumeParsed.assessment.map((item: ProfileItem, idx: number) => (
-                    <li key={idx} className={item.source === 'ai' ? 'ai' : 'manual'}>
+                    <p key={idx} style={{ marginBottom: '8px', lineHeight: '1.5' }}>
                       {item.text}
-                    </li>
+                    </p>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No resume assessment available</p>
               )}

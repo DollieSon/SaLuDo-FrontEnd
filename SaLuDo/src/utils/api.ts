@@ -188,12 +188,22 @@ export const candidatesApi = {
     return response.json();
   },
 
+  // Upload transcript file
+  uploadTranscript: async (candidateId: string, formData: FormData) => {
+    const response = await fetch(`${apiUrl}candidates/${candidateId}/transcripts`, {
+      method: 'POST',
+      body: formData
+    });
+    if (!response.ok) throw new Error('Failed to upload transcript');
+    return response.json();
+  },
+
   // Get file download URL
   getFileDownloadUrl: (fileId: string) => {
     return `${apiUrl}files/${fileId}`;
   },
 
-  // Get transcript file download URL (uses the same endpoint but could be separated if needed)
+  // Get transcript file download URL
   getTranscriptDownloadUrl: (fileId: string) => {
     return `${apiUrl}files/transcripts/${fileId}`;
   },

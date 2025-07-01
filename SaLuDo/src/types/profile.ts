@@ -1,7 +1,6 @@
 // Candidate profile types
 
 export interface ProfileItem {
-  source: 'ai' | 'manual';
   text: string;
   score?: number;
   skillName?: string;

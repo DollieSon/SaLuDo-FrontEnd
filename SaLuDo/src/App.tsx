@@ -116,7 +116,7 @@ function DashboardLayout({ children }: Props) {
     <div className="dashboard">
       <Sidebar />
       <div className="main-content">
-        <Header />
+        {/* <Header /> */}
         {children}
       </div>
     </div>

@@ -1,30 +1,57 @@
 import './css/CandidateList.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { jobsApi } from '../utils/api';
+import { Job } from '../types/job';
 
 const JobList: React.FC = () => {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const jobs = [
-    { id: 1, title: 'Front-End Developer', department: 'Engineering', openings: 2, postedDate: '31 Aug 2025', status: 'Open' },
-    { id: 2, title: 'HR Officer', department: 'Human Resources', openings: 1, postedDate: '28 Aug 2025', status: 'Open' },
-    { id: 3, title: 'Social Media Manager', department: 'Marketing', openings: 1, postedDate: '25 Aug 2025', status: 'Closed' },
-    { id: 4, title: 'Technical Specialist', department: 'IT Support', openings: 3, postedDate: '22 Aug 2025', status: 'Open' },
-    { id: 5, title: 'UI/UX Designer', department: 'Design', openings: 1, postedDate: '20 Aug 2025', status: 'Open' },
-    { id: 6, title: 'Front-End Developer', department: 'Engineering', openings: 2, postedDate: '31 Aug 2025', status: 'Open' },
-    { id: 7, title: 'HR Officer', department: 'Human Resources', openings: 1, postedDate: '28 Aug 2025', status: 'Open' },
-    { id: 8, title: 'Social Media Manager', department: 'Marketing', openings: 1, postedDate: '25 Aug 2025', status: 'Closed' },
-    { id: 9, title: 'Technical Specialist', department: 'IT Support', openings: 3, postedDate: '22 Aug 2025', status: 'Open' },
-    { id: 10, title: 'UI/UX Designer', department: 'Design', openings: 1, postedDate: '20 Aug 2025', status: 'Open' },
-  ];
+  // Fetch jobs from API
+  const fetchJobs = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await jobsApi.getAllJobs();
+      if (response.success) {
+        setJobs(response.data);
+      } else {
+        throw new Error('Failed to fetch jobs');
+      }
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load jobs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
   const filteredJobs = jobs.filter(job =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.status.toLowerCase().includes(searchTerm.toLowerCase())
+    job.jobName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Handle job click to navigate to details
+  const handleJobClick = (jobId: string) => {
+    navigate(`/job/${jobId}`);
+  };
 
   return (
     <main className="candidate-list">
@@ -44,19 +71,19 @@ const JobList: React.FC = () => {
       </div>
       <div className="summary-cards">
         <div className="card">
-          <h4>Available Position</h4>
-          <div className="number">24</div>
-          <div className="detail">4 Urgently needed</div>
+          <h4>Total Jobs</h4>
+          <div className="number">{jobs.length}</div>
+          <div className="detail">{filteredJobs.length} Shown</div>
         </div>
         <div className="card">
-          <h4>Job Open</h4>
-          <div className="number">10</div>
-          <div className="detail">4 Active hiring</div>
+          <h4>Jobs with Skills</h4>
+          <div className="number">{jobs.filter(job => job.skills.filter(skill => !skill.isDeleted).length > 0).length}</div>
+          <div className="detail">Skills Required</div>
         </div>
         <div className="card">
-          <h4>New Applicants</h4>
-          <div className="number">24</div>
-          <div className="detail">4 Department</div>
+          <h4>Total Skills</h4>
+          <div className="number">{jobs.reduce((total, job) => total + job.skills.filter(skill => !skill.isDeleted).length, 0)}</div>
+          <div className="detail">Across All Jobs</div>
         </div>
       </div>
 
@@ -65,34 +92,56 @@ const JobList: React.FC = () => {
           <thead>
             <tr>
               <th><img src="/images/sort.png" alt="Sort" /></th>
-              <th>Job Title</th>
-              <th>Department</th>
-              <th>Openings</th>
-              <th>Posted Date</th>
-              <th>Status</th>
+              <th>Job Name</th>
+              <th>Amount of Skills</th>
+              <th>Created At</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {filteredJobs.map((c, idx) => (
-              <tr key={c.id}>
-                <td>{idx + 1}</td>
-                <td><a href="#">{c.title}</a></td>
-                <td>{c.department}</td>
-                <td>{c.openings}</td>
-                <td>{c.postedDate}</td>
-                <td>{c.status}</td>
-                <td>
-                  <button
-                    className="open-profile"
-                    onClick={() => navigate(`/profile/${c.id}`)}
-                  >
-                    Details
-                  </button>
-                  <button className="remove">Remove</button>
+            {isLoading ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
+                  Loading jobs...
                 </td>
               </tr>
-            ))}
+            ) : error ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
+                  {error}
+                </td>
+              </tr>
+            ) : filteredJobs.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                  No jobs found
+                </td>
+              </tr>
+            ) : (
+              filteredJobs.map((job, idx) => (
+                <tr key={job._id} onClick={() => handleJobClick(job._id)} style={{ cursor: 'pointer' }}>
+                  <td>{idx + 1}</td>
+                  <td>
+                    <a href="#" onClick={(e) => e.preventDefault()}>
+                      {job.jobName}
+                    </a>
+                  </td>
+                  <td>{job.skills.filter(skill => !skill.isDeleted).length}</td>
+                  <td>{formatDate(job.createdAt)}</td>
+                  <td>
+                    <button
+                      className="open-profile"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleJobClick(job._id);
+                      }}
+                    >
+                      Details
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

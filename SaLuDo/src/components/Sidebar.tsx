@@ -27,7 +27,7 @@ const sidebar: React.FC = () =>  {
         Job List
       </NavLink>
 
-      <div className="section-title">Other</div>
+      {/* <div className="section-title">Other</div>
       <NavLink to="/support" className="nav-link">
         <img src="/images/support.png" alt="Support" />
         Support
@@ -35,7 +35,7 @@ const sidebar: React.FC = () =>  {
       <NavLink to="/settings" className="nav-link">
         <img src="/images/settings.png" alt="Settings" />
         Settings
-      </NavLink>
+      </NavLink> */}
     </div>
   );
 }
