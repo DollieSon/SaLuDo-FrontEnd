@@ -161,5 +161,40 @@ export const candidatesApi = {
     });
     if (!response.ok) throw new Error('Failed to create candidate');
     return response.json();
-  }
+  },
+
+  // Get single candidate by ID
+  getCandidateById: async (candidateId: string) => {
+    const response = await fetch(`${apiUrl}candidates/${candidateId}`);
+    if (!response.ok) throw new Error('Failed to fetch candidate');
+    return response.json();
+  },
+
+  // Get candidate personality data
+  getCandidatePersonality: async (candidateId: string) => {
+    const response = await fetch(`${apiUrl}candidates/${candidateId}/personality`);
+    if (!response.ok) throw new Error('Failed to fetch candidate personality');
+    return response.json();
+  },
+
+  // Update candidate information
+  updateCandidate: async (candidateId: string, updates: any) => {
+    const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (!response.ok) throw new Error('Failed to update candidate');
+    return response.json();
+  },
+
+  // Get file download URL
+  getFileDownloadUrl: (fileId: string) => {
+    return `${apiUrl}files/${fileId}`;
+  },
+
+  // Get transcript file download URL (uses the same endpoint but could be separated if needed)
+  getTranscriptDownloadUrl: (fileId: string) => {
+    return `${apiUrl}files/transcripts/${fileId}`;
+  },
 };
