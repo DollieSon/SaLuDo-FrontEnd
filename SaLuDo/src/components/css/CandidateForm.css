@@ -94,4 +94,54 @@
   .submit-button:hover {
     background-color: #a30115;
   }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-box {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    max-width: 500px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal-box h3 {
+    margin-top: 0;
+    font-size: 22px;
+    color: #d0021b;
+  }
+  
+  .modal-box p {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  
+  .modal-button {
+    margin-top: 20px;
+    background-color: #d0021b;
+    color: white;
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .modal-button:hover {
+    background-color: #a30115;
+  }
+  
   
