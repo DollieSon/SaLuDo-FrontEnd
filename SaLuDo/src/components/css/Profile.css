@@ -1,3 +1,106 @@
 .profile {
     padding: 20px;
-}
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .back-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    gap: 10px;
+  }
+
+  .back-label img {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .back-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+  }
+  
+  .info-box {
+    background-color: #fff;
+    color: black;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    padding: 2rem 2rem;
+    width: 100%;
+    border: 1px solid #FFCCCC;
+  }
+  
+  .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .legend {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .legend img {
+    height: 24px;
+    width: 24px;
+  }
+  
+  .box-header h3 {
+    margin-right: 10px;
+  }
+  
+  .edit-btn {
+    background: none;
+    border: none;
+    color: black;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  
+  .box-content {
+    margin-top: 1rem;
+  }
+  
+  .box-content ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+  }
+  
+  .box-content li {
+    margin: 0.5rem 0;
+  }
+  
+  .box-content li.ai {
+    color: #E30022;
+  }
+  
+  .box-content li.manual {
+    color: black;
+  }
+
+  .tooltip-box {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .tooltip-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0;
+  }
+  
+  .tooltip-box li {
+    margin: 2px 0;
+  }
+  
+  

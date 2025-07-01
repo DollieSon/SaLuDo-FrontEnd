@@ -17,6 +17,7 @@ import AddCandidate from './components/AddCandidate.tsx'
 import JobList from './components/JobList.tsx'
 import CandidateForm from './components/CandidateForm.tsx'
 import SkillsManagement from './components/SkillsManagement.tsx'
+import Profile from './components/Profile.tsx'
 import JobDetails from './components/JobDetails.tsx'
 
 // ✅ LOGIN PAGE AS A COMPONENT:
@@ -154,6 +155,14 @@ function SkillsManagementPage() {
   );
 }
 
+function ProfilePage() {
+  return (
+    <DashboardLayout>
+      <Profile />
+    </DashboardLayout>
+  );
+}
+
 function JobDetailsPage() {
   return (
     <DashboardLayout>
@@ -196,6 +205,7 @@ function App() {
         <Route path="/skills-management" element={<SkillsManagementPage />} />
         <Route path="/candidate-form" element={<CandidateFormPage />} />
         <Route path="/skills-management" element={<SkillsManagementPage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
       </Routes>
     </Router>
   )

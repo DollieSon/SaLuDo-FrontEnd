@@ -1,7 +1,10 @@
 import './css/CandidateList.css';
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const candidateList: React.FC = () =>  {
+    const navigate = useNavigate()
+
   const candidates = [
     { id: 1, dp: '/images/wony.jpg', name: 'Vicky Jang', score: 98, position: 'Front-End Developer', date: '31 Aug 2025', status: 'Approved' },
     { id: 2, dp: '/images/wony.jpg', name: 'Autumn Kim', score: 97, position: 'HR Officer', date: '31 Aug 2025', status: 'Approved' },
@@ -33,7 +36,7 @@ const candidateList: React.FC = () =>  {
             <th><img src="/images/sort.png" alt="Sort" /></th>
             <th>Name</th>
             <th>Score</th>
-            <th>Job</th>
+            <th>Job Role</th>
             <th>Date Added</th>
             <th>Status</th>
             <th>Action</th>
@@ -48,7 +51,15 @@ const candidateList: React.FC = () =>  {
               <td>{c.position}</td>
               <td>{c.date}</td>
               <td>{c.status}</td>
-              <td><button className="open-profile">Open Profile</button><button className="remove">Remove</button></td>
+              <td>
+                <button
+                  className="open-profile"
+                  onClick={() => navigate(`/profile/${c.id}`)}
+                >
+                  Open Profile
+                </button>
+                <button className="remove">Remove</button>
+              </td>
             </tr>
           ))}
         </tbody>
