@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { skillsApi } from '../utils/api';
-import './css/CandidateForm.css'; // Using the same CSS for consistent styling
+import './css/CandidateList.css'; // Using the same CSS for consistent styling
 
 interface SkillMaster {
   skillId: string;
