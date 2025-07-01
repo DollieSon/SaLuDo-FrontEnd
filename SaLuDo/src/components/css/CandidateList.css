@@ -20,20 +20,7 @@
     height: 24px;
   }
 
-  .profile-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .profile-info img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50px;
-    margin-right: 10px;
-  }  
-
-  .profile-info a {
+  .candidate-list td a {
     color: #e30022;
     text-decoration: none;
   }
@@ -43,11 +30,22 @@
   }
   
   .open-profile {
+    background: #1B204A;
+    color: white;
+    border: none;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    margin-right: 5px;
+    border-radius: 5px;
+  }
+
+  .remove {
     background: #e30022;
     color: white;
     border: none;
     padding: 0.3rem 0.6rem;
     cursor: pointer;
+    border-radius: 5px;
   }
   
   .summary-cards {

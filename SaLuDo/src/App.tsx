@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import UserForm from './components/UserForm'
 import ApiData from './components/ApiData'
 // import UserDashboard from './components/UserDashboard'
@@ -145,9 +145,11 @@ function JobListPage() {
 }
 
 function CandidateFormPage() {
-  return (
-    <CandidateForm />
-  );
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const jobTitle = searchParams.get('jobTitle') || '';
+
+  return <CandidateForm jobTitle={jobTitle} />;
 }
 
 function App() {

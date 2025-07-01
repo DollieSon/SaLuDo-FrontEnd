@@ -33,7 +33,7 @@ const candidateList: React.FC = () =>  {
             <th><img src="/images/sort.png" alt="Sort" /></th>
             <th>Name</th>
             <th>Score</th>
-            <th>Position</th>
+            <th>Job</th>
             <th>Date Added</th>
             <th>Status</th>
             <th>Action</th>
@@ -43,17 +43,12 @@ const candidateList: React.FC = () =>  {
           {candidates.map((c, idx) => (
             <tr key={c.id}>
               <td>{idx + 1}</td>
-              <td>
-                <div className="profile-info">
-                    <img src={c.dp} alt="Sort" />
-                    <a href='/'>{c.name}</a>
-                </div>
-              </td>
+              <td><a href='/'>{c.name}</a></td>
               <td>{c.score}</td>
               <td>{c.position}</td>
               <td>{c.date}</td>
               <td>{c.status}</td>
-              <td><button className="open-profile">Open Profile</button></td>
+              <td><button className="open-profile">Open Profile</button><button className="remove">Remove</button></td>
             </tr>
           ))}
         </tbody>
