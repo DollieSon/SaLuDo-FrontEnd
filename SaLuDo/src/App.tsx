@@ -15,6 +15,7 @@ import Header from './components/Header.tsx'
 import CandidateList from './components/CandidateList.tsx'
 import AddCandidate from './components/AddCandidate.tsx'
 import JobList from './components/JobList.tsx'
+import CandidateForm from './components/CandidateForm.tsx'
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -30,7 +31,7 @@ function AuthPage() {
     <div className={`container ${isRightPanelActive ? 'right-panel-active' : ''}`} id="container">
       {/* Sign Up Form */}
       <div className="form-container sign-up-container">
-        <form>
+        <form className='app-form'>
           <h2>Create Account</h2>
           <div className="social-icons">
             <button type="button">f</button>
@@ -48,7 +49,7 @@ function AuthPage() {
       {/* Sign In Form */}
       <div className="form-container sign-in-container">
         <img src="/images/logo 1.png" className="logo" alt="Alliance Logo" />
-        <form style={{ height: '80%' }}>
+        <form className='app-form' style={{ height: '80%' }}>
           <h2>Login</h2>
           <div className="social-icons">
             <button type="button">f</button>
@@ -143,6 +144,12 @@ function JobListPage() {
   );
 }
 
+function CandidateFormPage() {
+  return (
+    <CandidateForm />
+  );
+}
+
 function App() {
   const [data, setData] = useState<Data | null>(null)
 
@@ -165,6 +172,7 @@ function App() {
         <Route path="/jobform" element={<JobForm />} />
         <Route path="/add-candidate" element={<AddCandidatePage />} />
         <Route path="/job-list" element={<JobListPage />} />
+        <Route path="/candidate-form" element={<CandidateFormPage />} />
       </Routes>
     </Router>
   )
