@@ -14,13 +14,13 @@ const sidebar: React.FC = () =>  {
         <img src="/images/list.png" alt="Candidate List" />
         Candidate List
       </NavLink>
-      <NavLink to="/add-candidate" className="nav-link">
+      <NavLink to="/candidate-form" className="nav-link">
         <img src="/images/add.png" alt="Add Candidate" />
         Add Candidate
       </NavLink>
-      <NavLink to="/analytics" className="nav-link">
+      <NavLink to="/skills-management" className="nav-link">
         <img src="/images/analytics.png" alt="Analytics" />
-        Analytics
+        Skills Management
       </NavLink>
       <NavLink to="/job-list" className="nav-link">
         <img src="/images/job.png" alt="Job List" />
