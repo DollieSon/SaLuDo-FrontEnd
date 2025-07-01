@@ -16,6 +16,7 @@ import CandidateList from './components/CandidateList.tsx'
 import AddCandidate from './components/AddCandidate.tsx'
 import JobList from './components/JobList.tsx'
 import CandidateForm from './components/CandidateForm.tsx'
+import Profile from './components/Profile.tsx'
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -144,6 +145,14 @@ function JobListPage() {
   );
 }
 
+function ProfilePage() {
+  return (
+    <DashboardLayout>
+      <Profile />
+    </DashboardLayout>
+  );
+}
+
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -175,6 +184,7 @@ function App() {
         <Route path="/add-candidate" element={<AddCandidatePage />} />
         <Route path="/job-list" element={<JobListPage />} />
         <Route path="/candidate-form" element={<CandidateFormPage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
       </Routes>
     </Router>
   )
