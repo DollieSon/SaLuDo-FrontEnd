@@ -147,9 +147,9 @@ function JobListPage() {
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const jobTitle = searchParams.get('jobTitle') || '';
+  const jobId = searchParams.get('jobId') || '';
 
-  return <CandidateForm jobTitle={jobTitle} />;
+  return <CandidateForm jobId={jobId} />;
 }
 
 function App() {
