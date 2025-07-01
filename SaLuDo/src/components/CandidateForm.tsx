@@ -232,25 +232,21 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
             </div>
           </div> */}
 
-          {/* Role */}
-          <div className="form-group">
-            <label className="field-label">Applying For</label>
-            <div className="form-row">
-              <input 
-                type="text" 
-                name="role" 
-                value={
-                  isLoadingJob 
-                    ? 'Loading job details...' 
-                    : job?.jobName 
-                    ? job.jobName 
-                    : 'General Application'
-                } 
-                readOnly 
-                placeholder="Job Title" 
-              />
+          {/* Role - Only show if we have a specific job */}
+          {job && (
+            <div className="form-group">
+              <label className="field-label">Applying For</label>
+              <div className="form-row">
+                <input 
+                  type="text" 
+                  name="role" 
+                  value={job.jobName} 
+                  readOnly 
+                  placeholder="Job Title" 
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Contact */}
           <div className="form-group">
