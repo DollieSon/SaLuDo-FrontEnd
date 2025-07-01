@@ -142,5 +142,75 @@
   .modal-button:hover {
     background-color: #a30115;
   }
+
+  /* Job Details Responsive Styles */
+.job-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.job-details-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.job-details-match-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Dashboard layout responsive - switch to single column when constrained */
+@media (max-width: 1400px) {
+  .job-details-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Tablet view */
+@media (max-width: 1024px) {
+  .job-details-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
   
+  .job-details-match-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+
+/* Mobile view */
+@media (max-width: 768px) {
+  .job-details-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
   
+  .job-details-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .job-details-match-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .job-details-match-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .job-details-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

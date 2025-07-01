@@ -85,9 +85,9 @@ export const jobsApi = {
     return response.json();
   },
 
-  // Get single job
-  getJob: async (jobId: string) => {
-    const response = await fetch(`${apiUrl}jobs/${jobId}`);
+  // Get single job with skill names
+  getJob: async (jobId: string, includeSkillNames: boolean = true) => {
+    const response = await fetch(`${apiUrl}jobs/${jobId}?includeSkillNames=${includeSkillNames}`);
     if (!response.ok) throw new Error('Failed to fetch job');
     return response.json();
   },
@@ -101,11 +101,58 @@ export const jobsApi = {
     });
     if (!response.ok) throw new Error('Failed to create job');
     return response.json();
+  },
+
+  // Update job
+  updateJob: async (jobId: string, updates: any) => {
+    const response = await fetch(`${apiUrl}jobs/${jobId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (!response.ok) throw new Error('Failed to update job');
+    return response.json();
+  },
+
+  // Delete job
+  deleteJob: async (jobId: string) => {
+    const response = await fetch(`${apiUrl}jobs/${jobId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to delete job');
+    return response.json();
+  },
+
+  // Add skill to job
+  addSkillToJob: async (jobId: string, skillData: { skillId: string; requiredLevel: number; evidence?: string }) => {
+    const response = await fetch(`${apiUrl}jobs/${jobId}/skills`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(skillData)
+    });
+    if (!response.ok) throw new Error('Failed to add skill to job');
+    return response.json();
+  },
+
+  // Remove skill from job
+  removeSkillFromJob: async (jobId: string, skillId: string) => {
+    const response = await fetch(`${apiUrl}jobs/${jobId}/skills/${skillId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) throw new Error('Failed to remove skill from job');
+    return response.json();
   }
 };
 
 // Candidate API functions
 export const candidatesApi = {
+  // Get all candidates
+  getAllCandidates: async () => {
+    const response = await fetch(`${apiUrl}candidates`);
+    if (!response.ok) throw new Error('Failed to fetch candidates');
+    return response.json();
+  },
+
   // Create new candidate
   createCandidate: async (formData: FormData) => {
     const response = await fetch(`${apiUrl}candidates`, {
