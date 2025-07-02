@@ -1,12 +1,18 @@
 import { Data } from '../types/data'
 
+// Get API URL from environment variables with fallback
+const getApiUrl = (): string => {
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  return envApiUrl || 'http://localhost:3000/api/';
+};
+
 export async function fetchApiData(): Promise<Data | null> {
-  const response = await fetch('http://localhost:3000/api/data')
+  const response = await fetch(`${getApiUrl()}data`)
   if (!response.ok) return null
   return response.json()
 }
 
-export const apiUrl: string = 'http://localhost:3000/api/'
+export const apiUrl: string = getApiUrl();
 
 // Skills API functions
 export const skillsApi = {
