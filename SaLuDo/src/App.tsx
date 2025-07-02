@@ -171,6 +171,14 @@ function JobDetailsPage() {
   );
 }
 
+function JobFormPage() {
+  return (
+    <DashboardLayout>
+      <JobForm />
+    </DashboardLayout>
+  );
+}
+
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -198,7 +206,7 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/userform" element={<UserForm />} />
-        <Route path="/jobform" element={<JobForm />} />
+        <Route path="/jobform" element={<JobFormPage />} />
         <Route path="/add-candidate" element={<AddCandidatePage />} />
         <Route path="/job-list" element={<JobListPage />} />
         <Route path="/job/:jobId" element={<JobDetailsPage />} />

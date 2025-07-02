@@ -103,6 +103,11 @@ const JobList: React.FC = () => {
     navigate(`/job/${jobId}`);
   };
 
+  // Handle add new job button click
+  const handleAddNewJob = () => {
+    navigate('/jobform');
+  };
+
   return (
     <main className="candidate-list">
       <div className="candidate-list-header">
@@ -117,7 +122,7 @@ const JobList: React.FC = () => {
           <img src="/images/search.png" alt="Search" />
         </div>
         <img src="/images/filter.png" alt="Filter" />
-        <button className="add-job">Add New Job</button>
+        <button className="add-job" onClick={handleAddNewJob}>Add New Job</button>
       </div>
       <div className="summary-cards">
         <div className="card">
@@ -131,8 +136,16 @@ const JobList: React.FC = () => {
           <div className="detail">{applicantStats.jobWithMostApplicants || 'No applicants yet'}</div>
         </div>
         <div className="card">
-          <h4>Total Skills</h4>
-          <div className="number">{jobs.reduce((total, job) => total + job.skills.filter(skill => !skill.isDeleted).length, 0)}</div>
+          <h4>Total Unique Skills</h4>
+          <div className="number">{(() => {
+            const uniqueSkills = new Set<string>();
+            jobs.forEach(job => {
+              job.skills.filter(skill => !skill.isDeleted).forEach(skill => {
+                uniqueSkills.add(skill.skillId);
+              });
+            });
+            return uniqueSkills.size;
+          })()}</div>
           <div className="detail">Across All Jobs</div>
         </div>
       </div>
