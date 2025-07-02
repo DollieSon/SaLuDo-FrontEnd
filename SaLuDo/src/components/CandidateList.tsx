@@ -50,9 +50,9 @@ const CandidateList: React.FC = () => {
   }, []);
 
   const filteredCandidates = candidates.filter(c =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (c.roleApplied && c.roleApplied.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    c.status.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.status && c.status.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Calculate summary statistics
