@@ -1,7 +1,7 @@
 import './css/CandidateList.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jobsApi } from '../utils/api';
+import { jobsApi, candidatesApi } from '../utils/api';
 import { Job } from '../types/job';
 
 const JobList: React.FC = () => {
@@ -9,35 +9,85 @@ const JobList: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [candidates, setCandidates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch jobs from API
-  const fetchJobs = async () => {
+  // Fetch jobs and candidates from API
+  const fetchData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await jobsApi.getAllJobs();
-      if (response.success) {
-        setJobs(response.data);
+      
+      // Fetch jobs and candidates in parallel
+      const [jobsResponse, candidatesResponse] = await Promise.all([
+        jobsApi.getAllJobs(),
+        candidatesApi.getAllCandidates()
+      ]);
+      
+      if (jobsResponse.success) {
+        setJobs(jobsResponse.data);
       } else {
         throw new Error('Failed to fetch jobs');
       }
+      
+      if (candidatesResponse.success) {
+        setCandidates(candidatesResponse.data);
+      } else {
+        console.warn('Failed to fetch candidates:', candidatesResponse);
+        setCandidates([]);
+      }
     } catch (err) {
-      console.error('Error fetching jobs:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load jobs');
+      console.error('Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchJobs();
+    fetchData();
   }, []);
 
   const filteredJobs = jobs.filter(job =>
     job.jobName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Calculate applicant statistics
+  const calculateApplicantStats = () => {
+    const jobApplicantCounts = new Map<string, number>();
+    
+    // Count applicants per job
+    candidates.forEach(candidate => {
+      if (candidate.roleApplied) {
+        const currentCount = jobApplicantCounts.get(candidate.roleApplied) || 0;
+        jobApplicantCounts.set(candidate.roleApplied, currentCount + 1);
+      }
+    });
+    
+    // Find job with most applicants
+    let maxApplicants = 0;
+    let jobIdWithMostApplicants = '';
+    
+    jobApplicantCounts.forEach((count, jobId) => {
+      if (count > maxApplicants) {
+        maxApplicants = count;
+        jobIdWithMostApplicants = jobId;
+      }
+    });
+    
+    // Find the job name for the job ID with most applicants
+    const jobWithMostApplicants = jobs.find(job => job._id === jobIdWithMostApplicants);
+    const jobNameWithMostApplicants = jobWithMostApplicants ? jobWithMostApplicants.jobName : jobIdWithMostApplicants;
+    
+    return {
+      jobWithMostApplicants: jobNameWithMostApplicants,
+      maxApplicants,
+      totalApplicants: candidates.length
+    };
+  };
+  
+  const applicantStats = calculateApplicantStats();
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -76,9 +126,9 @@ const JobList: React.FC = () => {
           <div className="detail">{filteredJobs.length} Shown</div>
         </div>
         <div className="card">
-          <h4>Jobs with Skills</h4>
-          <div className="number">{jobs.filter(job => job.skills.filter(skill => !skill.isDeleted).length > 0).length}</div>
-          <div className="detail">Skills Required</div>
+          <h4>Job with Most Applicants</h4>
+          <div className="number">{applicantStats.maxApplicants}</div>
+          <div className="detail">{applicantStats.jobWithMostApplicants || 'No applicants yet'}</div>
         </div>
         <div className="card">
           <h4>Total Skills</h4>

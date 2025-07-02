@@ -1,7 +1,7 @@
 import './css/CandidateList.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { candidatesApi } from '../utils/api';
+import { candidatesApi, jobsApi } from '../utils/api';
 import { CandidateProfile } from '../types/profile';
 
 const CandidateList: React.FC = () => {
@@ -9,30 +9,44 @@ const CandidateList: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch candidates from API
-  const fetchCandidates = async () => {
+  // Fetch candidates and jobs from API
+  const fetchData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await candidatesApi.getAllCandidates();
-      if (response.success) {
-        setCandidates(response.data);
+      
+      // Fetch candidates and jobs in parallel
+      const [candidatesResponse, jobsResponse] = await Promise.all([
+        candidatesApi.getAllCandidates(),
+        jobsApi.getAllJobs()
+      ]);
+      
+      if (candidatesResponse.success) {
+        setCandidates(candidatesResponse.data);
       } else {
         throw new Error('Failed to fetch candidates');
       }
+      
+      if (jobsResponse.success) {
+        setJobs(jobsResponse.data);
+      } else {
+        console.warn('Failed to fetch jobs:', jobsResponse);
+        setJobs([]);
+      }
     } catch (err) {
-      console.error('Error fetching candidates:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load candidates');
+      console.error('Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCandidates();
+    fetchData();
   }, []);
 
   const filteredCandidates = candidates.filter(c =>
@@ -44,10 +58,17 @@ const CandidateList: React.FC = () => {
   // Calculate summary statistics
   const totalCandidates = candidates.length;
   
-  // Most common job role
+  // Helper function to get job name from job ID
+  const getJobNameById = (jobId: string | null): string => {
+    if (!jobId) return 'No Role Applied';
+    const job = jobs.find(job => job._id === jobId);
+    return job ? job.jobName : jobId; // Fallback to ID if job not found
+  };
+  
+  // Most common job role (convert IDs to names)
   const roleCount = candidates.reduce((acc, candidate) => {
-    const role = candidate.roleApplied || 'No Role Applied';
-    acc[role] = (acc[role] || 0) + 1;
+    const roleName = getJobNameById(candidate.roleApplied);
+    acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   
