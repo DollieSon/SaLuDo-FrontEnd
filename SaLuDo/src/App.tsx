@@ -16,6 +16,9 @@ import CandidateList from './components/CandidateList.tsx'
 import AddCandidate from './components/AddCandidate.tsx'
 import JobList from './components/JobList.tsx'
 import CandidateForm from './components/CandidateForm.tsx'
+import SkillsManagement from './components/SkillsManagement.tsx'
+import Profile from './components/Profile.tsx'
+import JobDetails from './components/JobDetails.tsx'
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -24,7 +27,7 @@ function AuthPage() {
 
   const handleLogin = () => {
     // ✅ Here you can add real validation later.
-    navigate('/dashboard'); // This changes the URL to your dashboard page.
+    navigate('/'); // This changes the URL to your dashboard page.
   };
 
   return (
@@ -113,7 +116,7 @@ function DashboardLayout({ children }: Props) {
     <div className="dashboard">
       <Sidebar />
       <div className="main-content">
-        <Header />
+        {/* <Header /> */}
         {children}
       </div>
     </div>
@@ -144,12 +147,36 @@ function JobListPage() {
   );
 }
 
+function SkillsManagementPage() {
+  return (
+    <DashboardLayout>
+      <SkillsManagement />
+    </DashboardLayout>
+  );
+}
+
+function ProfilePage() {
+  return (
+    <DashboardLayout>
+      <Profile />
+    </DashboardLayout>
+  );
+}
+
+function JobDetailsPage() {
+  return (
+    <DashboardLayout>
+      <JobDetails />
+    </DashboardLayout>
+  );
+}
+
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const jobTitle = searchParams.get('jobTitle') || '';
+  const jobId = searchParams.get('jobId') || '';
 
-  return <CandidateForm jobTitle={jobTitle} />;
+  return <CandidateForm jobId={jobId} />;
 }
 
 function App() {
@@ -168,13 +195,17 @@ function App() {
             <ApiData data={data} />
           </div>
         } /> */}
-        <Route path="/" element={<AuthPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/login" element={<AuthPage />} />
         <Route path="/userform" element={<UserForm />} />
         <Route path="/jobform" element={<JobForm />} />
         <Route path="/add-candidate" element={<AddCandidatePage />} />
         <Route path="/job-list" element={<JobListPage />} />
+        <Route path="/job/:jobId" element={<JobDetailsPage />} />
+        <Route path="/skills-management" element={<SkillsManagementPage />} />
         <Route path="/candidate-form" element={<CandidateFormPage />} />
+        <Route path="/skills-management" element={<SkillsManagementPage />} />
+        <Route path="/profile/:id" element={<ProfilePage />} />
       </Routes>
     </Router>
   )
