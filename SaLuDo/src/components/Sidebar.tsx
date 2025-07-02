@@ -10,7 +10,7 @@ const sidebar: React.FC = () =>  {
       </div>
 
       <div className="section-title">Main Menu</div>
-      <NavLink to="/dashboard" className="nav-link">
+      <NavLink to="/" className="nav-link">
         <img src="/images/list.png" alt="Candidate List" />
         Candidate List
       </NavLink>

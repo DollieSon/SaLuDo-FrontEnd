@@ -42,6 +42,7 @@ export interface CandidateProfile {
   status: string;
   isDeleted: boolean;
   resume?: ResumeMetadata;
+  resumeMetadata?: ResumeMetadata;
   transcripts?: TranscriptMetadata[];
   skills: Array<{
     skillId: string;

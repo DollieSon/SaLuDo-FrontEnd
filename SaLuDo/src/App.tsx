@@ -27,7 +27,7 @@ function AuthPage() {
 
   const handleLogin = () => {
     // ✅ Here you can add real validation later.
-    navigate('/dashboard'); // This changes the URL to your dashboard page.
+    navigate('/'); // This changes the URL to your dashboard page.
   };
 
   return (
@@ -195,8 +195,8 @@ function App() {
             <ApiData data={data} />
           </div>
         } /> */}
-        <Route path="/" element={<AuthPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/login" element={<AuthPage />} />
         <Route path="/userform" element={<UserForm />} />
         <Route path="/jobform" element={<JobForm />} />
         <Route path="/add-candidate" element={<AddCandidatePage />} />

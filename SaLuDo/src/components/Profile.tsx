@@ -17,6 +17,17 @@ const Profile: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [editedStatus, setEditedStatus] = useState<string>('');
   const [uploadingTranscript, setUploadingTranscript] = useState(false);
+  
+  // State for collapsible personality categories
+  const [collapsedCategories, setCollapsedCategories] = useState<{[key: string]: boolean}>({});
+
+  // Helper function to toggle category collapse
+  const toggleCategory = (categoryName: string) => {
+    setCollapsedCategories(prev => ({
+      ...prev,
+      [categoryName]: !prev[categoryName]
+    }));
+  };
 
   // Data fetching functions
   const fetchCandidateData = async () => {
@@ -498,21 +509,21 @@ const Profile: React.FC = () => {
           <p><strong>Date Created:</strong> {formatDate(candidate.dateCreated)}</p>
           <p><strong>Date Updated:</strong> {formatDate(candidate.dateUpdated)}</p>
           <p><strong>Role Applied:</strong> {candidate.roleApplied || 'Not specified'}</p>
-          {candidate.resume ? (
+          {candidate.resumeMetadata ? (
             <p>
               <strong>Resume:</strong>{' '}
               <a 
-                href={getFileDownloadUrl(candidate.resume.fileId)} 
+                href={getFileDownloadUrl(candidate.resumeMetadata.fileId)} 
                 target="_blank"
                 rel="noreferrer"
                 className="download-link"
                 onClick={(e) => {
                   e.preventDefault();
-                  window.open(getFileDownloadUrl(candidate.resume!.fileId), '_blank');
-                  handleDownload(candidate.resume!.filename, 'resume');
+                  window.open(getFileDownloadUrl(candidate.resumeMetadata!.fileId), '_blank');
+                  handleDownload(candidate.resumeMetadata!.filename, 'resume');
                 }}
               >
-                📄 {candidate.resume.filename} ↓
+                📄 {candidate.resumeMetadata.filename} ↓
               </a>
             </p>
           ) : (
@@ -830,7 +841,7 @@ const Profile: React.FC = () => {
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No weaknesses data available</p>
               )}
             </div>
-            <div className="section">
+            {/* <div className="section">
               <strong>Resume Assessment:</strong>
               {resumeParsed.assessment.length > 0 ? (
                 <div className="assessment-content">
@@ -843,7 +854,7 @@ const Profile: React.FC = () => {
               ) : (
                 <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No resume assessment available</p>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -856,14 +867,6 @@ const Profile: React.FC = () => {
               </button>
           </div>
           <div className="box-content">
-              <div className="section">
-                  <strong>Interview Assessment:</strong>
-                  <p>{candidate.interviewAssessment || 'No assessment available'}</p>
-              </div>
-              <div className="section">
-                  <strong>Personality Analysis:</strong>
-                  <p>{personality ? 'Personality data available' : 'No personality data available'}</p>
-              </div>
               <div className="section radar-chart">
                   <strong>Personality Traits Radar:</strong>
                   <ResponsiveContainer width="100%" height={400}>
@@ -875,6 +878,190 @@ const Profile: React.FC = () => {
                           <Tooltip content={<CustomRadarTooltip />} />
                       </RadarChart>
                   </ResponsiveContainer>
+              </div>
+              
+              {/* Personality Trait Evidences - Categorized */}
+              <div className="section">
+                  <strong>Personality Trait Evidence:</strong>
+                  {personality ? (
+                    <div className="personality-categories">
+                      {/* Cognitive and Problem Solving Category */}
+                      {personality.cognitiveAndProblemSolving && Object.keys(personality.cognitiveAndProblemSolving).some(key => personality.cognitiveAndProblemSolving?.[key]?.evidence) && (
+                        <div className="personality-category">
+                          <h4 className="category-title" onClick={() => toggleCategory('cognitive')} style={{ cursor: 'pointer' }}>
+                            <span className="toggle-icon">{collapsedCategories['cognitive'] ? '▶' : '▼'}</span>
+                            Cognitive & Problem-Solving
+                          </h4>
+                          {!collapsedCategories['cognitive'] && (
+                            <div className="subcategories">
+                              {Object.entries(personality.cognitiveAndProblemSolving).map(([key, trait]: [string, any]) => (
+                                trait.evidence && (
+                                  <div key={key} className="subcategory">
+                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
+                                    <div className="trait-evidence-card">
+                                      <p className="evidence-text">{trait.evidence}</p>
+                                      {trait.score > 0 && (
+                                        <div className="evidence-score">
+                                          <span className="score-badge">{trait.score}/10</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Communication and Teamwork Category */}
+                      {personality.communicationAndTeamwork && Object.keys(personality.communicationAndTeamwork).some(key => personality.communicationAndTeamwork?.[key]?.evidence) && (
+                        <div className="personality-category">
+                          <h4 className="category-title" onClick={() => toggleCategory('communication')} style={{ cursor: 'pointer' }}>
+                            <span className="toggle-icon">{collapsedCategories['communication'] ? '▶' : '▼'}</span>
+                            Communication & Teamwork
+                          </h4>
+                          {!collapsedCategories['communication'] && (
+                            <div className="subcategories">
+                              {Object.entries(personality.communicationAndTeamwork).map(([key, trait]: [string, any]) => (
+                                trait.evidence && (
+                                  <div key={key} className="subcategory">
+                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
+                                    <div className="trait-evidence-card">
+                                      <p className="evidence-text">{trait.evidence}</p>
+                                      {trait.score > 0 && (
+                                        <div className="evidence-score">
+                                          <span className="score-badge">{trait.score}/10</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Work Ethic and Reliability Category */}
+                      {personality.workEthicAndReliability && Object.keys(personality.workEthicAndReliability).some(key => personality.workEthicAndReliability?.[key]?.evidence) && (
+                        <div className="personality-category">
+                          <h4 className="category-title" onClick={() => toggleCategory('workEthic')} style={{ cursor: 'pointer' }}>
+                            <span className="toggle-icon">{collapsedCategories['workEthic'] ? '▶' : '▼'}</span>
+                            Work Ethic & Reliability
+                          </h4>
+                          {!collapsedCategories['workEthic'] && (
+                            <div className="subcategories">
+                              {Object.entries(personality.workEthicAndReliability).map(([key, trait]: [string, any]) => (
+                                trait.evidence && (
+                                  <div key={key} className="subcategory">
+                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
+                                    <div className="trait-evidence-card">
+                                      <p className="evidence-text">{trait.evidence}</p>
+                                      {trait.score > 0 && (
+                                        <div className="evidence-score">
+                                          <span className="score-badge">{trait.score}/10</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Growth and Leadership Category */}
+                      {personality.growthAndLeadership && Object.keys(personality.growthAndLeadership).some(key => personality.growthAndLeadership?.[key]?.evidence) && (
+                        <div className="personality-category">
+                          <h4 className="category-title" onClick={() => toggleCategory('growth')} style={{ cursor: 'pointer' }}>
+                            <span className="toggle-icon">{collapsedCategories['growth'] ? '▶' : '▼'}</span>
+                            Growth & Leadership
+                          </h4>
+                          {!collapsedCategories['growth'] && (
+                            <div className="subcategories">
+                              {Object.entries(personality.growthAndLeadership).map(([key, trait]: [string, any]) => (
+                                trait.evidence && (
+                                  <div key={key} className="subcategory">
+                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
+                                    <div className="trait-evidence-card">
+                                      <p className="evidence-text">{trait.evidence}</p>
+                                      {trait.score > 0 && (
+                                        <div className="evidence-score">
+                                          <span className="score-badge">{trait.score}/10</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Culture and Personality Fit Category */}
+                      {personality.cultureAndPersonalityFit && Object.keys(personality.cultureAndPersonalityFit).some(key => personality.cultureAndPersonalityFit?.[key]?.evidence) && (
+                        <div className="personality-category">
+                          <h4 className="category-title" onClick={() => toggleCategory('culture')} style={{ cursor: 'pointer' }}>
+                            <span className="toggle-icon">{collapsedCategories['culture'] ? '▶' : '▼'}</span>
+                            Culture & Personality Fit
+                          </h4>
+                          {!collapsedCategories['culture'] && (
+                            <div className="subcategories">
+                              {Object.entries(personality.cultureAndPersonalityFit).map(([key, trait]: [string, any]) => (
+                                trait.evidence && (
+                                  <div key={key} className="subcategory">
+                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
+                                    <div className="trait-evidence-card">
+                                      <p className="evidence-text">{trait.evidence}</p>
+                                      {trait.score > 0 && (
+                                        <div className="evidence-score">
+                                          <span className="score-badge">{trait.score}/10</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Bonus Traits Category */}
+                      {personality.bonusTraits && Object.keys(personality.bonusTraits).some(key => personality.bonusTraits?.[key]?.evidence) && (
+                        <div className="personality-category">
+                          <h4 className="category-title" onClick={() => toggleCategory('bonus')} style={{ cursor: 'pointer' }}>
+                            <span className="toggle-icon">{collapsedCategories['bonus'] ? '▶' : '▼'}</span>
+                            Bonus Traits
+                          </h4>
+                          {!collapsedCategories['bonus'] && (
+                            <div className="subcategories">
+                              {Object.entries(personality.bonusTraits).map(([key, trait]: [string, any]) => (
+                                trait.evidence && (
+                                  <div key={key} className="subcategory">
+                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
+                                    <div className="trait-evidence-card">
+                                      <p className="evidence-text">{trait.evidence}</p>
+                                      {trait.score > 0 && (
+                                        <div className="evidence-score">
+                                          <span className="score-badge">{trait.score}/10</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No personality trait evidence available</p>
+                  )}
               </div>
           </div>
         </div>
