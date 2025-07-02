@@ -65,16 +65,19 @@ const CandidateList: React.FC = () => {
     return job ? job.jobName : jobId; // Fallback to ID if job not found
   };
   
-  // Most common job role (convert IDs to names)
-  const roleCount = candidates.reduce((acc, candidate) => {
+  // Most common job role (convert IDs to names, exclude candidates with no role)
+  const candidatesWithRoles = candidates.filter(candidate => candidate.roleApplied);
+  const roleCount = candidatesWithRoles.reduce((acc, candidate) => {
     const roleName = getJobNameById(candidate.roleApplied);
     acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
   
-  const mostCommonRole = Object.entries(roleCount).reduce((a, b) => 
-    roleCount[a[0]] > roleCount[b[0]] ? a : b, ['No Role Applied', 0]
-  )[0];
+  const mostCommonRole = Object.keys(roleCount).length > 0 
+    ? Object.entries(roleCount).reduce((a, b) => 
+        roleCount[a[0]] > roleCount[b[0]] ? a : b
+      )[0]
+    : 'No Roles Available';
 
   // Newest candidate
   const newestCandidate = candidates.reduce((newest, candidate) => {

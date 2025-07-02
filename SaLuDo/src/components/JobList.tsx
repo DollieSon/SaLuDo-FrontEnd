@@ -57,12 +57,12 @@ const JobList: React.FC = () => {
   const calculateApplicantStats = () => {
     const jobApplicantCounts = new Map<string, number>();
     
-    // Count applicants per job
-    candidates.forEach(candidate => {
-      if (candidate.roleApplied) {
-        const currentCount = jobApplicantCounts.get(candidate.roleApplied) || 0;
-        jobApplicantCounts.set(candidate.roleApplied, currentCount + 1);
-      }
+    // Count applicants per job (only those with roleApplied)
+    const candidatesWithRoles = candidates.filter(candidate => candidate.roleApplied);
+    
+    candidatesWithRoles.forEach(candidate => {
+      const currentCount = jobApplicantCounts.get(candidate.roleApplied) || 0;
+      jobApplicantCounts.set(candidate.roleApplied, currentCount + 1);
     });
     
     // Find job with most applicants
@@ -83,7 +83,7 @@ const JobList: React.FC = () => {
     return {
       jobWithMostApplicants: jobNameWithMostApplicants,
       maxApplicants,
-      totalApplicants: candidates.length
+      totalApplicants: candidatesWithRoles.length
     };
   };
   
