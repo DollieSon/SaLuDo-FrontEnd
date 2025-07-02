@@ -86,7 +86,7 @@ export const skillsApi = {
 export const jobsApi = {
   // Get all jobs
   getAllJobs: async () => {
-    const response = await fetch(`${apiUrl}jobs`);
+    const response = await fetch(`${apiUrl}jobs?limit=1000`); // Set high limit to get all jobs
     if (!response.ok) throw new Error('Failed to fetch jobs');
     return response.json();
   },

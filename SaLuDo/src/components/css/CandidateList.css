@@ -12,7 +12,7 @@
 
   .table-wrapper {
     overflow-x: auto;
-    max-height: 370px; /* Adjust to your needs */
+    max-height: 600px; /* Increased from 370px to allow more rows */
   }  
   
   .candidate-list th, td {
