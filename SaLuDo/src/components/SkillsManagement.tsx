@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { skillsApi } from '../utils/api';
-import './css/CandidateList.css'; // Using the same CSS for consistent styling
+import './css/SkillsManagement.css'; // Using the same CSS for consistent styling
 
 interface SkillMaster {
   skillId: string;
@@ -297,8 +297,8 @@ const SkillsManagement: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="candidateform-bg">
-        <div className="form-container">
+      <div className="loading-form-bg">
+        <div className="loading-container">
           <h2 className="form-title">Loading Skills...</h2>
         </div>
       </div>
@@ -306,25 +306,18 @@ const SkillsManagement: React.FC = () => {
   }
 
   return (
-    <div className="candidateform-bg">
-      <div className="form-container" style={{ maxWidth: '1200px', width: '90%' }}>
+    <div>
+      <div className='skills-container'>
         <h2 className="form-title">Skills Management</h2>
         <hr />
 
         {/* Error Message */}
         {error && (
-          <div style={{ 
-            backgroundColor: '#f8d7da', 
-            color: '#721c24', 
-            padding: '12px', 
-            marginBottom: '16px',
-            borderRadius: '4px',
-            textAlign: 'center'
-          }}>
+          <div className='error-message'>
             {error}
             <button 
               onClick={() => setError(null)} 
-              style={{ marginLeft: '10px', background: 'none', border: 'none', color: '#721c24', cursor: 'pointer' }}
+              className='error-close-btn'
             >
               ✕
             </button>
@@ -332,45 +325,39 @@ const SkillsManagement: React.FC = () => {
         )}
 
         {/* Statistics Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ backgroundColor: '#e3f2fd', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#1976d2' }}>{stats.total}</h3>
-            <p style={{ margin: 0, color: '#666' }}>Total Skills</p>
+        <div className='stats-grid'>
+          <div className='stat-card stat-total'>
+            <h3>{stats.total}</h3>
+            <p>Total Skills</p>
           </div>
-          <div style={{ backgroundColor: '#e8f5e8', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#388e3c' }}>{stats.accepted}</h3>
-            <p style={{ margin: 0, color: '#666' }}>Accepted</p>
+          <div className='stat-card stat-accepted'>
+            <h3>{stats.accepted}</h3>
+            <p>Accepted</p>
           </div>
-          <div style={{ backgroundColor: '#fff3e0', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#f57c00' }}>{stats.pending}</h3>
-            <p style={{ margin: 0, color: '#666' }}>Pending</p>
+          <div className='stat-card stat-pending'>
+            <h3>{stats.pending}</h3>
+            <p>Pending</p>
           </div>
-          <div style={{ backgroundColor: '#f3e5f5', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#7b1fa2' }}>{stats.mostUsed || 'N/A'}</h3>
-            <p style={{ margin: 0, color: '#666' }}>Most Used</p>
+          <div className='stat-card stat-mostused'>
+            <h3>{stats.mostUsed || 'N/A'}</h3>
+            <p>Most Used</p>
           </div>
         </div>
 
         {/* Controls */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className='controls'>
           <input
             type="text"
             placeholder="Search skills..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ 
-              flex: 1, 
-              minWidth: '200px',
-              padding: '8px 12px', 
-              border: '1px solid #ddd', 
-              borderRadius: '4px' 
-            }}
+            className='search-input'
           />
           
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as 'all' | 'accepted' | 'pending')}
-            style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: '4px' }}
+            className='filter-select'
           >
             <option value="all">All Skills</option>
             <option value="accepted">Accepted</option>
@@ -380,7 +367,6 @@ const SkillsManagement: React.FC = () => {
           <button
             onClick={() => setShowAddModal(true)}
             className="submit-button"
-            style={{ padding: '8px 16px', marginBottom: 0 }}
           >
             + Add Skill
           </button>
@@ -388,14 +374,7 @@ const SkillsManagement: React.FC = () => {
           {selectedSkills.length > 1 && (
             <button
               onClick={openMergeModal}
-              style={{ 
-                padding: '8px 16px', 
-                backgroundColor: '#ff9800', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
+              className='merge-btn'
             >
               Merge Selected ({selectedSkills.length})
             </button>
@@ -403,11 +382,11 @@ const SkillsManagement: React.FC = () => {
         </div>
 
         {/* Skills Table */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', borderRadius: '8px', overflow: 'hidden' }}>
-            <thead style={{ backgroundColor: '#f5f5f5' }}>
+        <div className='table-wrapper'>
+          <table className='skills-table'>
+            <thead>
               <tr>
-                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>
+                <th>
                   <input
                     type="checkbox"
                     onChange={(e) => {
@@ -430,78 +409,48 @@ const SkillsManagement: React.FC = () => {
                     checked={paginatedSkills.length > 0 && paginatedSkills.every(skill => selectedSkills.includes(skill.skillId))}
                   />
                 </th>
-                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Skill Name</th>
-                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Status</th>
-                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Created</th>
-                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Actions</th>
+                <th>Skill Name</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedSkills.map((skill) => (
-                <tr key={skill.skillId} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '12px' }}>
+                <tr key={skill.skillId}>
+                  <td>
                     <input
                       type="checkbox"
                       checked={selectedSkills.includes(skill.skillId)}
                       onChange={() => handleSkillSelection(skill.skillId)}
                     />
                   </td>
-                  <td style={{ padding: '12px', fontWeight: '500' }}>{skill.skillName}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span style={{ 
-                      padding: '4px 8px', 
-                      borderRadius: '12px', 
-                      fontSize: '12px',
-                      backgroundColor: skill.isAccepted ? '#e8f5e8' : '#fff3e0',
-                      color: skill.isAccepted ? '#388e3c' : '#f57c00'
-                    }}>
+                  <td className='td-header'>{skill.skillName}</td>
+                  <td>
+                    <span className={skill.isAccepted ? 'status-badge accepted' : 'status-badge pending'}>
                       {skill.isAccepted ? '✅ Accepted' : '⏳ Pending'}
                     </span>
                   </td>
-                  <td style={{ padding: '12px', color: '#666' }}>
+                  <td className='td-date'>
                     {skill.createdAt.toLocaleDateString()}
                   </td>
-                  <td style={{ padding: '12px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                  <td>
+                    <div className='action-buttons'>
                       <button
                         onClick={() => openEditModal(skill)}
-                        style={{ 
-                          padding: '4px 8px', 
-                          backgroundColor: '#2196f3', 
-                          color: 'white', 
-                          border: 'none', 
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
+                        className='action-btn open-edit-btn'
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleToggleAcceptance(skill)}
-                        style={{ 
-                          padding: '4px 8px', 
-                          backgroundColor: skill.isAccepted ? '#ff9800' : '#4caf50', 
-                          color: 'white', 
-                          border: 'none', 
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
+                        className={skill.isAccepted ? 'action-btn toggle-btn reject' : 'action-btn toggle-btn accept'}
                       >
                         {skill.isAccepted ? 'Reject' : 'Accept'}
                       </button>
                       <button
                         onClick={() => handleDeleteSkill(skill.skillId)}
-                        style={{ 
-                          padding: '4px 8px', 
-                          backgroundColor: '#f44336', 
-                          color: 'white', 
-                          border: 'none', 
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '12px'
-                        }}
+                        className='action-btn delete-btn'
                       >
                         Delete
                       </button>
@@ -513,68 +462,46 @@ const SkillsManagement: React.FC = () => {
           </table>
 
           {paginatedSkills.length === 0 && filteredSkills.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            <div className='no-skills-message'>
               {searchTerm || statusFilter !== 'all' ? 'No skills found matching your criteria.' : 'No skills available.'}
             </div>
           )}
 
           {paginatedSkills.length === 0 && filteredSkills.length > 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            <div className='no-skills-message'>
               No skills on this page. Try going to a previous page or changing the number of items per page.
             </div>
           )}
 
           {/* Pagination Controls */}
           {filteredSkills.length > 0 && (
-            <div style={{ 
-              marginTop: '20px', 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              padding: '16px',
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              border: '1px solid #ddd'
-            }}>
+            <div className='pagination-controls'>
               {/* Items per page selector */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '14px', color: '#666' }}>Show:</span>
+              <div className='items-per-page'>
+                <span className='pagination-label'>Show:</span>
                 <select 
                   value={itemsPerPage} 
                   onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                  style={{
-                    padding: '4px 8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
+                  className='select-text'
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                 </select>
-                <span style={{ fontSize: '14px', color: '#666' }}>entries</span>
+                <span className='pagination-label'>entries</span>
               </div>
 
               {/* Page info */}
-              <div style={{ fontSize: '14px', color: '#666' }}>
+              <div className='pagination-label'>
                 Showing {startItem} to {endItem} of {filteredSkills.length} entries
               </div>
 
               {/* Page navigation */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className='pagination-buttons'>
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  style={{
-                    padding: '6px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    backgroundColor: currentPage === 1 ? '#f5f5f5' : 'white',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                    fontSize: '14px'
-                  }}
                 >
                   Previous
                 </button>
@@ -596,15 +523,7 @@ const SkillsManagement: React.FC = () => {
                     <button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
-                      style={{
-                        padding: '6px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        backgroundColor: currentPage === pageNum ? '#2196f3' : 'white',
-                        color: currentPage === pageNum ? 'white' : '#333',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
+                      className={currentPage === pageNum ? 'active' : 'inactive'}
                     >
                       {pageNum}
                     </button>
@@ -614,14 +533,6 @@ const SkillsManagement: React.FC = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  style={{
-                    padding: '6px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    backgroundColor: currentPage === totalPages ? '#f5f5f5' : 'white',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                    fontSize: '14px'
-                  }}
                 >
                   Next
                 </button>
@@ -643,35 +554,23 @@ const SkillsManagement: React.FC = () => {
                 onChange={(e) => setNewSkillName(e.target.value)}
                 placeholder="Enter skill name"
                 required
-                style={{ 
-                  width: '100%', 
-                  padding: '8px', 
-                  marginBottom: '16px', 
-                  border: '1px solid #ddd', 
-                  borderRadius: '4px' 
-                }}
+                className='modal-input'
               />
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <div className='modal-actions'>
                 <button
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
                     setNewSkillName('');
                   }}
-                  style={{ 
-                    padding: '8px 16px', 
-                    backgroundColor: '#ccc', 
-                    border: 'none', 
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
+                  className='modal-button cancel'
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="modal-button"
+                  className="modal-button primary"
                 >
                   {isSubmitting ? 'Adding...' : 'Add Skill'}
                 </button>
@@ -693,15 +592,9 @@ const SkillsManagement: React.FC = () => {
                 onChange={(e) => setEditSkillName(e.target.value)}
                 placeholder="Enter skill name"
                 required
-                style={{ 
-                  width: '100%', 
-                  padding: '8px', 
-                  marginBottom: '16px', 
-                  border: '1px solid #ddd', 
-                  borderRadius: '4px' 
-                }}
+                className='modal-input'
               />
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <div className='modal-actions'>
                 <button
                   type="button"
                   onClick={() => {
@@ -709,20 +602,14 @@ const SkillsManagement: React.FC = () => {
                     setSelectedSkill(null);
                     setEditSkillName('');
                   }}
-                  style={{ 
-                    padding: '8px 16px', 
-                    backgroundColor: '#ccc', 
-                    border: 'none', 
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
+                  className='modal-button cancel'
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="modal-button"
+                  className="modal-button primary"
                 >
                   {isSubmitting ? 'Updating...' : 'Update Skill'}
                 </button>
@@ -739,12 +626,12 @@ const SkillsManagement: React.FC = () => {
             <h3>Merge Skills</h3>
             <p>Select which skill to keep as the target. All other selected skills will be merged into this one.</p>
             <p><strong>Warning:</strong> This action cannot be undone. All candidate associations with the source skills will be transferred to the target skill.</p>
-            <div style={{ marginBottom: '16px' }}>
+            <div className='merge-options'>
               {selectedSkills.map(skillId => {
                 const skill = skills.find(s => s.skillId === skillId);
                 return skill ? (
-                  <div key={skillId} style={{ marginBottom: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div key={skillId} className='merge-option'>
+                    <label>
                       <input
                         type="radio"
                         name="targetSkill"
@@ -757,20 +644,14 @@ const SkillsManagement: React.FC = () => {
                 ) : null;
               })}
             </div>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <div className='merge-buttons'>
               <button
                 onClick={() => {
                   setShowMergeModal(false);
                   setSelectedSkills([]);
                   setSelectedSkill(null);
                 }}
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: '#ccc', 
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
+                className='modal-button cancel'
                 disabled={isSubmitting}
               >
                 Cancel
@@ -785,14 +666,7 @@ const SkillsManagement: React.FC = () => {
                     alert('Please select a target skill first.');
                   }
                 }}
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: selectedSkill ? '#007bff' : '#ccc', 
-                  color: 'white',
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: selectedSkill ? 'pointer' : 'not-allowed'
-                }}
+                className='modal-button primary'
                 disabled={!selectedSkill || isSubmitting}
               >
                 {isSubmitting ? 'Merging...' : 'Merge Skills'}
