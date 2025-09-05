@@ -1,8 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import './css/Sidebar.css';
-import React from 'react'
+import React from 'react';
 
-const sidebar: React.FC = () =>  {
+const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="logo">
@@ -10,34 +10,65 @@ const sidebar: React.FC = () =>  {
       </div>
 
       <div className="section-title">Main Menu</div>
-      <NavLink to="/" className="nav-link">
-        <img src="/images/list.png" alt="Candidate List" />
-        Candidate List
+      
+      <NavLink 
+        to="/" 
+        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+        style={{ '--index': 0 }}
+      >
+        <div className="nav-link-content">
+          <img src="/images/list.png" alt="Candidate List" />
+          Candidate List
+        </div>
+        <span className="nav-link-badge">248</span>
       </NavLink>
-      <NavLink to="/candidate-form" className="nav-link">
-        <img src="/images/add.png" alt="Add Candidate" />
-        Add Candidate
+      
+      <NavLink 
+        to="/candidate-form" 
+        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+        style={{ '--index': 1 }}
+      >
+        <div className="nav-link-content">
+          <img src="/images/add.png" alt="Add Candidate" />
+          Add Candidate
+        </div>
       </NavLink>
-      <NavLink to="/skills-management" className="nav-link">
-        <img src="/images/analytics.png" alt="Analytics" />
-        Skills Management
+      
+      <NavLink 
+        to="/skills-management" 
+        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+        style={{ '--index': 2 }}
+      >
+        <div className="nav-link-content">
+          <img src="/images/analytics.png" alt="Analytics" />
+          Skills Management
+        </div>
       </NavLink>
-      <NavLink to="/job-list" className="nav-link">
-        <img src="/images/job.png" alt="Job List" />
-        Job List
+      
+      <NavLink 
+        to="/job-list" 
+        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+        style={{ '--index': 3 }}
+      >
+        <div className="nav-link-content">
+          <img src="/images/job.png" alt="Job List" />
+          Job List
+        </div>
+        <span className="nav-link-badge">12</span>
       </NavLink>
 
-      {/* <div className="section-title">Other</div>
-      <NavLink to="/support" className="nav-link">
-        <img src="/images/support.png" alt="Support" />
-        Support
-      </NavLink>
-      <NavLink to="/settings" className="nav-link">
-        <img src="/images/settings.png" alt="Settings" />
-        Settings
-      </NavLink> */}
+      {/* User Profile Section */}
+      <div className="user-profile">
+        <div className="user-profile-card">
+          <div className="user-avatar">JD</div>
+          <div className="user-info">
+            <h4>John Doe</h4>
+            <p>HR Manager</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
-export default sidebar
+export default Sidebar;

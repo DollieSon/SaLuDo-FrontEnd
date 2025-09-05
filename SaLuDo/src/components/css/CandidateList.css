@@ -1,165 +1,487 @@
+/* CandidateList.css */
 .candidate-list {
-    padding: 20px;
+  flex: 1;
+  background: linear-gradient(135deg, #f8fafc 0%, rgba(227, 0, 34, 0.05) 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
 }
 
-.candidate-list table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 10px;
-    border: 1px solid #FFCCCC;
-    min-width: 800px;
-  }
+.candidate-list::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 40%;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
 
-  .table-wrapper {
-    overflow-x: auto;
-    max-height: 600px; /* Increased from 370px to allow more rows */
-  }  
-  
-  .candidate-list th, td {
-    border-bottom: 1px solid #FFCCCC;
-    padding: 1rem;
-    text-align: center;
-  }
+/* Header Styles */
+.candidate-list-header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  padding: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
-  .candidate-list th img {
-    width: 24px;
-    height: 24px;
-  }
+.candidate-list-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  background: linear-gradient(135deg, #1e293b, #E30022);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-  .candidate-list td a {
-    color: #e30022;
-    text-decoration: none;
-  }
+.candidate-list-header::after {
+  content: 'Manage and review job applicants with AI assistance';
+  position: absolute;
+  bottom: 0.75rem;
+  left: 2rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
 
-  .candidate-list th {
-    background-color: #FFCCCC;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-  
-  .open-profile {
-    background: #1B204A;
-    color: white;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    margin-right: 5px;
-    border-radius: 5px;
-  }
+/* Search Section */
+.search-candidate {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 1rem;
+}
 
-  .remove {
-    background: #e30022;
-    color: white;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .summary-cards {
-    display: flex;
-    gap: 5rem;
-    margin-bottom: 1rem;
-  }
-  
-  .summary-cards .card {
-    flex: 1;
-    padding: 1.5rem;
-    border-radius: 12px;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    border: 1px solid #FFCCCC;
-  }
-  
-  .summary-cards .card:nth-child(1) {
-    background: #FFF3EE;
-  }
-  
-  .summary-cards .card:nth-child(2) {
-    background: #EEF6FF;
-  }
-  
-  .summary-cards .card:nth-child(3) {
-    background: #FDF2F8;
-  }
-  
-  .summary-cards .card h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: #1B204A;
-  }
-  
-  .summary-cards .card .number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1B204A;
-    margin: 0.3rem 0;
-  }
-  
-  .summary-cards .card .detail {
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-  
-  .summary-cards .card:nth-child(1) .detail {
-    color: #FF4D4D;
-  }
-  
-  .summary-cards .card:nth-child(2) .detail {
-    color: #007BFF;
-  }
-  
-  .summary-cards .card:nth-child(3) .detail {
-    color: #E91E63;
-  }  
+.search-candidate input {
+  width: 320px;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
 
+.search-candidate input:focus {
+  outline: none;
+  border-color: #E30022;
+  box-shadow: 0 0 0 3px rgba(227, 0, 34, 0.1);
+  background: white;
+}
+
+.search-candidate img {
+  position: absolute;
+  left: 1rem;
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Filter Button */
+.candidate-list-header > img:last-child {
+  width: 20px;
+  height: 20px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #e2e8f0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.candidate-list-header > img:last-child:hover {
+  transform: translateY(-2px);
+  background: #E30022;
+  border-color: #E30022;
+  box-shadow: 0 4px 12px rgba(227, 0, 34, 0.3);
+}
+
+/* Summary Cards */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+  margin-bottom: 1rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #E30022, #FF6B35, #FF4D4D);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: rgba(227, 0, 34, 0.3);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card .number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0.5rem 0;
+  background-clip: text;
+  background: linear-gradient(135deg, #1e293b, #E30022);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card .detail {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.card .detail::before {
+  content: '↗';
+  margin-right: 0.5rem;
+  color: #10b981;
+  font-weight: bold;
+}
+
+.card:nth-child(2) .number {
+  background-clip: text;
+  background: linear-gradient(135deg, #FF6B35, #E30022);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card:nth-child(3) .number {
+  background: linear-gradient(135deg, #FF4D4D, #E30022);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+  margin: 0 2rem 2rem 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+thead th {
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+thead th:first-child {
+  width: 60px;
+  text-align: center;
+}
+
+thead th img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+tbody tr::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #E30022, #FF6B35);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+tbody tr:hover {
+  background: linear-gradient(135deg, rgba(227, 0, 34, 0.02), rgba(255, 107, 53, 0.02));
+  transform: translateX(4px);
+}
+
+tbody tr:hover::before {
+  transform: scaleY(1);
+}
+
+tbody td {
+  padding: 1.25rem 1.5rem;
+  color: #374151;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+tbody td:first-child {
+  text-align: center;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(248, 250, 252, 0.5);
+}
+
+/* Candidate Name Link */
+tbody td a {
+  color: #1e293b;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+tbody td a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #E30022, #FF6B35);
+  transition: width 0.3s ease;
+}
+
+tbody td a:hover {
+  color: #E30022;
+}
+
+tbody td a:hover::after {
+  width: 100%;
+}
+
+/* Status Styling */
+tbody tr td:nth-child(4) span {
+  padding: 0.375rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+/* Action Button */
+.open-profile {
+  background: linear-gradient(135deg, #E30022, #B8001B);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+}
+
+.open-profile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s ease;
+}
+
+.open-profile:hover::before {
+  left: 100%;
+}
+
+.open-profile:hover {
+  background: linear-gradient(135deg, #B8001B, #8A0014);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(227, 0, 34, 0.3);
+}
+
+.open-profile:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(227, 0, 34, 0.3);
+}
+
+/* Loading and Error States */
+tbody tr td[colspan="6"] {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  font-size: 1rem;
+}
+
+tbody tr td[style*="color: #ef4444"] {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.1));
+  border-radius: 0.75rem;
+}
+
+tbody tr td[style*="color: #6b7280"] {
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.1));
+  border-radius: 0.75rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
   .candidate-list-header {
-    display: flex;
-    justify-content: flex-start;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .search-candidate {
-    position: relative;
-    margin-left: 10px;
+    padding: 1.5rem;
   }
   
   .search-candidate input {
-    padding: 8px 30px 8px 12px;
-    border: 1px solid #FFCCCC;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-
-  ::placeholder {
-    color: #F08080;
+    width: 280px;
   }
   
-  .search-candidate img {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
+  .summary-cards {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    padding: 1.5rem;
+    gap: 1rem;
   }
+}
 
-  .candidate-list-header img {
-    width: 20px;
-    height: 20px;
+@media (max-width: 768px) {
+  .candidate-list-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
   }
+  
+  .candidate-list-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .search-candidate {
+    margin: 0;
+  }
+  
+  .search-candidate input {
+    width: 100%;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  
+  .table-wrapper {
+    margin: 0 1rem 1rem 1rem;
+    overflow-x: auto;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+}
 
-  .add-job {
-    background: #e30022;
-    color: white;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    border-radius: 5px;
-    width: 300px;
+/* Animation keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.summary-cards .card {
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-delay: calc(var(--index) * 0.1s);
+}
+
+.table-wrapper {
+  animation: slideInRight 0.8s ease-out;
+}
+
+/* Enhanced visual effects */
+.candidate-list-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+  backdrop-filter: blur(20px);
+  z-index: -1;
+}

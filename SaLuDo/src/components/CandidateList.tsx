@@ -4,14 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { candidatesApi, jobsApi } from '../utils/api';
 import { CandidateProfile } from '../types/profile';
 
-const CandidateList: React.FC = () => {
+const CandidateList = () => {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   // Fetch candidates and jobs from API
   const fetchData = async () => {
@@ -57,9 +57,12 @@ const CandidateList: React.FC = () => {
 
   // Calculate summary statistics
   const totalCandidates = candidates.length;
+  const approvedCandidates = candidates.filter(c => c.status === 'Approved').length;
+  const pendingCandidates = candidates.filter(c => c.status === 'Pending').length;
+  const rejectedCandidates = candidates.filter(c => c.status === 'Rejected').length;
   
   // Helper function to get job name from job ID
-  const getJobNameById = (jobId: string | null): string => {
+  const getJobNameById = (jobId) => {
     if (!jobId) return 'No Role Applied';
     const job = jobs.find(job => job._id === jobId);
     return job ? job.jobName : jobId; // Fallback to ID if job not found
@@ -71,7 +74,7 @@ const CandidateList: React.FC = () => {
     const roleName = getJobNameById(candidate.roleApplied);
     acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
+  }, {});
   
   const mostCommonRole = Object.keys(roleCount).length > 0 
     ? Object.entries(roleCount).reduce((a, b) => 
@@ -80,12 +83,14 @@ const CandidateList: React.FC = () => {
     : 'No Roles Available';
 
   // Newest candidate
-  const newestCandidate = candidates.reduce((newest, candidate) => {
-    return new Date(candidate.dateCreated) > new Date(newest.dateCreated) ? candidate : newest;
-  }, candidates[0]);
+  const newestCandidate = candidates.length > 0 
+    ? candidates.reduce((newest, candidate) => {
+        return new Date(candidate.dateCreated) > new Date(newest.dateCreated) ? candidate : newest;
+      }, candidates[0])
+    : null;
 
   // Format date for display
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -94,18 +99,18 @@ const CandidateList: React.FC = () => {
   };
 
   // Handle candidate click to navigate to profile
-  const handleCandidateClick = (candidateId: string) => {
+  const handleCandidateClick = (candidateId) => {
     navigate(`/profile/${candidateId}`);
   };
 
   return (
     <main className="candidate-list">
       <div className="candidate-list-header">
-        <h2>Candidate List</h2>
+        <h2>Candidate Management</h2>
         <div className="search-candidate">
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search candidates, skills, or positions..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
@@ -115,17 +120,22 @@ const CandidateList: React.FC = () => {
       </div>
 
       <div className="summary-cards">
-        <div className="card">
+        <div className="card" style={{ '--index': 0 }}>
           <h4>Total Candidates</h4>
           <div className="number">{totalCandidates}</div>
           <div className="detail">{filteredCandidates.length} Shown</div>
         </div>
-        <div className="card">
-          <h4>Most Common Role</h4>
-          <div className="number">{mostCommonRole.length > 15 ? `${mostCommonRole.substring(0, 15)}...` : mostCommonRole}</div>
-          <div className="detail">{roleCount[mostCommonRole] || 0} Candidates</div>
+        <div className="card" style={{ '--index': 1 }}>
+          <h4>Approved</h4>
+          <div className="number">{approvedCandidates}</div>
+          <div className="detail">{totalCandidates > 0 ? Math.round((approvedCandidates/totalCandidates)*100) : 0}% of total</div>
         </div>
-        <div className="card">
+        <div className="card" style={{ '--index': 2 }}>
+          <h4>Pending Review</h4>
+          <div className="number">{pendingCandidates}</div>
+          <div className="detail">Awaiting decision</div>
+        </div>
+        <div className="card" style={{ '--index': 3 }}>
           <h4>Newest Candidate</h4>
           <div className="number">{newestCandidate ? newestCandidate.name : 'None'}</div>
           <div className="detail">{newestCandidate ? formatDate(newestCandidate.dateCreated) : 'No Data'}</div>
