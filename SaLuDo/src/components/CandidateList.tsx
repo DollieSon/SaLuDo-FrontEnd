@@ -4,42 +4,42 @@ import { useNavigate } from "react-router-dom";
 import { candidatesApi, jobsApi } from "../utils/api";
 import { CandidateProfile } from "../types/profile";
 
-const CandidateList = () => {
+const CandidateList: React.FC = () => {
   const navigate = useNavigate();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [candidates, setCandidates] = useState([]);
-  const [jobs, setJobs] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch candidates and jobs from API
   const fetchData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
+      
       // Fetch candidates and jobs in parallel
       const [candidatesResponse, jobsResponse] = await Promise.all([
         candidatesApi.getAllCandidates(),
-        jobsApi.getAllJobs(),
+        jobsApi.getAllJobs()
       ]);
-
+      
       if (candidatesResponse.success) {
         setCandidates(candidatesResponse.data);
       } else {
-        throw new Error("Failed to fetch candidates");
+        throw new Error('Failed to fetch candidates');
       }
-
+      
       if (jobsResponse.success) {
         setJobs(jobsResponse.data);
       } else {
-        console.warn("Failed to fetch jobs:", jobsResponse);
+        console.warn('Failed to fetch jobs:', jobsResponse);
         setJobs([]);
       }
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError(err instanceof Error ? err.message : "Failed to load data");
+      console.error('Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
@@ -49,71 +49,52 @@ const CandidateList = () => {
     fetchData();
   }, []);
 
-  const filteredCandidates = candidates.filter(
-    (c) =>
-      (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.roleApplied &&
-        c.roleApplied.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (c.status && c.status.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredCandidates = candidates.filter(c =>
+    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.roleApplied && c.roleApplied.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.status && c.status.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Calculate summary statistics
   const totalCandidates = candidates.length;
-  const approvedCandidates = candidates.filter(
-    (c) => c.status === "Approved"
-  ).length;
-  const pendingCandidates = candidates.filter(
-    (c) => c.status === "Pending"
-  ).length;
-  const rejectedCandidates = candidates.filter(
-    (c) => c.status === "Rejected"
-  ).length;
-
+  
   // Helper function to get job name from job ID
-  const getJobNameById = (jobId) => {
-    if (!jobId) return "No Role Applied";
-    const job = jobs.find((job) => job._id === jobId);
+  const getJobNameById = (jobId: string | null): string => {
+    if (!jobId) return 'No Role Applied';
+    const job = jobs.find(job => job._id === jobId);
     return job ? job.jobName : jobId; // Fallback to ID if job not found
   };
-
+  
   // Most common job role (convert IDs to names, exclude candidates with no role)
-  const candidatesWithRoles = candidates.filter(
-    (candidate) => candidate.roleApplied
-  );
+  const candidatesWithRoles = candidates.filter(candidate => candidate.roleApplied);
   const roleCount = candidatesWithRoles.reduce((acc, candidate) => {
     const roleName = getJobNameById(candidate.roleApplied);
     acc[roleName] = (acc[roleName] || 0) + 1;
     return acc;
-  }, {});
-
-  const mostCommonRole =
-    Object.keys(roleCount).length > 0
-      ? Object.entries(roleCount).reduce((a, b) =>
-          roleCount[a[0]] > roleCount[b[0]] ? a : b
-        )[0]
-      : "No Roles Available";
+  }, {} as Record<string, number>);
+  
+  const mostCommonRole = Object.keys(roleCount).length > 0 
+    ? Object.entries(roleCount).reduce((a, b) => 
+        roleCount[a[0]] > roleCount[b[0]] ? a : b
+      )[0]
+    : 'No Roles Available';
 
   // Newest candidate
-  const newestCandidate =
-    candidates.length > 0
-      ? candidates.reduce((newest, candidate) => {
-          return new Date(candidate.dateCreated) > new Date(newest.dateCreated)
-            ? candidate
-            : newest;
-        }, candidates[0])
-      : null;
+  const newestCandidate = candidates.reduce((newest, candidate) => {
+    return new Date(candidate.dateCreated) > new Date(newest.dateCreated) ? candidate : newest;
+  }, candidates[0]);
 
   // Format date for display
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
   // Handle candidate click to navigate to profile
-  const handleCandidateClick = (candidateId) => {
+  const handleCandidateClick = (candidateId: string) => {
     navigate(`/profile/${candidateId}`);
   };
 
@@ -144,32 +125,22 @@ const CandidateList = () => {
             <img src="/images/analytics.png" alt="Compare" />
             Compare
           </button>
-          <img src="/images/filter.png" alt="Filter" />
+          {/* <img src="/images/filter.png" alt="Filter" /> */}
         </div>
       </div>
 
       <div className="summary-cards">
-        <div className="card" style={{ "--index": 0 }}>
+        <div className="card">
           <h4>Total Candidates</h4>
           <div className="number">{totalCandidates}</div>
           <div className="detail">{filteredCandidates.length} Shown</div>
         </div>
-        <div className="card" style={{ "--index": 1 }}>
-          <h4>Approved</h4>
-          <div className="number">{approvedCandidates}</div>
-          <div className="detail">
-            {totalCandidates > 0
-              ? Math.round((approvedCandidates / totalCandidates) * 100)
-              : 0}
-            % of total
-          </div>
+        <div className="card">
+          <h4>Most Common Role</h4>
+          <div className="number">{mostCommonRole.length > 15 ? `${mostCommonRole.substring(0, 15)}...` : mostCommonRole}</div>
+          <div className="detail">{roleCount[mostCommonRole] || 0} Candidates</div>
         </div>
-        <div className="card" style={{ "--index": 2 }}>
-          <h4>Pending Review</h4>
-          <div className="number">{pendingCandidates}</div>
-          <div className="detail">Awaiting decision</div>
-        </div>
-        <div className="card" style={{ "--index": 3 }}>
+        <div className="card">
           <h4>Newest Candidate</h4>
           <div className="number">
             {newestCandidate ? newestCandidate.name : "None"}

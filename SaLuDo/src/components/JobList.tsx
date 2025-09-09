@@ -121,8 +121,8 @@ const JobList: React.FC = () => {
           />
           <img src="/images/search.png" alt="Search" />
         </div>
-        <img src="/images/filter.png" alt="Filter" />
-        <button className="add-job" onClick={handleAddNewJob}>Add New Job</button>
+        {/* <img src="/images/filter.png" alt="Filter" /> */}
+        <button className="compare-candidates-btn" onClick={handleAddNewJob}>Add New Job</button>
       </div>
       <div className="summary-cards">
         <div className="card">
