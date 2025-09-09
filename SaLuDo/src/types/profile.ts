@@ -14,7 +14,7 @@ export interface ResumeMetadata {
   size: number;
   uploadedAt: string;
   parsedAt?: string;
-  parseStatus?: 'pending' | 'completed' | 'failed' | 'not_started';
+  parseStatus?: "pending" | "completed" | "failed" | "not_started";
   textContent?: string;
 }
 
@@ -25,10 +25,21 @@ export interface TranscriptMetadata {
   size: number;
   uploadedAt: string;
   transcribedAt?: string;
-  transcriptionStatus?: 'pending' | 'completed' | 'failed' | 'not_started';
+  transcriptionStatus?: "pending" | "completed" | "failed" | "not_started";
   textContent?: string;
   interviewRound?: string;
   duration?: number;
+}
+
+export interface VideoMetadata {
+  fileId: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  uploadedAt: string;
+  duration?: number;
+  resolution?: string;
+  interviewRound?: string;
 }
 
 export interface CandidateProfile {
@@ -44,17 +55,19 @@ export interface CandidateProfile {
   resume?: ResumeMetadata;
   resumeMetadata?: ResumeMetadata;
   transcripts?: TranscriptMetadata[];
+  interviewVideos?: VideoMetadata[];
+  introductionVideos?: VideoMetadata[];
   skills: Array<{
     skillId: string;
     skillName: string;
-    source: 'ai' | 'manual';
+    source: "ai" | "manual";
     score?: number;
     evidence?: string;
     isAccepted?: boolean;
   }>;
   experience: Array<{
     experienceId: string;
-    source: 'ai' | 'manual';
+    source: "ai" | "manual";
     description: string;
     company?: string;
     position?: string;
@@ -63,7 +76,7 @@ export interface CandidateProfile {
   }>;
   education: Array<{
     educationId: string;
-    source: 'ai' | 'manual';
+    source: "ai" | "manual";
     description: string;
     institution?: string;
     degree?: string;
@@ -72,7 +85,7 @@ export interface CandidateProfile {
   }>;
   certification: Array<{
     certificationId: string;
-    source: 'ai' | 'manual';
+    source: "ai" | "manual";
     description: string;
     certificationName?: string;
     issuingOrganization?: string;
@@ -81,15 +94,15 @@ export interface CandidateProfile {
   }>;
   strengths: Array<{
     strengthWeaknessId: string;
-    source: 'ai' | 'manual';
+    source: "ai" | "manual";
     description: string;
-    type: 'strength';
+    type: "strength";
   }>;
   weaknesses: Array<{
     strengthWeaknessId: string;
-    source: 'ai' | 'manual';
+    source: "ai" | "manual";
     description: string;
-    type: 'weakness';
+    type: "weakness";
   }>;
   resumeAssessment?: string;
   interviewAssessment?: string;
