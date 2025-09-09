@@ -110,7 +110,7 @@ const JobList: React.FC = () => {
 
   return (
     <main className="candidate-list">
-      <div className="candidate-list-header">
+      <div className="candidate-list-header" data-text="Add and show a list of available job openings with descriptions">
         <h2>Job List</h2>
         <div className="search-candidate">
           <input

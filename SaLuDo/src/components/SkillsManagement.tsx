@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { skillsApi } from '../utils/api';
-import './css/SkillsManagement.css'; // Using the same CSS for consistent styling
+import './css/CandidateList.css'; // Using the same CSS for consistent styling
 
 interface SkillMaster {
   skillId: string;
@@ -15,6 +15,7 @@ interface SkillStats {
   accepted: number;
   pending: number;
   mostUsed?: string;
+  mostUsedCount: number;
 }
 
 const SkillsManagement: React.FC = () => {
@@ -106,7 +107,8 @@ const SkillsManagement: React.FC = () => {
       total,
       accepted,
       pending,
-      mostUsed: skillsData.length > 0 ? skillsData[0].skillName : undefined
+      mostUsed: skillsData.length > 0 ? skillsData[0].skillName : undefined,
+      mostUsedCount: 0
     });
   };
 
@@ -306,10 +308,10 @@ const SkillsManagement: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className='skills-container'>
-        <h2 className="form-title">Skills Management</h2>
-        <hr />
+    <main className="candidate-list">
+      <div className="candidate-list-header" data-text="Accept, reject, and merge skills extracted by the AI">
+        <h2>Skills Management</h2>
+      </div>
 
         {/* Error Message */}
         {error && (
@@ -325,35 +327,42 @@ const SkillsManagement: React.FC = () => {
         )}
 
         {/* Statistics Cards */}
-        <div className='stats-grid'>
-          <div className='stat-card stat-total'>
-            <h3>{stats.total}</h3>
-            <p>Total Skills</p>
+        <div className='summary-cards'>
+          <div className='card'>
+            <h4>Total Skills</h4>
+            <div className="number">{stats.total}</div>
+            <div className="detail">0 Shown</div>
           </div>
-          <div className='stat-card stat-accepted'>
-            <h3>{stats.accepted}</h3>
-            <p>Accepted</p>
+          <div className='card'>
+            <h4>Accepted</h4>
+            <div className="number">{stats.accepted}</div>
+            <div className="detail">0 Shown</div>
           </div>
-          <div className='stat-card stat-pending'>
-            <h3>{stats.pending}</h3>
-            <p>Pending</p>
+          <div className='card'>
+            <h4>Pending</h4>
+            <div className="number">{stats.pending}</div>
+            <div className="detail">0 Shown</div>
           </div>
-          <div className='stat-card stat-mostused'>
-            <h3>{stats.mostUsed || 'N/A'}</h3>
-            <p>Most Used</p>
+          <div className='card'>
+            <h4>Most Used</h4>
+            <div className="number">{stats.mostUsed || 'None'}</div>
+            <div className="detail">
+            {stats.mostUsed
+              ? stats.mostUsedCount + " Users"
+              : "No Data"}
+          </div>
           </div>
         </div>
 
         {/* Controls */}
         <div className='controls'>
           <input
-            type="text"
-            placeholder="Search skills..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className='search-input'
-          />
-          
+              type="text"
+              placeholder="Search candidates, skills, or positions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='search-input'
+            />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as 'all' | 'accepted' | 'pending')}
@@ -366,7 +375,7 @@ const SkillsManagement: React.FC = () => {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="submit-button"
+            className="compare-candidates-btn"
           >
             + Add Skill
           </button>
@@ -383,9 +392,10 @@ const SkillsManagement: React.FC = () => {
 
         {/* Skills Table */}
         <div className='table-wrapper'>
-          <table className='skills-table'>
+          <table>
             <thead>
               <tr>
+                <th></th>
                 <th>
                   <input
                     type="checkbox"
@@ -425,9 +435,12 @@ const SkillsManagement: React.FC = () => {
                       onChange={() => handleSkillSelection(skill.skillId)}
                     />
                   </td>
-                  <td className='td-header'>{skill.skillName}</td>
+                  <td className='td-skill'>{skill.skillName}</td>
                   <td>
-                    <span className={skill.isAccepted ? 'status-badge accepted' : 'status-badge pending'}>
+                    <span className={`status-badge ${
+                        skill.isAccepted ? "accepted" : "pending"
+                      }`}
+                    >
                       {skill.isAccepted ? '✅ Accepted' : '⏳ Pending'}
                     </span>
                   </td>
@@ -438,19 +451,21 @@ const SkillsManagement: React.FC = () => {
                     <div className='action-buttons'>
                       <button
                         onClick={() => openEditModal(skill)}
-                        className='action-btn open-edit-btn'
+                        className='action-btn edit'
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleToggleAcceptance(skill)}
-                        className={skill.isAccepted ? 'action-btn toggle-btn reject' : 'action-btn toggle-btn accept'}
+                        className={`action-btn ${
+                          skill.isAccepted ? "reject" : "accept"
+                        }`}
                       >
                         {skill.isAccepted ? 'Reject' : 'Accept'}
                       </button>
                       <button
                         onClick={() => handleDeleteSkill(skill.skillId)}
-                        className='action-btn delete-btn'
+                        className='action-btn delete'
                       >
                         Delete
                       </button>
@@ -540,7 +555,6 @@ const SkillsManagement: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
       {/* Add Skill Modal */}
       {showAddModal && (
@@ -675,7 +689,7 @@ const SkillsManagement: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 

@@ -105,7 +105,7 @@ const CandidateList: React.FC = () => {
 
   return (
     <main className="candidate-list">
-      <div className="candidate-list-header">
+      <div className="candidate-list-header" data-text="Manage and review job applicants with AI assistance">
         <h2>Candidate Management</h2>
         <div className="header-actions">
           <div className="search-candidate">

@@ -82,14 +82,22 @@
   -webkit-text-fill-color: transparent;
 }
 
-.candidate-list-header::after {
-  content: "Manage and review job applicants with AI assistance";
+.candidate-list-header::after  {
+  content: attr(data-text);
   position: absolute;
   bottom: 0.75rem;
   left: 2rem;
   font-size: 0.875rem;
   color: #64748b;
   font-weight: 500;
+}
+
+.candidate-list-content {
+  --after-content: "Manage and review job applicants with AI assistance";
+}
+
+.job-list-content {
+  --after-content: "Track and update upcoming events with ease";
 }
 
 /* Search Section */
@@ -256,6 +264,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+  text-align: center;
 }
 
 thead {
@@ -543,4 +552,213 @@ tbody tr td[style*="color: #6b7280"] {
   );
   backdrop-filter: blur(20px);
   z-index: -1;
+}
+
+.loading-form-bg {
+    width: 100%;
+    height: 100vh;
+    overflow: auto;
+    position: relative;
+}
+
+.loading-container {
+    width: 90%;
+    max-width: 900px;
+    margin-bottom: 5%;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
+              0 10px 10px rgba(0,0,0,0.22);
+    font-family: 'Inter', sans-serif;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: left;
+}
+
+.form-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  background: linear-gradient(135deg, #1e293b, #e30022);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.error-close-btn {
+  margin-left: 10px;
+  background: none;
+  border: none;
+  color: #721c24;
+  cursor: pointer;
+}
+
+.controls {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  margin-inline: 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input,
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-width: 200px;
+}
+
+.merge-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(227, 0, 34, 0.2);
+}
+
+.merge-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(227, 0, 34, 0.3);
+  background: linear-gradient(135deg, #ffb74d, #ff9800 100%);
+}
+
+.merge-btn img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+/* Status badges */
+.status-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.status-badge.accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.action-btn.edit {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.action-btn.edit:hover {
+  background: #bae6fd;
+}
+
+.action-btn.accept {
+  background: #dcfce7;
+  color: #166534;
+}
+.action-btn.accept:hover {
+  background: #bbf7d0;
+}
+
+.action-btn.reject {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.action-btn.reject:hover {
+  background: #fecaca;
+}
+
+.action-btn.delete {
+  background: #f1f5f9;
+  color: #334155;
+}
+.action-btn.delete:hover {
+  background: #e2e8f0;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #475569;
+  margin: 20px;
+}
+
+.pagination-buttons button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.pagination-buttons button:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.pagination-buttons button.active {
+  background-color: #2196f3;
+  color: white;
+}
+
+.pagination-buttons button.inactive {
+  background-color: white;
+  color: #333;
+}
+
+.items-per-page,
+.pagination-info,
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
