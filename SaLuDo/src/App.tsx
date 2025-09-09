@@ -1,24 +1,32 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import UserForm from './components/UserForm'
-import ApiData from './components/ApiData'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import UserForm from "./components/UserForm";
+import ApiData from "./components/ApiData";
 // import UserDashboard from './components/UserDashboard'
 // import JobDashboard from './components/JobDashboard'
-import JobForm from './components/JobForm'
-import { useEffect, useState } from 'react'
-import { fetchApiData } from './utils/api'
-import { Data } from './types/data'
-import './App.css'
+import JobForm from "./components/JobForm";
+import { useEffect, useState } from "react";
+import { fetchApiData } from "./utils/api";
+import { Data } from "./types/data";
+import "./App.css";
 
 // 🗂️ Your Dashboard and sub-components:
-import Sidebar from './components/Sidebar.tsx'
-import Header from './components/Header.tsx'
-import CandidateList from './components/CandidateList.tsx'
-import AddCandidate from './components/AddCandidate.tsx'
-import JobList from './components/JobList.tsx'
-import CandidateForm from './components/CandidateForm.tsx'
-import SkillsManagement from './components/SkillsManagement.tsx'
-import Profile from './components/Profile.tsx'
-import JobDetails from './components/JobDetails.tsx'
+import Sidebar from "./components/Sidebar.tsx";
+import Header from "./components/Header.tsx";
+import CandidateList from "./components/CandidateList.tsx";
+import AddCandidate from "./components/AddCandidate.tsx";
+import JobList from "./components/JobList.tsx";
+import CandidateForm from "./components/CandidateForm.tsx";
+import SkillsManagement from "./components/SkillsManagement.tsx";
+import Profile from "./components/Profile.tsx";
+import JobDetails from "./components/JobDetails.tsx";
+import CandidateSelector from "./components/CandidateSelector.tsx";
+import CandidateComparison from "./components/CandidateComparison.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -27,14 +35,17 @@ function AuthPage() {
 
   const handleLogin = () => {
     // ✅ Here you can add real validation later.
-    navigate('/'); // This changes the URL to your dashboard page.
+    navigate("/"); // This changes the URL to your dashboard page.
   };
 
   return (
-    <div className={`container ${isRightPanelActive ? 'right-panel-active' : ''}`} id="container">
+    <div
+      className={`container ${isRightPanelActive ? "right-panel-active" : ""}`}
+      id="container"
+    >
       {/* Sign Up Form */}
       <div className="form-container sign-up-container">
-        <form className='app-form'>
+        <form className="app-form">
           <h2>Create Account</h2>
           <div className="social-icons">
             <button type="button">f</button>
@@ -45,14 +56,16 @@ function AuthPage() {
           <input type="text" placeholder="Name" />
           <input type="email" placeholder="Email" />
           <input type="password" placeholder="Password" />
-          <button type="button" className="submitbtn">Sign Up</button>
+          <button type="button" className="submitbtn">
+            Sign Up
+          </button>
         </form>
       </div>
 
       {/* Sign In Form */}
       <div className="form-container sign-in-container">
         <img src="/images/logo 1.png" className="logo" alt="Alliance Logo" />
-        <form className='app-form' style={{ height: '80%' }}>
+        <form className="app-form" style={{ height: "80%" }}>
           <h2>Login</h2>
           <div className="social-icons">
             <button type="button">f</button>
@@ -62,11 +75,7 @@ function AuthPage() {
           <span>or use your account:</span>
           <input type="email" placeholder="Email" />
           <input type="password" placeholder="Password" />
-          <button
-            type="button"
-            className="submitbtn"
-            onClick={handleLogin}
-          >
+          <button type="button" className="submitbtn" onClick={handleLogin}>
             LOG IN
           </button>
         </form>
@@ -79,7 +88,9 @@ function AuthPage() {
           {/* Overlay for Sign In */}
           <div className="overlay-panel overlay-left">
             <h2>Welcome Back!</h2>
-            <p>To keep connected with us please login with your personal info</p>
+            <p>
+              To keep connected with us please login with your personal info
+            </p>
             <button
               type="button"
               className="ghost"
@@ -104,7 +115,7 @@ function AuthPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 type Props = {
@@ -128,7 +139,7 @@ function Dashboard() {
     <DashboardLayout>
       <CandidateList />
     </DashboardLayout>
-  )
+  );
 }
 
 function AddCandidatePage() {
@@ -182,17 +193,33 @@ function JobFormPage() {
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const jobId = searchParams.get('jobId') || '';
+  const jobId = searchParams.get("jobId") || "";
 
   return <CandidateForm jobId={jobId} />;
 }
 
+function CandidateSelectorPage() {
+  return (
+    <DashboardLayout>
+      <CandidateSelector />
+    </DashboardLayout>
+  );
+}
+
+function CandidateComparisonPage() {
+  return (
+    <DashboardLayout>
+      <CandidateComparison />
+    </DashboardLayout>
+  );
+}
+
 function App() {
-  const [data, setData] = useState<Data | null>(null)
+  const [data, setData] = useState<Data | null>(null);
 
   useEffect(() => {
-    fetchApiData().then(setData)
-  }, [])
+    fetchApiData().then(setData);
+  }, []);
 
   return (
     <Router>
@@ -214,9 +241,14 @@ function App() {
         <Route path="/candidate-form" element={<CandidateFormPage />} />
         <Route path="/skills-management" element={<SkillsManagementPage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
+        <Route path="/compare-candidates" element={<CandidateSelectorPage />} />
+        <Route
+          path="/compare/:candidateId1/:candidateId2"
+          element={<CandidateComparisonPage />}
+        />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

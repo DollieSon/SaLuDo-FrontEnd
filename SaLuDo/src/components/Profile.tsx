@@ -537,6 +537,10 @@ const Profile: React.FC = () => {
     navigate(-1);
   };
 
+  const handleCompareWithOthers = () => {
+    navigate("/compare-candidates");
+  };
+
   const CustomRadarTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -655,6 +659,13 @@ const Profile: React.FC = () => {
           style={{ cursor: "pointer" }}
         />
         <h2>{candidate.name}</h2>
+        <button
+          onClick={handleCompareWithOthers}
+          className="compare-btn"
+          title="Compare with other candidates"
+        >
+          Compare
+        </button>
       </div>
 
       <div className="info-box">

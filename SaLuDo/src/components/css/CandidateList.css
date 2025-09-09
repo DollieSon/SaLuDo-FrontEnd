@@ -8,13 +8,17 @@
 }
 
 .candidate-list::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
   width: 40%;
   height: 40%;
-  background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(147, 51, 234, 0.1) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 
@@ -33,19 +37,53 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.compare-candidates-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #e30022, #b8001b);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(227, 0, 34, 0.2);
+}
+
+.compare-candidates-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(227, 0, 34, 0.3);
+  background: linear-gradient(135deg, #b8001b, #e30022);
+}
+
+.compare-candidates-btn img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
 .candidate-list-header h2 {
   font-size: 2rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
-  background: linear-gradient(135deg, #1e293b, #E30022);
+  background: linear-gradient(135deg, #1e293b, #e30022);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .candidate-list-header::after {
-  content: 'Manage and review job applicants with AI assistance';
+  content: "Manage and review job applicants with AI assistance";
   position: absolute;
   bottom: 0.75rem;
   left: 2rem;
@@ -76,7 +114,7 @@
 
 .search-candidate input:focus {
   outline: none;
-  border-color: #E30022;
+  border-color: #e30022;
   box-shadow: 0 0 0 3px rgba(227, 0, 34, 0.1);
   background: white;
 }
@@ -104,8 +142,8 @@
 
 .candidate-list-header > img:last-child:hover {
   transform: translateY(-2px);
-  background: #E30022;
-  border-color: #E30022;
+  background: #e30022;
+  border-color: #e30022;
   box-shadow: 0 4px 12px rgba(227, 0, 34, 0.3);
 }
 
@@ -131,13 +169,13 @@
 }
 
 .card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #E30022, #FF6B35, #FF4D4D);
+  background: linear-gradient(90deg, #e30022, #ff6b35, #ff4d4d);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -167,7 +205,7 @@
   color: #1e293b;
   margin: 0.5rem 0;
   background-clip: text;
-  background: linear-gradient(135deg, #1e293b, #E30022);
+  background: linear-gradient(135deg, #1e293b, #e30022);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -182,7 +220,7 @@
 }
 
 .card .detail::before {
-  content: '↗';
+  content: "↗";
   margin-right: 0.5rem;
   color: #10b981;
   font-weight: bold;
@@ -190,13 +228,13 @@
 
 .card:nth-child(2) .number {
   background-clip: text;
-  background: linear-gradient(135deg, #FF6B35, #E30022);
+  background: linear-gradient(135deg, #ff6b35, #e30022);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .card:nth-child(3) .number {
-  background: linear-gradient(135deg, #FF4D4D, #E30022);
+  background: linear-gradient(135deg, #ff4d4d, #e30022);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -253,19 +291,23 @@ tbody tr {
 }
 
 tbody tr::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, #E30022, #FF6B35);
+  background: linear-gradient(180deg, #e30022, #ff6b35);
   transform: scaleY(0);
   transition: transform 0.3s ease;
 }
 
 tbody tr:hover {
-  background: linear-gradient(135deg, rgba(227, 0, 34, 0.02), rgba(255, 107, 53, 0.02));
+  background: linear-gradient(
+    135deg,
+    rgba(227, 0, 34, 0.02),
+    rgba(255, 107, 53, 0.02)
+  );
   transform: translateX(4px);
 }
 
@@ -301,18 +343,18 @@ tbody td a {
 }
 
 tbody td a::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #E30022, #FF6B35);
+  background: linear-gradient(90deg, #e30022, #ff6b35);
   transition: width 0.3s ease;
 }
 
 tbody td a:hover {
-  color: #E30022;
+  color: #e30022;
 }
 
 tbody td a:hover::after {
@@ -332,7 +374,7 @@ tbody tr td:nth-child(4) span {
 
 /* Action Button */
 .open-profile {
-  background: linear-gradient(135deg, #E30022, #B8001B);
+  background: linear-gradient(135deg, #e30022, #b8001b);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -348,13 +390,18 @@ tbody tr td:nth-child(4) span {
 }
 
 .open-profile::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.6s ease;
 }
 
@@ -363,7 +410,7 @@ tbody tr td:nth-child(4) span {
 }
 
 .open-profile:hover {
-  background: linear-gradient(135deg, #B8001B, #8A0014);
+  background: linear-gradient(135deg, #b8001b, #8a0014);
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(227, 0, 34, 0.3);
 }
@@ -381,12 +428,20 @@ tbody tr td[colspan="6"] {
 }
 
 tbody tr td[style*="color: #ef4444"] {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.05),
+    rgba(239, 68, 68, 0.1)
+  );
   border-radius: 0.75rem;
 }
 
 tbody tr td[style*="color: #6b7280"] {
-  background: linear-gradient(135deg, rgba(107, 114, 128, 0.05), rgba(107, 114, 128, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(107, 114, 128, 0.05),
+    rgba(107, 114, 128, 0.1)
+  );
   border-radius: 0.75rem;
 }
 
@@ -395,11 +450,11 @@ tbody tr td[style*="color: #6b7280"] {
   .candidate-list-header {
     padding: 1.5rem;
   }
-  
+
   .search-candidate input {
     width: 280px;
   }
-  
+
   .summary-cards {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     padding: 1.5rem;
@@ -413,29 +468,29 @@ tbody tr td[style*="color: #6b7280"] {
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .candidate-list-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .search-candidate {
     margin: 0;
   }
-  
+
   .search-candidate input {
     width: 100%;
   }
-  
+
   .summary-cards {
     grid-template-columns: 1fr;
     padding: 1rem;
   }
-  
+
   .table-wrapper {
     margin: 0 1rem 1rem 1rem;
     overflow-x: auto;
   }
-  
+
   table {
     min-width: 600px;
   }
@@ -475,13 +530,17 @@ tbody tr td[style*="color: #6b7280"] {
 
 /* Enhanced visual effects */
 .candidate-list-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(248, 250, 252, 0.8)
+  );
   backdrop-filter: blur(20px);
   z-index: -1;
 }

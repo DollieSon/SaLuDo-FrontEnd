@@ -256,4 +256,13 @@ export const candidatesApi = {
   getTranscriptDownloadUrl: (fileId: string) => {
     return `${apiUrl}files/transcripts/${fileId}`;
   },
+
+  // Compare two candidates
+  compareCandidates: async (candidateId1: string, candidateId2: string) => {
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId1}/compare/${candidateId2}`
+    );
+    if (!response.ok) throw new Error("Failed to compare candidates");
+    return response.json();
+  },
 };
