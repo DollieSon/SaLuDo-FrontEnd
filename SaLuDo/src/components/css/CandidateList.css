@@ -264,6 +264,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+  table-layout: fixed;
   text-align: center;
 }
 
@@ -280,11 +281,12 @@ thead th {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 0.75rem;
+  width: 25%;
+  text-align: center;
 }
 
 thead th:first-child {
   width: 60px;
-  text-align: center;
 }
 
 thead th img {
@@ -296,10 +298,9 @@ thead th img {
 tbody tr {
   border-bottom: 1px solid rgba(226, 232, 240, 0.5);
   transition: all 0.3s ease;
-  position: relative;
 }
 
-tbody tr::before {
+tbody td:first-child::before {
   content: "";
   position: absolute;
   left: 0;
@@ -308,19 +309,24 @@ tbody tr::before {
   width: 4px;
   background: linear-gradient(180deg, #e30022, #ff6b35);
   transform: scaleY(0);
-  transition: transform 0.3s ease;
+  transform-origin: top;
+  transition: transform 0.28s ease;
+  pointer-events: none;
+  z-index: 2;
 }
 
-tbody tr:hover {
+tbody tr:hover td:not(:first-child) {
+  transform: translateX(4px);
+  transition: transform 0.3s ease;
+  will-change: transform;
   background: linear-gradient(
     135deg,
     rgba(227, 0, 34, 0.02),
     rgba(255, 107, 53, 0.02)
   );
-  transform: translateX(4px);
 }
 
-tbody tr:hover::before {
+tbody tr:hover td:first-child::before {
   transform: scaleY(1);
 }
 
@@ -336,6 +342,9 @@ tbody td:first-child {
   font-weight: 600;
   color: #64748b;
   font-size: 0.8rem;
+  position: relative; /* anchor ::before inside this cell */
+  padding-left: calc(1.5rem + 6px); /* original left padding (1.5rem) + space for 4px bar + small gap */
+  overflow: visible;
 }
 
 tbody tr:nth-child(even) {

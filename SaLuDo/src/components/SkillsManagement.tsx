@@ -15,7 +15,7 @@ interface SkillStats {
   accepted: number;
   pending: number;
   mostUsed?: string;
-  mostUsedCount: number;
+  mostUsedCount?: number;
 }
 
 const SkillsManagement: React.FC = () => {
@@ -395,7 +395,6 @@ const SkillsManagement: React.FC = () => {
           <table>
             <thead>
               <tr>
-                <th></th>
                 <th>
                   <input
                     type="checkbox"

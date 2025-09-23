@@ -14,19 +14,17 @@ const Sidebar = () => {
       <NavLink 
         to="/" 
         className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-        style={{ '--index': 0 }}
       >
         <div className="nav-link-content">
           <img src="/images/list.png" alt="Candidate List" />
           Candidate List
         </div>
-        <span className="nav-link-badge">248</span>
+        {/* <span className="nav-link-badge">248</span> */}
       </NavLink>
       
       <NavLink 
         to="/candidate-form" 
         className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-        style={{ '--index': 1 }}
       >
         <div className="nav-link-content">
           <img src="/images/add.png" alt="Add Candidate" />
@@ -37,7 +35,6 @@ const Sidebar = () => {
       <NavLink 
         to="/skills-management" 
         className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-        style={{ '--index': 2 }}
       >
         <div className="nav-link-content">
           <img src="/images/analytics.png" alt="Analytics" />
@@ -48,13 +45,12 @@ const Sidebar = () => {
       <NavLink 
         to="/job-list" 
         className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-        style={{ '--index': 3 }}
       >
         <div className="nav-link-content">
           <img src="/images/job.png" alt="Job List" />
           Job List
         </div>
-        <span className="nav-link-badge">12</span>
+        {/* <span className="nav-link-badge">12</span> */}
       </NavLink>
 
       {/* User Profile Section */}
