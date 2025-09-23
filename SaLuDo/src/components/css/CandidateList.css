@@ -443,6 +443,7 @@ tbody tr td[colspan="6"] {
   text-align: center;
   padding: 3rem 1.5rem;
   font-size: 1rem;
+  width: 100%;
 }
 
 tbody tr td[style*="color: #ef4444"] {
@@ -770,4 +771,20 @@ tbody tr td[style*="color: #6b7280"] {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.job-filter {
+  margin-left: 2rem;
+}
+
+.job-filter select {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+
+.highlight-card {
+  border: 2px solid #4f46e5;
+  background: #f9fafb;
 }
