@@ -239,6 +239,7 @@ const CandidateComparison: React.FC = () => {
       </div>
 
       {/* Candidate Info Cards */}
+      <h3 className="section-title">Candidates Overview</h3>
       <div className="candidates-overview">
         <div className="candidate-card">
           <div className="candidate-header">
@@ -332,10 +333,13 @@ const CandidateComparison: React.FC = () => {
       </div>
 
       {/* Comparison Metrics */}
+      <h3 className="section-title">Summary Metrics</h3>
       <div className="comparison-metrics">
         <div className="metrics-grid">
           <div className="metric-card">
-            <h4>Skills Count</h4>
+            <h4>
+              <strong>Skills Count</strong>
+            </h4>
             <div className="metric-comparison">
               <div className="candidate-metric">
                 <span className="candidate-name">
@@ -363,7 +367,9 @@ const CandidateComparison: React.FC = () => {
           </div>
 
           <div className="metric-card">
-            <h4>Average Skill Score</h4>
+            <h4>
+              <strong>Average Skill Score</strong>
+            </h4>
             <div className="metric-comparison">
               <div className="candidate-metric">
                 <span className="candidate-name">
@@ -393,7 +399,9 @@ const CandidateComparison: React.FC = () => {
           </div>
 
           <div className="metric-card">
-            <h4>Experience Count</h4>
+            <h4>
+              <strong>Experience Count</strong>
+            </h4>
             <div className="metric-comparison">
               <div className="candidate-metric">
                 <span className="candidate-name">
@@ -420,8 +428,10 @@ const CandidateComparison: React.FC = () => {
             </div>
           </div>
 
-          <div className="metric-card">
-            <h4>Certification Count</h4>
+          <div className="metric-card certification-card">
+            <h4>
+              <strong>Certification Count</strong>
+            </h4>
             <div className="metric-comparison">
               <div className="candidate-metric">
                 <span className="candidate-name">
@@ -449,7 +459,9 @@ const CandidateComparison: React.FC = () => {
           </div>
 
           <div className="metric-card">
-            <h4>Personality Score</h4>
+            <h4>
+              <strong>Personality Score</strong>
+            </h4>
             <div className="metric-comparison">
               <div className="candidate-metric">
                 <span className="candidate-name">
@@ -479,7 +491,9 @@ const CandidateComparison: React.FC = () => {
           </div>
 
           <div className="metric-card">
-            <h4>Common Skills</h4>
+            <h4>
+              <strong>Common Skills</strong>
+            </h4>
             <div className="metric-value single">
               {comparisonData.comparison.skills.commonSkills.length}
             </div>

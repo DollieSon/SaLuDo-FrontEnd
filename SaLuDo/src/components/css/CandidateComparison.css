@@ -189,11 +189,24 @@
 
 .metric-card h4 {
   font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
+  font-weight: 700;
+  color: #000000; /* metric titles: black and stronger */
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 15px 0;
+  /* Allow titles to wrap so words like "Certification Count" remain visible */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Special handling for the Certification metric: keep the title on a single line
+   and extend slightly into the padding so the word 'Count' doesn't wrap below */
+.certification-card h4 {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  margin-left: -6px; /* nudge left so it doesn't wrap due to box padding */
 }
 
 .metric-comparison {
@@ -202,22 +215,56 @@
   gap: 10px;
 }
 
+/* Scoped rule to ensure candidate names/values inside metric cards align and
+   override any globally defined .candidate-name from other component styles */
+.metrics-grid .candidate-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* top-align so multi-line names line up */
+  gap: 8px;
+}
+
+.metrics-grid .candidate-name {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  display: block;
+  line-height: 1.25;
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.metrics-grid .metric-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  align-self: flex-start;
+}
+
 .candidate-metric {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* top-align so multi-line names line up with other cards */
+  gap: 8px;
 }
 
 .candidate-name {
   font-size: 12px;
   color: #6b7280;
   font-weight: 500;
+  display: block;
+  line-height: 1.25;
+  flex: 1 1 auto; /* allow name to take available space and wrap */
+  min-width: 0; /* allow flex children to shrink for ellipsis/wrapping */
+  word-break: break-word;
 }
 
 .metric-value {
   font-size: 18px;
   font-weight: 700;
   color: #1f2937;
+  align-self: flex-start; /* keep value aligned to the top of the name */
 }
 
 .metric-value.single {
@@ -422,6 +469,12 @@
   .metrics-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
+  }
+
+  /* On small screens, allow certification title to wrap to avoid overflow */
+  .certification-card h4 {
+    white-space: normal;
+    margin-left: 0;
   }
 
   .charts-section {
