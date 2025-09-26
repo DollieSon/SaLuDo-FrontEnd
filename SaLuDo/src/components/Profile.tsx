@@ -541,27 +541,39 @@ const Profile: React.FC = () => {
     navigate("/compare-candidates");
   };
 
-  const CustomRadarTooltip = ({ active, payload }: any) => {
+  const CustomRadarTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      
       return (
         <div className="tooltip-box">
-          <strong>
-            {data.trait}: {data.value.toFixed(1)}
-          </strong>
+          <strong>{data.trait}</strong>
           <ul>
             {data.breakdown.map((b: any, idx: number) => (
               <li key={idx}>
-                {b.sub}: {b.score.toFixed(1)}
+                <span className="trait-name">{b.sub}</span>
+                <span className="trait-score">{b.score.toFixed(1)}</span>
               </li>
             ))}
           </ul>
+          <div style={{ 
+            marginTop: '0.75rem', 
+            padding: '0.5rem 0', 
+            borderTop: '1px solid rgba(226, 232, 240, 0.5)',
+            textAlign: 'center',
+            fontSize: '0.75rem',
+            color: '#64748b',
+            fontWeight: '600'
+          }}>
+            Overall Score: {data.value.toFixed(1)}/10
+          </div>
         </div>
       );
     }
 
     return null;
   };
+
 
   // Loading state
   if (isLoading) {
@@ -651,23 +663,31 @@ const Profile: React.FC = () => {
       {/* Toast Notification */}
       {toastMessage && <div className="toast-notification">{toastMessage}</div>}
 
-      <div className="back-label">
-        <img
-          src="/images/back.png"
-          alt="Back"
-          onClick={handleGoBack}
-          style={{ cursor: "pointer" }}
-        />
-        <h2>{candidate.name}</h2>
-        <button
-          onClick={handleCompareWithOthers}
-          className="compare-btn"
-          title="Compare with other candidates"
+      <div className="profile-header">
+        <div 
+          className="back-label" 
+          data-text={`Comprehensive profile analysis powered by AI • Last updated ${formatDate(candidate.dateUpdated)}`}
         >
-          Compare
-        </button>
+          <div className="left-section">
+            <img
+              src="/images/back.png"
+              alt="Back"
+              onClick={handleGoBack}
+            />
+            <h2>{candidate.name}</h2>
+          </div>
+          <button
+            onClick={handleCompareWithOthers}
+            className="compare-btn"
+            title="Compare with other candidates"
+          >
+            <img src="/images/analytics.png" alt="Compare" />
+            Compare
+          </button>
+        </div>
       </div>
 
+      <div className="profile-content">
       <div className="info-box">
         <div className="box-header">
           <h3>Candidate Information</h3>
@@ -676,362 +696,381 @@ const Profile: React.FC = () => {
           </button>
         </div>
         <div className="box-content">
-          <p>
-            <strong>Name:</strong> {candidate.name}
-          </p>
-          <p>
-            <strong>Email:</strong> {candidate.email.join(", ")}
-          </p>
-          <p>
-            <strong>Birthdate:</strong> {formatDate(candidate.birthdate)}
-          </p>
-          <p>
-            <strong>Date Created:</strong> {formatDate(candidate.dateCreated)}
-          </p>
-          <p>
-            <strong>Date Updated:</strong> {formatDate(candidate.dateUpdated)}
-          </p>
-          <p>
-            <strong>Role Applied:</strong>{" "}
-            {candidate.roleApplied || "Not specified"}
-          </p>
-          {candidate.resumeMetadata ? (
-            <p>
-              <strong>Resume:</strong>{" "}
-              <a
-                href={getFileDownloadUrl(candidate.resumeMetadata.fileId)}
-                target="_blank"
-                rel="noreferrer"
-                className="download-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.open(
-                    getFileDownloadUrl(candidate.resumeMetadata!.fileId),
-                    "_blank"
-                  );
-                  handleDownload(candidate.resumeMetadata!.filename, "resume");
-                }}
-              >
-                📄 {candidate.resumeMetadata.filename} ↓
-              </a>
-            </p>
-          ) : (
-            <p>
-              <strong>Resume:</strong>{" "}
-              <span style={{ color: "#6b7280", fontStyle: "italic" }}>
-                No resume uploaded
-              </span>
-            </p>
-          )}
-          {candidate.transcripts && candidate.transcripts.length > 0 ? (
-            <p>
-              <strong>Transcripts:</strong>{" "}
-              {candidate.transcripts.map((transcript: any, idx: number) => (
-                <span key={idx}>
-                  <a
-                    href={getTranscriptDownloadUrl(transcript.fileId)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="download-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.open(
-                        getTranscriptDownloadUrl(transcript.fileId),
-                        "_blank"
-                      );
-                      handleDownload(transcript.filename, "transcript");
-                    }}
-                  >
-                    📄 {transcript.filename} ↓
-                  </a>
-                  {idx < candidate.transcripts!.length - 1 && ", "}
-                </span>
-              ))}
-              {isEditing && (
-                <div style={{ marginTop: "8px" }}>
-                  <label
-                    htmlFor="transcript-upload"
-                    style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {uploadingTranscript
-                      ? "Uploading..."
-                      : "Upload New Transcript"}
-                  </label>
-                  <input
-                    id="transcript-upload"
-                    type="file"
-                    accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
-                    onChange={handleTranscriptUpload}
-                    disabled={uploadingTranscript}
-                    style={{ display: "none" }}
-                  />
-                </div>
+          <div className="info-item">
+            <div className="info-label">Full Name</div>
+            <div className="info-value">{candidate.name}</div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Email Address</div>
+            <div className="info-value">{candidate.email.join(", ")}</div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Birth Date</div>
+            <div className="info-value">{formatDate(candidate.birthdate)}</div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Application Date</div>
+            <div className="info-value">{formatDate(candidate.dateCreated)}</div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Last Updated</div>
+            <div className="info-value">{formatDate(candidate.dateUpdated)}</div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Role Applied</div>
+            <div className="info-value">{candidate.roleApplied || "Not specified"}</div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Resume</div>
+            <div className="info-value">
+              {candidate.resumeMetadata ? (
+                <a
+                  href={getFileDownloadUrl(candidate.resumeMetadata.fileId)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="download-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open(
+                      getFileDownloadUrl(candidate.resumeMetadata!.fileId),
+                      "_blank"
+                    );
+                    handleDownload(candidate.resumeMetadata!.filename, "resume");
+                  }}
+                >
+                  📄 {candidate.resumeMetadata.filename} ↓
+                </a>
+              ) : (
+                <p>
+                  <strong>Resume:</strong>{" "}
+                  <span style={{ color: "#6b7280", fontStyle: "italic" }}>
+                    No resume uploaded
+                  </span>
+                </p>
               )}
-            </p>
-          ) : (
-            <p>
-              <strong>Transcripts:</strong>{" "}
-              <span style={{ color: "#6b7280", fontStyle: "italic" }}>
-                No transcripts uploaded
-              </span>
-              {isEditing && (
-                <div style={{ marginTop: "8px" }}>
-                  <label
-                    htmlFor="transcript-upload"
-                    style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {uploadingTranscript ? "Uploading..." : "Upload Transcript"}
-                  </label>
-                  <input
-                    id="transcript-upload"
-                    type="file"
-                    accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
-                    onChange={handleTranscriptUpload}
-                    disabled={uploadingTranscript}
-                    style={{ display: "none" }}
-                  />
-                </div>
+            </div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Interview Transcript</div>
+            <div className="info-value">
+              {candidate.transcripts && candidate.transcripts.length > 0 ? (
+              <p>
+                {candidate.transcripts.map((transcript: any, idx: number) => (
+                  <span key={idx}>
+                    <a
+                      href={getTranscriptDownloadUrl(transcript.fileId)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="download-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.open(
+                          getTranscriptDownloadUrl(transcript.fileId),
+                          "_blank"
+                        );
+                        handleDownload(transcript.filename, "transcript");
+                      }}
+                    >
+                      📄 {transcript.filename} ↓
+                    </a>
+                    {idx < candidate.transcripts!.length - 1 && ", "}
+                  </span>
+                ))}
+                {isEditing && (
+                  <div style={{ marginTop: "8px" }}>
+                    <label
+                      htmlFor="transcript-upload"
+                      style={{
+                        display: "inline-block",
+                        padding: "6px 12px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                      }}
+                    >
+                      {uploadingTranscript
+                        ? "Uploading..."
+                        : "Upload New Transcript"}
+                    </label>
+                    <input
+                      id="transcript-upload"
+                      type="file"
+                      accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
+                      onChange={handleTranscriptUpload}
+                      disabled={uploadingTranscript}
+                      style={{ display: "none" }}
+                    />
+                  </div>
+                )}
+              </p>
+              ) : (
+                <p>
+                  <span style={{ color: "#6b7280", fontStyle: "italic" }}>
+                    No transcripts uploaded
+                  </span>
+                  {isEditing && (
+                    <div style={{ marginTop: "8px" }}>
+                      <label
+                        htmlFor="transcript-upload"
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 12px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {uploadingTranscript ? "Uploading..." : "Upload Transcript"}
+                      </label>
+                      <input
+                        id="transcript-upload"
+                        type="file"
+                        accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
+                        onChange={handleTranscriptUpload}
+                        disabled={uploadingTranscript}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  )}
+                </p>
               )}
-            </p>
-          )}
+            </div>
+          </div>
 
           {/* Interview Videos Section */}
-          {candidate.interviewVideos && candidate.interviewVideos.length > 0 ? (
-            <p>
-              <strong>Interview Videos:</strong>{" "}
-              {candidate.interviewVideos.map((video: any, idx: number) => (
-                <span key={idx}>
-                  <a
-                    href={getInterviewVideoDownloadUrl(video.fileId)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="download-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.open(
-                        getInterviewVideoDownloadUrl(video.fileId),
-                        "_blank"
-                      );
-                      handleDownload(video.filename, "interview-video");
-                    }}
-                  >
-                    🎥 {video.filename} ↓
-                  </a>
-                  {idx < candidate.interviewVideos!.length - 1 && ", "}
-                </span>
-              ))}
-              {isEditing && (
-                <div style={{ marginTop: "8px" }}>
-                  <label
-                    htmlFor="interview-video-upload"
-                    style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {uploadingInterviewVideo
-                      ? "Uploading..."
-                      : "Upload New Interview Video"}
-                  </label>
-                  <input
-                    id="interview-video-upload"
-                    type="file"
-                    accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
-                    onChange={handleInterviewVideoUpload}
-                    disabled={uploadingInterviewVideo}
-                    style={{ display: "none" }}
-                  />
-                </div>
+          <div className="info-item">
+            <div className="info-label">Interview Video</div>
+            <div className="info-value">
+              {candidate.interviewVideos && candidate.interviewVideos.length > 0 ? (
+                <p>
+                  {candidate.interviewVideos.map((video: any, idx: number) => (
+                    <span key={idx}>
+                      <a
+                        href={getInterviewVideoDownloadUrl(video.fileId)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="download-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(
+                            getInterviewVideoDownloadUrl(video.fileId),
+                            "_blank"
+                          );
+                          handleDownload(video.filename, "interview-video");
+                        }}
+                      >
+                        🎥 {video.filename} ↓
+                      </a>
+                      {idx < candidate.interviewVideos!.length - 1 && ", "}
+                    </span>
+                  ))}
+                  {isEditing && (
+                    <div style={{ marginTop: "8px" }}>
+                      <label
+                        htmlFor="interview-video-upload"
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 12px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {uploadingInterviewVideo
+                          ? "Uploading..."
+                          : "Upload New Interview Video"}
+                      </label>
+                      <input
+                        id="interview-video-upload"
+                        type="file"
+                        accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
+                        onChange={handleInterviewVideoUpload}
+                        disabled={uploadingInterviewVideo}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  )}
+                </p>
+              ) : (
+                <p>
+                  <span style={{ color: "#6b7280", fontStyle: "italic" }}>
+                    No interview videos uploaded
+                  </span>
+                  {isEditing && (
+                    <div style={{ marginTop: "8px" }}>
+                      <label
+                        htmlFor="interview-video-upload"
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 12px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {uploadingInterviewVideo
+                          ? "Uploading..."
+                          : "Upload Interview Video"}
+                      </label>
+                      <input
+                        id="interview-video-upload"
+                        type="file"
+                        accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
+                        onChange={handleInterviewVideoUpload}
+                        disabled={uploadingInterviewVideo}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  )}
+                </p>
               )}
-            </p>
-          ) : (
-            <p>
-              <strong>Interview Videos:</strong>{" "}
-              <span style={{ color: "#6b7280", fontStyle: "italic" }}>
-                No interview videos uploaded
-              </span>
-              {isEditing && (
-                <div style={{ marginTop: "8px" }}>
-                  <label
-                    htmlFor="interview-video-upload"
-                    style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {uploadingInterviewVideo
-                      ? "Uploading..."
-                      : "Upload Interview Video"}
-                  </label>
-                  <input
-                    id="interview-video-upload"
-                    type="file"
-                    accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
-                    onChange={handleInterviewVideoUpload}
-                    disabled={uploadingInterviewVideo}
-                    style={{ display: "none" }}
-                  />
-                </div>
-              )}
-            </p>
-          )}
+            </div>
+          </div>
 
           {/* Introduction Videos Section */}
-          {candidate.introductionVideos &&
-          candidate.introductionVideos.length > 0 ? (
-            <p>
-              <strong>Introduction Videos:</strong>{" "}
-              {candidate.introductionVideos.map((video: any, idx: number) => (
-                <span key={idx}>
-                  <a
-                    href={getIntroductionVideoDownloadUrl(video.fileId)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="download-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.open(
-                        getIntroductionVideoDownloadUrl(video.fileId),
-                        "_blank"
-                      );
-                      handleDownload(video.filename, "introduction-video");
-                    }}
-                  >
-                    🎬 {video.filename} ↓
-                  </a>
-                  {idx < candidate.introductionVideos!.length - 1 && ", "}
+          <div className="info-item">
+            <div className="info-label">Introduction Video</div>
+            <div className="info-value">
+              {candidate.introductionVideos &&
+              candidate.introductionVideos.length > 0 ? (
+                <p>
+                  {candidate.introductionVideos.map((video: any, idx: number) => (
+                    <span key={idx}>
+                      <a
+                        href={getIntroductionVideoDownloadUrl(video.fileId)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="download-link"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(
+                            getIntroductionVideoDownloadUrl(video.fileId),
+                            "_blank"
+                          );
+                          handleDownload(video.filename, "introduction-video");
+                        }}
+                      >
+                        🎬 {video.filename} ↓
+                      </a>
+                      {idx < candidate.introductionVideos!.length - 1 && ", "}
+                    </span>
+                  ))}
+                  {isEditing && (
+                    <div style={{ marginTop: "8px" }}>
+                      <label
+                        htmlFor="introduction-video-upload"
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 12px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {uploadingIntroductionVideo
+                          ? "Uploading..."
+                          : "Upload New Introduction Video"}
+                      </label>
+                      <input
+                        id="introduction-video-upload"
+                        type="file"
+                        accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
+                        onChange={handleIntroductionVideoUpload}
+                        disabled={uploadingIntroductionVideo}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  )}
+                </p>
+              ) : (
+                <p>
+                  <span style={{ color: "#6b7280", fontStyle: "italic" }}>
+                    No introduction videos uploaded
+                  </span>
+                  {isEditing && (
+                    <div style={{ marginTop: "8px" }}>
+                      <label
+                        htmlFor="introduction-video-upload"
+                        style={{
+                          display: "inline-block",
+                          padding: "6px 12px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {uploadingIntroductionVideo
+                          ? "Uploading..."
+                          : "Upload Introduction Video"}
+                      </label>
+                      <input
+                        id="introduction-video-upload"
+                        type="file"
+                        accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
+                        onChange={handleIntroductionVideoUpload}
+                        disabled={uploadingIntroductionVideo}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          <div className="info-item">
+            <div className="info-label">Current Status</div>
+            <div className="info-value">
+              {isEditing ? (
+                <select
+                  value={editedStatus || candidate.status}
+                  onChange={(e) => setEditedStatus(e.target.value)}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                  }}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="In Review">In Review</option>
+                </select>
+              ) : (
+                <span className={`status-badge ${candidate.status.toLowerCase()}`}>
+                  {candidate.status === "Approved" && "✅"}
+                  {candidate.status === "Rejected" && "❌"}
+                  {candidate.status === "Pending" && "⏳"}
+                  {candidate.status === "In Review" && "👁️"}
+                  {candidate.status}
                 </span>
-              ))}
-              {isEditing && (
-                <div style={{ marginTop: "8px" }}>
-                  <label
-                    htmlFor="introduction-video-upload"
-                    style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {uploadingIntroductionVideo
-                      ? "Uploading..."
-                      : "Upload New Introduction Video"}
-                  </label>
-                  <input
-                    id="introduction-video-upload"
-                    type="file"
-                    accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
-                    onChange={handleIntroductionVideoUpload}
-                    disabled={uploadingIntroductionVideo}
-                    style={{ display: "none" }}
-                  />
-                </div>
               )}
-            </p>
-          ) : (
-            <p>
-              <strong>Introduction Videos:</strong>{" "}
-              <span style={{ color: "#6b7280", fontStyle: "italic" }}>
-                No introduction videos uploaded
+            </div>
+          </div>
+          <div className="info-item">
+            <div className="info-label">Account Status</div>
+            <div className="info-value">
+              <span className={`status-badge ${candidate.isDeleted ? 'rejected' : 'approved'}`}>
+                {candidate.isDeleted ? "❌ Inactive" : "✅ Active"}
               </span>
-              {isEditing && (
-                <div style={{ marginTop: "8px" }}>
-                  <label
-                    htmlFor="introduction-video-upload"
-                    style={{
-                      display: "inline-block",
-                      padding: "6px 12px",
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                    }}
-                  >
-                    {uploadingIntroductionVideo
-                      ? "Uploading..."
-                      : "Upload Introduction Video"}
-                  </label>
-                  <input
-                    id="introduction-video-upload"
-                    type="file"
-                    accept=".mp4,.webm,.avi,.mov,.wmv,.flv,.mkv"
-                    onChange={handleIntroductionVideoUpload}
-                    disabled={uploadingIntroductionVideo}
-                    style={{ display: "none" }}
-                  />
-                </div>
-              )}
-            </p>
-          )}
-          <p>
-            <strong>Status:</strong>
-            {isEditing ? (
-              <select
-                value={editedStatus || candidate.status}
-                onChange={(e) => setEditedStatus(e.target.value)}
-                style={{
-                  marginLeft: "8px",
-                  padding: "4px 8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-                <option value="In Review">In Review</option>
-              </select>
-            ) : (
-              <span
-                style={{
-                  color:
-                    candidate.status === "Approved"
-                      ? "#10b981"
-                      : candidate.status === "Rejected"
-                      ? "#ef4444"
-                      : "#f59e0b",
-                  fontWeight: "bold",
-                  marginLeft: "8px",
-                }}
-              >
-                {candidate.status}
-              </span>
-            )}
-          </p>
-          <p>
-            <strong>Active:</strong> {candidate.isDeleted ? "No" : "Yes"}
-          </p>
+            </div>
+          </div>
         </div>
+      </div>
       </div>
 
       {/* Two-column layout for parsed sections */}
@@ -1281,31 +1320,73 @@ const Profile: React.FC = () => {
           </div>
           <div className="box-content">
             <div className="section radar-chart">
-              <strong>Personality Traits Radar:</strong>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="80%"
-                  data={radarData}
-                >
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="trait" />
-                  <PolarRadiusAxis
-                    angle={30}
-                    domain={[0, 10]}
-                    tickFormatter={(tick) => tick.toFixed(1)}
-                  />
-                  <Radar
-                    name="Score"
-                    dataKey="value"
-                    stroke="#E30022"
-                    fill="#E30022"
-                    fillOpacity={0.6}
-                  />
-                  <Tooltip content={<CustomRadarTooltip />} />
-                </RadarChart>
-              </ResponsiveContainer>
+              <strong>Personality Traits Radar</strong>
+              <div className="radar-chart-container">
+                <div className="radar-chart-overlay"></div>
+                <ResponsiveContainer width="100%" height={450}>
+                  <RadarChart
+                    cx="50%"
+                    cy="50%"
+                    outerRadius="75%"
+                    data={radarData}
+                    margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+                  >
+                    <PolarGrid 
+                      stroke="rgba(148, 163, 184, 0.3)"
+                      strokeWidth={1}
+                    />
+                    <PolarAngleAxis 
+                      dataKey="trait" 
+                      tick={{ 
+                        fontSize: 11, 
+                        fontWeight: 600, 
+                        fill: '#475569', 
+                        width: '100%',
+                      }}
+                      className="radar-axis-text"
+                    />
+                    <PolarRadiusAxis
+                      angle={30}
+                      domain={[0, 10]}
+                      tick={{ 
+                        fontSize: 10, 
+                        fill: '#64748b' 
+                      }}
+                      tickFormatter={(tick) => tick.toFixed(1)}
+                      strokeOpacity={0.3}
+                    />
+                    <Radar
+                      name="Score"
+                      dataKey="value"
+                      stroke="#E30022"
+                      strokeWidth={3}
+                      fill="#E30022"
+                      fillOpacity={0.15}
+                      dot={{ 
+                        fill: "#E30022", 
+                        strokeWidth: 2, 
+                        stroke: "#ffffff",
+                        r: 4 
+                      }}
+                      activeDot={{ 
+                        r: 6, 
+                        fill: "#E30022", 
+                        stroke: "#ffffff",
+                        strokeWidth: 3,
+                        filter: "drop-shadow(0 2px 4px rgba(227, 0, 34, 0.4))"
+                      }}
+                    />
+                    <Tooltip 
+                      content={<CustomRadarTooltip />}
+                      cursor={false}
+                      wrapperStyle={{
+                        outline: 'none',
+                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))'
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* Personality Trait Evidences - Categorized */}

@@ -106,6 +106,11 @@ export interface CandidateProfile {
   }>;
   resumeAssessment?: string;
   interviewAssessment?: string;
+  // Add these optional job matching properties
+  jobMatchScore?: number;
+  matchedSkills?: number;
+  totalJobSkills?: number;
+  missingSkills?: string[];
 }
 
 export interface PersonalityTrait {
