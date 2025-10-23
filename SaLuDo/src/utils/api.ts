@@ -17,9 +17,36 @@ export const apiUrl: string = getApiUrl();
 // Skills API functions
 export const skillsApi = {
   // Get all master skills - AVAILABLE: GET /api/skills
-  getAllMasterSkills: async () => {
-    const response = await fetch(`${apiUrl}skills`);
+  getAllMasterSkills: async (accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}skills`, { headers });
     if (!response.ok) throw new Error("Failed to fetch skills");
+    return response.json();
+  },
+
+  // Get only skills used by candidates - AVAILABLE: GET /api/skills/master/used
+  getUsedMasterSkills: async (accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}skills/master/used`, { headers });
+    if (!response.ok) throw new Error("Failed to fetch used skills");
     return response.json();
   },
 
@@ -92,8 +119,18 @@ export const skillsApi = {
 // Job API functions
 export const jobsApi = {
   // Get all jobs
-  getAllJobs: async () => {
-    const response = await fetch(`${apiUrl}jobs?limit=1000`); // Set high limit to get all jobs
+  getAllJobs: async (accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}jobs?limit=1000`, { headers }); // Set high limit to get all jobs
     if (!response.ok) throw new Error("Failed to fetch jobs");
     return response.json();
   },
@@ -165,16 +202,38 @@ export const jobsApi = {
 // Candidate API functions
 export const candidatesApi = {
   // Get all candidates
-  getAllCandidates: async () => {
-    const response = await fetch(`${apiUrl}candidates`);
+  getAllCandidates: async (accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      // Try to get token from localStorage
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}candidates`, { headers });
     if (!response.ok) throw new Error("Failed to fetch candidates");
     return response.json();
   },
 
   // Create new candidate
-  createCandidate: async (formData: FormData) => {
+  createCandidate: async (formData: FormData, accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(`${apiUrl}candidates`, {
       method: "POST",
+      headers,
       body: formData, // Don't set Content-Type header, let browser set it for FormData
     });
     if (!response.ok) throw new Error("Failed to create candidate");
@@ -182,26 +241,66 @@ export const candidatesApi = {
   },
 
   // Get single candidate by ID
-  getCandidateById: async (candidateId: string) => {
-    const response = await fetch(`${apiUrl}candidates/${candidateId}`);
+  getCandidateById: async (candidateId: string, accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+      headers,
+    });
     if (!response.ok) throw new Error("Failed to fetch candidate");
     return response.json();
   },
 
   // Get candidate personality data
-  getCandidatePersonality: async (candidateId: string) => {
+  getCandidatePersonality: async (
+    candidateId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(
-      `${apiUrl}candidates/${candidateId}/personality`
+      `${apiUrl}candidates/${candidateId}/personality`,
+      { headers }
     );
     if (!response.ok) throw new Error("Failed to fetch candidate personality");
     return response.json();
   },
 
   // Update candidate information
-  updateCandidate: async (candidateId: string, updates: any) => {
+  updateCandidate: async (
+    candidateId: string,
+    updates: any,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(updates),
     });
     if (!response.ok) throw new Error("Failed to update candidate");
@@ -209,11 +308,26 @@ export const candidatesApi = {
   },
 
   // Upload transcript file
-  uploadTranscript: async (candidateId: string, formData: FormData) => {
+  uploadTranscript: async (
+    candidateId: string,
+    formData: FormData,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/transcripts`,
       {
         method: "POST",
+        headers,
         body: formData,
       }
     );
@@ -222,11 +336,26 @@ export const candidatesApi = {
   },
 
   // Upload interview video file
-  uploadInterviewVideo: async (candidateId: string, formData: FormData) => {
+  uploadInterviewVideo: async (
+    candidateId: string,
+    formData: FormData,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/videos/interview/upload`,
       {
         method: "POST",
+        headers,
         body: formData,
       }
     );
@@ -235,11 +364,26 @@ export const candidatesApi = {
   },
 
   // Upload introduction video file
-  uploadIntroductionVideo: async (candidateId: string, formData: FormData) => {
+  uploadIntroductionVideo: async (
+    candidateId: string,
+    formData: FormData,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/videos/introduction/upload`,
       {
         method: "POST",
+        headers,
         body: formData,
       }
     );
@@ -258,11 +402,296 @@ export const candidatesApi = {
   },
 
   // Compare two candidates
-  compareCandidates: async (candidateId1: string, candidateId2: string) => {
+  compareCandidates: async (
+    candidateId1: string,
+    candidateId2: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(
-      `${apiUrl}candidates/${candidateId1}/compare/${candidateId2}`
+      `${apiUrl}candidates/compare/${candidateId1}/${candidateId2}`,
+      { headers }
     );
     if (!response.ok) throw new Error("Failed to compare candidates");
+    return response.json();
+  },
+
+  // Assign user to candidate
+  assignUserToCandidate: async (
+    candidateId: string,
+    userId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/assign/${userId}`,
+      {
+        method: "POST",
+        headers,
+      }
+    );
+    if (!response.ok) throw new Error("Failed to assign user");
+    return response.json();
+  },
+
+  // Unassign user from candidate
+  unassignUserFromCandidate: async (
+    candidateId: string,
+    userId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/unassign/${userId}`,
+      {
+        method: "DELETE",
+        headers,
+      }
+    );
+    if (!response.ok) throw new Error("Failed to unassign user");
+    return response.json();
+  },
+
+  // Get candidate assignments
+  getCandidateAssignments: async (
+    candidateId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/assignments`,
+      { headers }
+    );
+    if (!response.ok) throw new Error("Failed to get assignments");
+    return response.json();
+  },
+};
+
+// User/Auth API functions
+export const usersApi = {
+  // Login
+  login: async (email: string, password: string) => {
+    const response = await fetch(`${apiUrl}users/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) throw new Error("Login failed");
+    return response.json();
+  },
+
+  // Logout
+  logout: async (
+    accessToken: string,
+    refreshToken?: string,
+    revokeAllSessions: boolean = false
+  ) => {
+    const response = await fetch(`${apiUrl}users/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ refreshToken, revokeAllSessions }),
+    });
+    if (!response.ok) throw new Error("Logout failed");
+    return response.json();
+  },
+
+  // Refresh token
+  refreshToken: async (refreshToken: string) => {
+    const response = await fetch(`${apiUrl}users/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!response.ok) throw new Error("Token refresh failed");
+    return response.json();
+  },
+
+  // Change password
+  changePassword: async (
+    accessToken: string,
+    currentPassword: string,
+    newPassword: string
+  ) => {
+    const response = await fetch(`${apiUrl}users/auth/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (!response.ok) throw new Error("Password change failed");
+    return response.json();
+  },
+
+  // Get all users (Admin only)
+  getAllUsers: async (
+    accessToken: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      role?: string;
+      isActive?: boolean;
+      search?: string;
+    }
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.page) params.append("page", options.page.toString());
+    if (options?.limit) params.append("limit", options.limit.toString());
+    if (options?.role) params.append("role", options.role);
+    if (options?.isActive !== undefined)
+      params.append("isActive", options.isActive.toString());
+    if (options?.search) params.append("search", options.search);
+
+    const response = await fetch(`${apiUrl}users?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch users");
+    return response.json();
+  },
+
+  // Get user by ID
+  getUserById: async (accessToken: string, userId: string) => {
+    const response = await fetch(`${apiUrl}users/${userId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch user");
+    return response.json();
+  },
+
+  // Create new user (Admin only)
+  createUser: async (
+    accessToken: string,
+    userData: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      middleName?: string;
+      title: string;
+      role: string;
+    }
+  ) => {
+    const response = await fetch(`${apiUrl}users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) throw new Error("Failed to create user");
+    return response.json();
+  },
+
+  // Update user profile
+  updateUserProfile: async (
+    accessToken: string,
+    userId: string,
+    updates: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      middleName?: string;
+      title?: string;
+    }
+  ) => {
+    const response = await fetch(`${apiUrl}users/${userId}/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error("Failed to update user profile");
+    return response.json();
+  },
+
+  // Set user active status (Admin only)
+  setUserActiveStatus: async (
+    accessToken: string,
+    userId: string,
+    isActive: boolean
+  ) => {
+    const response = await fetch(`${apiUrl}users/${userId}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ isActive }),
+    });
+    if (!response.ok) throw new Error("Failed to update user status");
+    return response.json();
+  },
+
+  // Reset user password (Admin only)
+  resetUserPassword: async (
+    accessToken: string,
+    userId: string,
+    newPassword: string
+  ) => {
+    const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ newPassword }),
+    });
+    if (!response.ok) throw new Error("Failed to reset password");
+    return response.json();
+  },
+
+  // Delete user (Admin only)
+  deleteUser: async (accessToken: string, userId: string) => {
+    const response = await fetch(`${apiUrl}users/${userId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to delete user");
     return response.json();
   },
 };

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { skillsApi } from '../utils/api';
-import './css/CandidateList.css'; // Using the same CSS for consistent styling
+import React, { useState, useEffect } from "react";
+import { skillsApi } from "../utils/api";
+import "./css/CandidateList.css"; // Using the same CSS for consistent styling
 
 interface SkillMaster {
   skillId: string;
@@ -21,74 +21,80 @@ interface SkillStats {
 const SkillsManagement: React.FC = () => {
   const [skills, setSkills] = useState<SkillMaster[]>([]);
   const [filteredSkills, setFilteredSkills] = useState<SkillMaster[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'accepted' | 'pending'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "accepted" | "pending"
+  >("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<SkillStats>({ total: 0, accepted: 0, pending: 0 });
-  
+  const [stats, setStats] = useState<SkillStats>({
+    total: 0,
+    accepted: 0,
+    pending: 0,
+  });
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [paginatedSkills, setPaginatedSkills] = useState<SkillMaster[]>([]);
-  
+
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<SkillMaster | null>(null);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  
+
   // Form states
-  const [newSkillName, setNewSkillName] = useState('');
-  const [editSkillName, setEditSkillName] = useState('');
+  const [newSkillName, setNewSkillName] = useState("");
+  const [editSkillName, setEditSkillName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch skills from API
   const fetchSkills = async () => {
     try {
       setIsLoading(true);
-      // Use the skillsApi utility function
-      const result = await skillsApi.getAllMasterSkills();
-      
+      // Use the skillsApi utility function to get only skills used by candidates
+      const result = await skillsApi.getUsedMasterSkills();
+
       if (result.success && result.data) {
         const skillsData = result.data.map((skill: any) => ({
           ...skill,
           createdAt: new Date(skill.createdAt || new Date()),
-          updatedAt: new Date(skill.updatedAt || new Date())
+          updatedAt: new Date(skill.updatedAt || new Date()),
         }));
         setSkills(skillsData);
         calculateStats(skillsData);
         setError(null); // Clear any previous errors
       } else {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
     } catch (err) {
-      console.error('Error fetching skills:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load skills');
+      console.error("Error fetching skills:", err);
+      setError(err instanceof Error ? err.message : "Failed to load skills");
       // Show demo data as fallback
       const demoSkills: SkillMaster[] = [
         {
-          skillId: '1',
-          skillName: 'JavaScript',
+          skillId: "1",
+          skillName: "JavaScript",
           isAccepted: true,
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-15')
+          createdAt: new Date("2024-01-15"),
+          updatedAt: new Date("2024-01-15"),
         },
         {
-          skillId: '2',
-          skillName: 'React.js',
+          skillId: "2",
+          skillName: "React.js",
           isAccepted: true,
-          createdAt: new Date('2024-01-20'),
-          updatedAt: new Date('2024-01-20')
+          createdAt: new Date("2024-01-20"),
+          updatedAt: new Date("2024-01-20"),
         },
         {
-          skillId: '3',
-          skillName: 'Node.js',
+          skillId: "3",
+          skillName: "Node.js",
           isAccepted: false,
-          createdAt: new Date('2024-02-01'),
-          updatedAt: new Date('2024-02-01')
-        }
+          createdAt: new Date("2024-02-01"),
+          updatedAt: new Date("2024-02-01"),
+        },
       ];
       setSkills(demoSkills);
       calculateStats(demoSkills);
@@ -100,15 +106,15 @@ const SkillsManagement: React.FC = () => {
   // Calculate statistics
   const calculateStats = (skillsData: SkillMaster[]) => {
     const total = skillsData.length;
-    const accepted = skillsData.filter(skill => skill.isAccepted).length;
+    const accepted = skillsData.filter((skill) => skill.isAccepted).length;
     const pending = total - accepted;
-    
+
     setStats({
       total,
       accepted,
       pending,
       mostUsed: skillsData.length > 0 ? skillsData[0].skillName : undefined,
-      mostUsedCount: 0
+      mostUsedCount: 0,
     });
   };
 
@@ -118,15 +124,15 @@ const SkillsManagement: React.FC = () => {
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(skill =>
+      filtered = filtered.filter((skill) =>
         skill.skillName.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(skill => 
-        statusFilter === 'accepted' ? skill.isAccepted : !skill.isAccepted
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((skill) =>
+        statusFilter === "accepted" ? skill.isAccepted : !skill.isAccepted
       );
     }
 
@@ -162,7 +168,9 @@ const SkillsManagement: React.FC = () => {
     e.preventDefault();
     if (!newSkillName.trim()) return;
 
-    setError('Direct skill creation is not available through this interface. Skills are automatically created when they are added to candidates through the candidate management system. To add a new skill to the master database, please add it to a candidate first.');
+    setError(
+      "Direct skill creation is not available through this interface. Skills are automatically created when they are added to candidates through the candidate management system. To add a new skill to the master database, please add it to a candidate first."
+    );
     setIsSubmitting(false);
   };
 
@@ -173,23 +181,23 @@ const SkillsManagement: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      
-      const result = await skillsApi.updateSkillMaster(selectedSkill.skillId, { 
-        skillName: editSkillName.trim() 
+
+      const result = await skillsApi.updateSkillMaster(selectedSkill.skillId, {
+        skillName: editSkillName.trim(),
       });
-      
+
       if (result.success) {
-        setEditSkillName('');
+        setEditSkillName("");
         setSelectedSkill(null);
         setShowEditModal(false);
         fetchSkills(); // Refresh the list
         setError(null);
       } else {
-        throw new Error(result.message || 'Failed to update skill');
+        throw new Error(result.message || "Failed to update skill");
       }
     } catch (err) {
-      console.error('Error updating skill:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update skill');
+      console.error("Error updating skill:", err);
+      setError(err instanceof Error ? err.message : "Failed to update skill");
     } finally {
       setIsSubmitting(false);
     }
@@ -197,47 +205,54 @@ const SkillsManagement: React.FC = () => {
 
   // Delete skill (soft delete by setting isAccepted: false)
   const handleDeleteSkill = async (skillId: string) => {
-    if (!confirm('Are you sure you want to reject this skill? This will set it as not accepted.')) return;
+    if (
+      !confirm(
+        "Are you sure you want to reject this skill? This will set it as not accepted."
+      )
+    )
+      return;
 
     try {
       const result = await skillsApi.rejectSkill(skillId);
-      
+
       if (result.success) {
         fetchSkills(); // Refresh the list
         setError(null);
       } else {
-        throw new Error(result.message || 'Failed to reject skill');
+        throw new Error(result.message || "Failed to reject skill");
       }
     } catch (err) {
-      console.error('Error rejecting skill:', err);
-      setError(err instanceof Error ? err.message : 'Failed to reject skill');
+      console.error("Error rejecting skill:", err);
+      setError(err instanceof Error ? err.message : "Failed to reject skill");
     }
   };
 
   // Toggle skill acceptance
   const handleToggleAcceptance = async (skill: SkillMaster) => {
     try {
-      const result = skill.isAccepted 
+      const result = skill.isAccepted
         ? await skillsApi.rejectSkill(skill.skillId)
         : await skillsApi.acceptSkill(skill.skillId);
-      
+
       if (result.success) {
         fetchSkills(); // Refresh the list
         setError(null);
       } else {
-        throw new Error(result.message || 'Failed to update skill status');
+        throw new Error(result.message || "Failed to update skill status");
       }
     } catch (err) {
-      console.error('Error toggling skill acceptance:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update skill status');
+      console.error("Error toggling skill acceptance:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to update skill status"
+      );
     }
   };
 
   // Handle checkbox selection for bulk operations
   const handleSkillSelection = (skillId: string) => {
-    setSelectedSkills(prev => 
-      prev.includes(skillId) 
-        ? prev.filter(id => id !== skillId)
+    setSelectedSkills((prev) =>
+      prev.includes(skillId)
+        ? prev.filter((id) => id !== skillId)
         : [...prev, skillId]
     );
   };
@@ -252,11 +267,13 @@ const SkillsManagement: React.FC = () => {
   // Open merge modal
   const openMergeModal = () => {
     if (selectedSkills.length < 2) {
-      alert('Please select at least 2 skills to merge');
+      alert("Please select at least 2 skills to merge");
       return;
     }
     if (selectedSkills.length > 10) {
-      alert('You can merge a maximum of 10 skills at once to avoid performance issues');
+      alert(
+        "You can merge a maximum of 10 skills at once to avoid performance issues"
+      );
       return;
     }
     setSelectedSkill(null); // Reset selected target skill
@@ -267,27 +284,31 @@ const SkillsManagement: React.FC = () => {
   const handleMergeSkills = async (targetSkillId: string) => {
     try {
       setIsSubmitting(true);
-      
-      const sourceSkillIds = selectedSkills.filter(id => id !== targetSkillId);
-      
+
+      const sourceSkillIds = selectedSkills.filter(
+        (id) => id !== targetSkillId
+      );
+
       if (sourceSkillIds.length === 0) {
-        throw new Error('No source skills selected for merging');
+        throw new Error("No source skills selected for merging");
       }
-      
+
       const result = await skillsApi.mergeSkills(targetSkillId, sourceSkillIds);
-      
+
       if (result.success) {
         setSelectedSkills([]);
         setShowMergeModal(false);
         fetchSkills(); // Refresh the list
         setError(null);
-        alert(`Successfully merged ${result.data.mergedCount} skills. Updated ${result.data.updatedCandidates} candidate records.`);
+        alert(
+          `Successfully merged ${result.data.mergedCount} skills. Updated ${result.data.updatedCandidates} candidate records.`
+        );
       } else {
-        throw new Error(result.message || 'Failed to merge skills');
+        throw new Error(result.message || "Failed to merge skills");
       }
     } catch (err) {
-      console.error('Error merging skills:', err);
-      setError(err instanceof Error ? err.message : 'Failed to merge skills');
+      console.error("Error merging skills:", err);
+      setError(err instanceof Error ? err.message : "Failed to merge skills");
     } finally {
       setIsSubmitting(false);
     }
@@ -309,251 +330,265 @@ const SkillsManagement: React.FC = () => {
 
   return (
     <main className="candidate-list">
-      <div className="candidate-list-header" data-text="Accept, reject, and merge skills extracted by the AI">
+      <div
+        className="candidate-list-header"
+        data-text="Accept, reject, and merge skills extracted by the AI"
+      >
         <h2>Skills Management</h2>
       </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className='error-message'>
-            {error}
-            <button 
-              onClick={() => setError(null)} 
-              className='error-close-btn'
-            >
-              ✕
-            </button>
+      {/* Error Message */}
+      {error && (
+        <div className="error-message">
+          {error}
+          <button onClick={() => setError(null)} className="error-close-btn">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Statistics Cards */}
+      <div className="summary-cards">
+        <div className="card">
+          <h4>Total Skills</h4>
+          <div className="number">{stats.total}</div>
+          <div className="detail">0 Shown</div>
+        </div>
+        <div className="card">
+          <h4>Accepted</h4>
+          <div className="number">{stats.accepted}</div>
+          <div className="detail">0 Shown</div>
+        </div>
+        <div className="card">
+          <h4>Pending</h4>
+          <div className="number">{stats.pending}</div>
+          <div className="detail">0 Shown</div>
+        </div>
+        <div className="card">
+          <h4>Most Used</h4>
+          <div className="number">{stats.mostUsed || "None"}</div>
+          <div className="detail">
+            {stats.mostUsed ? stats.mostUsedCount + " Users" : "No Data"}
+          </div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="controls">
+        <input
+          type="text"
+          placeholder="Search candidates, skills, or positions..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as "all" | "accepted" | "pending")
+          }
+          className="filter-select"
+        >
+          <option value="all">All Skills</option>
+          <option value="accepted">Accepted</option>
+          <option value="pending">Pending</option>
+        </select>
+
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="compare-candidates-btn"
+        >
+          + Add Skill
+        </button>
+
+        {selectedSkills.length > 1 && (
+          <button onClick={openMergeModal} className="merge-btn">
+            Merge Selected ({selectedSkills.length})
+          </button>
+        )}
+      </div>
+
+      {/* Skills Table */}
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedSkills((prev) => {
+                        const newSelected = [...prev];
+                        paginatedSkills.forEach((skill) => {
+                          if (!newSelected.includes(skill.skillId)) {
+                            newSelected.push(skill.skillId);
+                          }
+                        });
+                        return newSelected;
+                      });
+                    } else {
+                      setSelectedSkills((prev) =>
+                        prev.filter(
+                          (id) =>
+                            !paginatedSkills.find(
+                              (skill) => skill.skillId === id
+                            )
+                        )
+                      );
+                    }
+                  }}
+                  checked={
+                    paginatedSkills.length > 0 &&
+                    paginatedSkills.every((skill) =>
+                      selectedSkills.includes(skill.skillId)
+                    )
+                  }
+                />
+              </th>
+              <th>Skill Name</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedSkills.map((skill) => (
+              <tr key={skill.skillId}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedSkills.includes(skill.skillId)}
+                    onChange={() => handleSkillSelection(skill.skillId)}
+                  />
+                </td>
+                <td className="td-skill">{skill.skillName}</td>
+                <td>
+                  <span
+                    className={`status-badge ${
+                      skill.isAccepted ? "accepted" : "pending"
+                    }`}
+                  >
+                    {skill.isAccepted ? "✅ Accepted" : "⏳ Pending"}
+                  </span>
+                </td>
+                <td className="td-date">
+                  {skill.createdAt.toLocaleDateString()}
+                </td>
+                <td>
+                  <div className="action-buttons">
+                    <button
+                      onClick={() => openEditModal(skill)}
+                      className="action-btn edit"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleToggleAcceptance(skill)}
+                      className={`action-btn ${
+                        skill.isAccepted ? "reject" : "accept"
+                      }`}
+                    >
+                      {skill.isAccepted ? "Reject" : "Accept"}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSkill(skill.skillId)}
+                      className="action-btn delete"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {paginatedSkills.length === 0 && filteredSkills.length === 0 && (
+          <div className="no-skills-message">
+            {searchTerm || statusFilter !== "all"
+              ? "No skills found matching your criteria."
+              : "No skills available."}
           </div>
         )}
 
-        {/* Statistics Cards */}
-        <div className='summary-cards'>
-          <div className='card'>
-            <h4>Total Skills</h4>
-            <div className="number">{stats.total}</div>
-            <div className="detail">0 Shown</div>
+        {paginatedSkills.length === 0 && filteredSkills.length > 0 && (
+          <div className="no-skills-message">
+            No skills on this page. Try going to a previous page or changing the
+            number of items per page.
           </div>
-          <div className='card'>
-            <h4>Accepted</h4>
-            <div className="number">{stats.accepted}</div>
-            <div className="detail">0 Shown</div>
-          </div>
-          <div className='card'>
-            <h4>Pending</h4>
-            <div className="number">{stats.pending}</div>
-            <div className="detail">0 Shown</div>
-          </div>
-          <div className='card'>
-            <h4>Most Used</h4>
-            <div className="number">{stats.mostUsed || 'None'}</div>
-            <div className="detail">
-            {stats.mostUsed
-              ? stats.mostUsedCount + " Users"
-              : "No Data"}
-          </div>
-          </div>
-        </div>
+        )}
 
-        {/* Controls */}
-        <div className='controls'>
-          <input
-              type="text"
-              placeholder="Search candidates, skills, or positions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className='search-input'
-            />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'accepted' | 'pending')}
-            className='filter-select'
-          >
-            <option value="all">All Skills</option>
-            <option value="accepted">Accepted</option>
-            <option value="pending">Pending</option>
-          </select>
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="compare-candidates-btn"
-          >
-            + Add Skill
-          </button>
-
-          {selectedSkills.length > 1 && (
-            <button
-              onClick={openMergeModal}
-              className='merge-btn'
-            >
-              Merge Selected ({selectedSkills.length})
-            </button>
-          )}
-        </div>
-
-        {/* Skills Table */}
-        <div className='table-wrapper'>
-          <table>
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedSkills(prev => {
-                          const newSelected = [...prev];
-                          paginatedSkills.forEach(skill => {
-                            if (!newSelected.includes(skill.skillId)) {
-                              newSelected.push(skill.skillId);
-                            }
-                          });
-                          return newSelected;
-                        });
-                      } else {
-                        setSelectedSkills(prev => 
-                          prev.filter(id => !paginatedSkills.find(skill => skill.skillId === id))
-                        );
-                      }
-                    }}
-                    checked={paginatedSkills.length > 0 && paginatedSkills.every(skill => selectedSkills.includes(skill.skillId))}
-                  />
-                </th>
-                <th>Skill Name</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedSkills.map((skill) => (
-                <tr key={skill.skillId}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedSkills.includes(skill.skillId)}
-                      onChange={() => handleSkillSelection(skill.skillId)}
-                    />
-                  </td>
-                  <td className='td-skill'>{skill.skillName}</td>
-                  <td>
-                    <span className={`status-badge ${
-                        skill.isAccepted ? "accepted" : "pending"
-                      }`}
-                    >
-                      {skill.isAccepted ? '✅ Accepted' : '⏳ Pending'}
-                    </span>
-                  </td>
-                  <td className='td-date'>
-                    {skill.createdAt.toLocaleDateString()}
-                  </td>
-                  <td>
-                    <div className='action-buttons'>
-                      <button
-                        onClick={() => openEditModal(skill)}
-                        className='action-btn edit'
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleToggleAcceptance(skill)}
-                        className={`action-btn ${
-                          skill.isAccepted ? "reject" : "accept"
-                        }`}
-                      >
-                        {skill.isAccepted ? 'Reject' : 'Accept'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteSkill(skill.skillId)}
-                        className='action-btn delete'
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {paginatedSkills.length === 0 && filteredSkills.length === 0 && (
-            <div className='no-skills-message'>
-              {searchTerm || statusFilter !== 'all' ? 'No skills found matching your criteria.' : 'No skills available.'}
+        {/* Pagination Controls */}
+        {filteredSkills.length > 0 && (
+          <div className="pagination-controls">
+            {/* Items per page selector */}
+            <div className="items-per-page">
+              <span className="pagination-label">Show:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) =>
+                  handleItemsPerPageChange(Number(e.target.value))
+                }
+                className="select-text"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="pagination-label">entries</span>
             </div>
-          )}
 
-          {paginatedSkills.length === 0 && filteredSkills.length > 0 && (
-            <div className='no-skills-message'>
-              No skills on this page. Try going to a previous page or changing the number of items per page.
+            {/* Page info */}
+            <div className="pagination-label">
+              Showing {startItem} to {endItem} of {filteredSkills.length}{" "}
+              entries
             </div>
-          )}
 
-          {/* Pagination Controls */}
-          {filteredSkills.length > 0 && (
-            <div className='pagination-controls'>
-              {/* Items per page selector */}
-              <div className='items-per-page'>
-                <span className='pagination-label'>Show:</span>
-                <select 
-                  value={itemsPerPage} 
-                  onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                  className='select-text'
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-                <span className='pagination-label'>entries</span>
-              </div>
+            {/* Page navigation */}
+            <div className="pagination-buttons">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
 
-              {/* Page info */}
-              <div className='pagination-label'>
-                Showing {startItem} to {endItem} of {filteredSkills.length} entries
-              </div>
+              {/* Page numbers */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
 
-              {/* Page navigation */}
-              <div className='pagination-buttons'>
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={currentPage === pageNum ? "active" : "inactive"}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
 
-                {/* Page numbers */}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={currentPage === pageNum ? 'active' : 'inactive'}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
       {/* Add Skill Modal */}
       {showAddModal && (
@@ -567,16 +602,16 @@ const SkillsManagement: React.FC = () => {
                 onChange={(e) => setNewSkillName(e.target.value)}
                 placeholder="Enter skill name"
                 required
-                className='modal-input'
+                className="modal-input"
               />
-              <div className='modal-actions'>
+              <div className="modal-actions">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
-                    setNewSkillName('');
+                    setNewSkillName("");
                   }}
-                  className='modal-button cancel'
+                  className="modal-button cancel"
                 >
                   Cancel
                 </button>
@@ -585,7 +620,7 @@ const SkillsManagement: React.FC = () => {
                   disabled={isSubmitting}
                   className="modal-button primary"
                 >
-                  {isSubmitting ? 'Adding...' : 'Add Skill'}
+                  {isSubmitting ? "Adding..." : "Add Skill"}
                 </button>
               </div>
             </form>
@@ -605,17 +640,17 @@ const SkillsManagement: React.FC = () => {
                 onChange={(e) => setEditSkillName(e.target.value)}
                 placeholder="Enter skill name"
                 required
-                className='modal-input'
+                className="modal-input"
               />
-              <div className='modal-actions'>
+              <div className="modal-actions">
                 <button
                   type="button"
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedSkill(null);
-                    setEditSkillName('');
+                    setEditSkillName("");
                   }}
-                  className='modal-button cancel'
+                  className="modal-button cancel"
                 >
                   Cancel
                 </button>
@@ -624,7 +659,7 @@ const SkillsManagement: React.FC = () => {
                   disabled={isSubmitting}
                   className="modal-button primary"
                 >
-                  {isSubmitting ? 'Updating...' : 'Update Skill'}
+                  {isSubmitting ? "Updating..." : "Update Skill"}
                 </button>
               </div>
             </form>
@@ -637,13 +672,20 @@ const SkillsManagement: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-box">
             <h3>Merge Skills</h3>
-            <p>Select which skill to keep as the target. All other selected skills will be merged into this one.</p>
-            <p><strong>Warning:</strong> This action cannot be undone. All candidate associations with the source skills will be transferred to the target skill.</p>
-            <div className='merge-options'>
-              {selectedSkills.map(skillId => {
-                const skill = skills.find(s => s.skillId === skillId);
+            <p>
+              Select which skill to keep as the target. All other selected
+              skills will be merged into this one.
+            </p>
+            <p>
+              <strong>Warning:</strong> This action cannot be undone. All
+              candidate associations with the source skills will be transferred
+              to the target skill.
+            </p>
+            <div className="merge-options">
+              {selectedSkills.map((skillId) => {
+                const skill = skills.find((s) => s.skillId === skillId);
                 return skill ? (
-                  <div key={skillId} className='merge-option'>
+                  <div key={skillId} className="merge-option">
                     <label>
                       <input
                         type="radio"
@@ -651,20 +693,21 @@ const SkillsManagement: React.FC = () => {
                         value={skillId}
                         onChange={() => setSelectedSkill(skill)}
                       />
-                      <strong>{skill.skillName}</strong> ({skill.isAccepted ? 'Accepted' : 'Pending'})
+                      <strong>{skill.skillName}</strong> (
+                      {skill.isAccepted ? "Accepted" : "Pending"})
                     </label>
                   </div>
                 ) : null;
               })}
             </div>
-            <div className='merge-buttons'>
+            <div className="merge-buttons">
               <button
                 onClick={() => {
                   setShowMergeModal(false);
                   setSelectedSkills([]);
                   setSelectedSkill(null);
                 }}
-                className='modal-button cancel'
+                className="modal-button cancel"
                 disabled={isSubmitting}
               >
                 Cancel
@@ -672,17 +715,25 @@ const SkillsManagement: React.FC = () => {
               <button
                 onClick={() => {
                   if (selectedSkill) {
-                    if (confirm(`Are you sure you want to merge ${selectedSkills.length - 1} skills into "${selectedSkill.skillName}"? This action cannot be undone.`)) {
+                    if (
+                      confirm(
+                        `Are you sure you want to merge ${
+                          selectedSkills.length - 1
+                        } skills into "${
+                          selectedSkill.skillName
+                        }"? This action cannot be undone.`
+                      )
+                    ) {
                       handleMergeSkills(selectedSkill.skillId);
                     }
                   } else {
-                    alert('Please select a target skill first.');
+                    alert("Please select a target skill first.");
                   }
                 }}
-                className='modal-button primary'
+                className="modal-button primary"
                 disabled={!selectedSkill || isSubmitting}
               >
-                {isSubmitting ? 'Merging...' : 'Merge Skills'}
+                {isSubmitting ? "Merging..." : "Merge Skills"}
               </button>
             </div>
           </div>
