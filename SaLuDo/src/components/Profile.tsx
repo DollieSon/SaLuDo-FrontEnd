@@ -681,7 +681,7 @@ const Profile: React.FC = () => {
             className="compare-btn"
             title="Compare with other candidates"
           >
-            <img src="/images/analytics.png" alt="Compare" />
+            <img src="/images/compare.png" alt="Compare" />
             Compare
           </button>
         </div>

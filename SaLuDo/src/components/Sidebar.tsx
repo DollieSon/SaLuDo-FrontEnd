@@ -31,77 +31,91 @@ const Sidebar = () => {
       </div>
 
       <div className="section-title">Main Menu</div>
-
-      <NavLink
-        to="/"
-        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-      >
-        <div className="nav-link-content">
-          <img src="/images/list.png" alt="Candidate List" />
-          Candidate List
-        </div>
-        {/* <span className="nav-link-badge">248</span> */}
-      </NavLink>
-
-      <NavLink
-        to="/candidate-form"
-        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-      >
-        <div className="nav-link-content">
-          <img src="/images/add.png" alt="Add Candidate" />
-          Add Candidate
-        </div>
-      </NavLink>
-
-      <NavLink
-        to="/skills-management"
-        className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-      >
-        <div className="nav-link-content">
-          <img src="/images/analytics.png" alt="Analytics" />
-          Skills Management
-        </div>
-      </NavLink>
-
-      {/* Only show Job List for admins and hr_manager */}
-      {(user?.role === "admin" || user?.role === "hr_manager") && (
+      <div className="nav-links">
         <NavLink
-          to="/job-list"
+          to="/"
           className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
         >
           <div className="nav-link-content">
-            <img src="/images/job.png" alt="Job List" />
-            Job List
+            <img src="/images/list.png" alt="Candidate List" />
+            Candidate List
           </div>
-          {/* <span className="nav-link-badge">12</span> */}
+          {/* <span className="nav-link-badge">248</span> */}
         </NavLink>
-      )}
 
-      {/* Only show User Management for admins */}
-      {user?.role === "admin" && (
         <NavLink
-          to="/user-management"
+          to="/candidate-form"
           className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
         >
           <div className="nav-link-content">
-            <img src="/images/analytics.png" alt="User Management" />
-            User Management
+            <img src="/images/add.png" alt="Add Candidate" />
+            Add Candidate
           </div>
         </NavLink>
-      )}
 
-      {/* Show Assign Candidates for admins and hr_manager */}
-      {(user?.role === "admin" || user?.role === "hr_manager") && (
         <NavLink
-          to="/assign-candidates"
+          to="/skills-management"
           className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
         >
           <div className="nav-link-content">
-            <img src="/images/analytics.png" alt="Assign Candidates" />
-            Assign Candidates
+            <img src="/images/analytics.png" alt="Analytics" />
+            Skills Management
           </div>
         </NavLink>
-      )}
+
+        {/* Only show Job List for admins and hr_manager */}
+        {(user?.role === "admin" || user?.role === "hr_manager") && (
+          <NavLink
+            to="/job-list"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/job.png" alt="Job List" />
+              Job List
+            </div>
+            {/* <span className="nav-link-badge">12</span> */}
+          </NavLink>
+        )}
+
+        {/* Only show User Management for admins */}
+        {user?.role === "admin" && (
+          <NavLink
+            to="/user-management"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="User Management" />
+              User Management
+            </div>
+          </NavLink>
+        )}
+
+        {/* Show Assign Candidates for admins and hr_manager */}
+        {(user?.role === "admin" || user?.role === "hr_manager") && (
+          <NavLink
+            to="/assign-candidates"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="Assign Candidates" />
+              Assign Candidates
+            </div>
+          </NavLink>
+        )}
+
+        {/* Show Dashboard for admins and hr_manager */}
+        {(user?.role === "admin" || user?.role === "hr_manager") && (
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/dashboard.png" alt="Dashboard" />
+              Dashboard
+            </div>
+          </NavLink>
+        )}
+      </div>
 
       {/* User Profile Section */}
       <div className="user-profile">

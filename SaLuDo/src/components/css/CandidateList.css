@@ -255,8 +255,12 @@
   backdrop-filter: blur(20px);
   border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: 1.5rem;
-  overflow: hidden;
+  overflow: scroll;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.table-wrapper::-webkit-scrollbar {
+  display: none;
 }
 
 /* Table Styles */
@@ -775,14 +779,68 @@ tbody tr td[style*="color: #6b7280"] {
 
 .job-filter {
   margin-left: 2rem;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
 }
 
-.job-filter select {
+.filter-tab {
+  position: relative;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5a6c7d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  outline: none;
+  min-width: 160px;
+}
+
+.filter-tab:hover {
+  border-color: #c41e3a;
+  box-shadow: 0 2px 8px rgba(196, 30, 58, 0.1);
+}
+
+.filter-tab:focus {
+  border-color: #c41e3a;
+  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+}
+
+.filter-tab.active {
+  background: linear-gradient(135deg, #c41e3a 0%, #e02844 100%);
+  border-color: #c41e3a;
+  color: white;
+  box-shadow: 0 4px 12px rgba(196, 30, 58, 0.25);
+}
+
+.filter-tab.active option {
+  color: #5a6c7d;
+}
+
+/* Custom select arrow */
+.filter-tab {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6c7d' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.filter-tab.active {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E"), linear-gradient(135deg, #c41e3a 0%, #e02844 100%);
+  background-repeat: no-repeat, repeat;
+  background-position: right 16px center, 0 0;
+}
+/* .job-filter select {
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
   border: 1px solid #d1d5db;
   font-size: 0.9rem;
-}
+} */
 
 .highlight-card {
   border: 2px solid #4f46e5;

@@ -303,7 +303,7 @@
   margin-bottom: 0.8rem;
 }
 
-.info-box {
+.tip-box {
   background-color: #e3f2fd;
   border-left: 4px solid #3498db;
   padding: 1rem;
@@ -311,7 +311,7 @@
   border-radius: 4px;
 }
 
-.info-box strong {
+.tip-box strong {
   color: #2980b9;
 }
 

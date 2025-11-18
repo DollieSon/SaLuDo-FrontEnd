@@ -333,7 +333,7 @@ const AssignCandidate: React.FC = () => {
               <li>You can unassign users at any time</li>
             </ol>
 
-            <div className="info-box">
+            <div className="tip-box">
               <strong>💡 Tip:</strong> Users can only see candidates assigned to
               them, while Managers and Admins can see all candidates.
             </div>

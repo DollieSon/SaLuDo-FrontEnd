@@ -320,6 +320,7 @@ const CandidateList: React.FC = () => {
   };
 
   const selectedJobName = selectedJob !== "all" ? getJobNameById(selectedJob) : "All Roles";
+  const [activeFilter, setActiveFilter] = useState('job');
 
   return (
     <main className="candidate-list">
@@ -340,7 +341,7 @@ const CandidateList: React.FC = () => {
             onClick={handleCompareClick}
             title="Compare Candidates"
           >
-            <img src="/images/analytics.png" alt="Compare" />
+            <img src="/images/compare.png" alt="Compare" />
             Compare
           </button>
           {/* <img src="/images/filter.png" alt="Filter" /> */}
@@ -383,6 +384,38 @@ const CandidateList: React.FC = () => {
         </div>
       </div>
 
+      <div className="job-filter">
+        <select className={`filter-tab ${activeFilter === 'job' ? 'active' : ''}`} value={selectedJob} onChange={(e) => setSelectedJob(e.target.value)} onClick={() => setActiveFilter('job')}>
+          <option value="all">All Jobs</option>
+          {jobs.map(job => (
+            <option key={job._id} value={job._id}>
+              {job.jobName}
+            </option>
+          ))}
+        </select>
+
+          {/* 🔹 Status filter */}
+          <select className={`filter-tab ${activeFilter === 'status' ? 'active' : ''}`} value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} onClick={() => setActiveFilter('status')}>
+            <option value="all">All Statuses</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Pending">Pending</option>
+          </select>
+
+          <select className={`filter-tab ${activeFilter === 'order' ? 'active' : ''}`} value={sortOption} onChange={(e) => setSortOption(e.target.value)} onClick={() => setActiveFilter('order')}>
+            <option value="score_desc">
+              {selectedJob !== "all" ? "Best Job Match First" : "Highest Avg Score"}
+            </option>
+            <option value="score_asc">
+              {selectedJob !== "all" ? "Worst Job Match First" : "Lowest Avg Score"}
+            </option>
+            <option value="date_desc">Newest First</option>
+            <option value="date_asc">Oldest First</option>
+            <option value="alpha_asc">A → Z</option>
+            <option value="alpha_desc">Z → A</option>
+          </select>
+      </div>
+
       {selectedJob !== "all" && topCandidateForJob && (
         <div className="card highlight-card" style={{ margin: '0 2rem 2rem 2rem' }}>
           <h4>Best Match for {getJobNameById(selectedJob)}</h4>
@@ -399,38 +432,6 @@ const CandidateList: React.FC = () => {
           </button>
         </div>
       )}
-
-      <div className="job-filter">
-        <select value={selectedJob} onChange={(e) => setSelectedJob(e.target.value)}>
-          <option value="all">All Jobs</option>
-          {jobs.map(job => (
-            <option key={job._id} value={job._id}>
-              {job.jobName}
-            </option>
-          ))}
-        </select>
-
-          {/* 🔹 Status filter */}
-          <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
-            <option value="all">All Statuses</option>
-            <option value="Approved">Approved</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Pending">Pending</option>
-          </select>
-
-          <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
-            <option value="score_desc">
-              {selectedJob !== "all" ? "Best Job Match First" : "Highest Avg Score"}
-            </option>
-            <option value="score_asc">
-              {selectedJob !== "all" ? "Worst Job Match First" : "Lowest Avg Score"}
-            </option>
-            <option value="date_desc">Newest First</option>
-            <option value="date_asc">Oldest First</option>
-            <option value="alpha_asc">A → Z</option>
-            <option value="alpha_desc">Z → A</option>
-          </select>
-      </div>
 
       <div className="table-wrapper">
         <table>

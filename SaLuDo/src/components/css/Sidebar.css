@@ -66,6 +66,14 @@
   z-index: 1;
 }
 
+.nav-links {
+  overflow: scroll;
+}
+
+.nav-links::-webkit-scrollbar {
+  display: none;
+}
+
 .nav-link {
   display: flex;
   align-items: center;
