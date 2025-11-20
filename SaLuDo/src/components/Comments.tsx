@@ -108,16 +108,19 @@ const Comments: React.FC<CommentsProps> = ({ entityType, entityId }) => {
 
   // Fetch users for mention autocomplete
   const searchMentionUsers = async (query: string) => {
-    if (!accessToken || query.length < 2) return;
+    if (!accessToken || query.length < 3) return;
 
+    console.log('🔍 Searching for users with query:', query);
     try {
       setMentionLoading(true);
       const response = await commentsApi.searchUsers(accessToken, query);
+      console.log('✅ Search response:', response);
       if (response.success) {
         setMentionUsers(response.data || []);
+        console.log('👥 Found users:', response.data?.length || 0);
       }
     } catch (err) {
-      console.error("Failed to search users:", err);
+      console.error("❌ Failed to search users:", err);
     } finally {
       setMentionLoading(false);
     }
@@ -145,12 +148,15 @@ const Comments: React.FC<CommentsProps> = ({ entityType, entityId }) => {
 
     if (mentionMatch) {
       const query = mentionMatch[1];
+      console.log('📝 Mention detected! Query:', query, 'Length:', query.length);
       setMentionQuery(query);
       setShowMentions(true);
       setSelectedMentionIndex(0);
-      if (query.length >= 2) {
+      if (query.length >= 3) {
+        console.log('🚀 Triggering search for:', query);
         searchMentionUsers(query);
       } else {
+        console.log('⏸️ Query too short, need 3+ chars');
         setMentionUsers([]);
       }
     } else {
@@ -192,9 +198,9 @@ const Comments: React.FC<CommentsProps> = ({ entityType, entityId }) => {
     const textBeforeCursor = text.substring(0, cursorPosition);
     const textAfterCursor = text.substring(cursorPosition);
 
-    // Use full name (firstName lastName) as mention format
-    const mentionText = mentionUser.username;
-    // Replace @query with @Name (allow dots and @ for email)
+    // Use email as mention format (no spacing issues)
+    const mentionText = mentionUser.email;
+    // Replace @query with @email
     const newText =
       textBeforeCursor.replace(/@[\w.@]*$/, `@${mentionText} `) +
       textAfterCursor;
@@ -494,7 +500,7 @@ const Comments: React.FC<CommentsProps> = ({ entityType, entityId }) => {
               value={newComment}
               onChange={(e) => handleTextChange(e, true)}
               onKeyDown={(e) => handleKeyDown(e, true)}
-              placeholder="Write a comment... (Use @Name or @email to mention someone)"
+              placeholder="Write a comment... (Use @email to mention someone - min 3 chars)"
               className="comment-textarea"
               rows={3}
             />

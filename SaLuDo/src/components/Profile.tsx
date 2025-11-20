@@ -1086,13 +1086,13 @@ const Profile: React.FC = () => {
                   </select>
                 ) : (
                   <span
-                    className={`status-badge ${candidate.status.toLowerCase()}`}
+                    className={`status-badge ${candidate.status?.toLowerCase() || 'pending'}`}
                   >
                     {candidate.status === "Approved" && "Approved"}
                     {candidate.status === "Rejected" && "Rejected"}
                     {candidate.status === "Pending" && "Pending"}
                     {candidate.status === "In Review" && "In Review"}
-                    {candidate.status}
+                    {candidate.status || "No Status"}
                   </span>
                 )}
               </div>

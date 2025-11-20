@@ -980,7 +980,12 @@ export const commentsApi = {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-    if (!response.ok) throw new Error("Failed to search users");
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Search users API error:', response.status, errorText);
+      throw new Error(`Failed to search users: ${response.status} - ${errorText}`);
+    }
     return response.json();
   },
 };
