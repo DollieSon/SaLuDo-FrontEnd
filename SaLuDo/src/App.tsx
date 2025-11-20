@@ -31,6 +31,7 @@ import CandidateComparison from "./components/CandidateComparison.tsx";
 import UserManagement from "./components/UserManagement.tsx";
 import AssignCandidate from "./components/AssignCandidate.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import AuditLogs from "./components/AuditLogs.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
@@ -279,6 +280,16 @@ function AssignCandidatePage() {
   );
 }
 
+function AuditLogsPage() {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout>
+        <AuditLogs />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 function DashboardPage() {
   // For now, we'll use a mock token. In production, this should come from auth context
   const accessToken = localStorage.getItem("accessToken") || "";
@@ -326,6 +337,7 @@ function App() {
         />
         <Route path="/user-management" element={<UserManagementPage />} />
         <Route path="/assign-candidates" element={<AssignCandidatePage />} />
+        <Route path="/audit-logs" element={<AuditLogsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </Router>
