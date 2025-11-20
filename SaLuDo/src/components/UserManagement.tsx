@@ -194,6 +194,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
               <th>Title</th>
               <th>Role</th>
               <th>Status</th>
+              <th>Created</th>
               <th>Last Login</th>
               <th>Actions</th>
             </tr>
@@ -215,13 +216,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                       user.isActive ? "status-active" : "status-inactive"
                     }`}
                   >
-                    {user.isActive ? "✓ Active" : "✗ Inactive"}
+                    {user.isActive ? " Active" : " Inactive"}
                   </span>
+                </td>
+                <td>
+                  {user.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : "--"}
                 </td>
                 <td>
                   {user.lastLogin
                     ? new Date(user.lastLogin).toLocaleDateString()
-                    : "Never"}
+                    : "No logins yet"}
                 </td>
                 <td className="actions-cell">
                   <button
@@ -233,14 +239,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                     }
                     title={user.isActive ? "Deactivate" : "Activate"}
                   >
-                    {user.isActive ? "⏸" : "▶"}
+                    {user.isActive ? "Deactivate" : "Activate"}
                   </button>
                   <button
                     className="btn-action btn-delete"
                     onClick={() => handleDeleteUser(user.userId, user.fullName)}
                     title="Delete"
                   >
-                    🗑
+                    Delete
                   </button>
                 </td>
               </tr>

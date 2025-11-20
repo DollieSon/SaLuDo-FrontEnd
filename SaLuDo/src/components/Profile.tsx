@@ -738,7 +738,7 @@ const Profile: React.FC = () => {
                     handleDownload(candidate.resumeMetadata!.filename, "resume");
                   }}
                 >
-                  📄 {candidate.resumeMetadata.filename} ↓
+                   {candidate.resumeMetadata.filename} ↓
                 </a>
               ) : (
                 <p>
@@ -771,7 +771,7 @@ const Profile: React.FC = () => {
                         handleDownload(transcript.filename, "transcript");
                       }}
                     >
-                      📄 {transcript.filename} ↓
+                       {transcript.filename} ↓
                     </a>
                     {idx < candidate.transcripts!.length - 1 && ", "}
                   </span>
@@ -863,7 +863,7 @@ const Profile: React.FC = () => {
                           handleDownload(video.filename, "interview-video");
                         }}
                       >
-                        🎥 {video.filename} ↓
+                         {video.filename} ↓
                       </a>
                       {idx < candidate.interviewVideos!.length - 1 && ", "}
                     </span>
@@ -958,7 +958,7 @@ const Profile: React.FC = () => {
                           handleDownload(video.filename, "introduction-video");
                         }}
                       >
-                        🎬 {video.filename} ↓
+                         {video.filename} ↓
                       </a>
                       {idx < candidate.introductionVideos!.length - 1 && ", "}
                     </span>
@@ -1052,10 +1052,10 @@ const Profile: React.FC = () => {
                 </select>
               ) : (
                 <span className={`status-badge ${candidate.status.toLowerCase()}`}>
-                  {candidate.status === "Approved" && "✅"}
-                  {candidate.status === "Rejected" && "❌"}
-                  {candidate.status === "Pending" && "⏳"}
-                  {candidate.status === "In Review" && "👁️"}
+                  {candidate.status === "Approved" && "Approved"}
+                  {candidate.status === "Rejected" && "Rejected"}
+                  {candidate.status === "Pending" && "Pending"}
+                  {candidate.status === "In Review" && "In Review"}
                   {candidate.status}
                 </span>
               )}
@@ -1065,7 +1065,7 @@ const Profile: React.FC = () => {
             <div className="info-label">Account Status</div>
             <div className="info-value">
               <span className={`status-badge ${candidate.isDeleted ? 'rejected' : 'approved'}`}>
-                {candidate.isDeleted ? "❌ Inactive" : "✅ Active"}
+                {candidate.isDeleted ? " Inactive" : " Active"}
               </span>
             </div>
           </div>

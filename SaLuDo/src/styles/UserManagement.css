@@ -94,17 +94,19 @@
 }
 
 .users-table thead {
-  background: #34495e;
-  color: white;
+  background: linear-gradient(135deg, #1e2a3d 0%, #24344a 100%);
 }
 
 .users-table th {
-  padding: 1rem;
+  padding: 1rem 1.75rem;
   text-align: left;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  vertical-align: middle;
+  color: #ffffff;
 }
 
 .users-table tbody tr {
@@ -117,8 +119,39 @@
 }
 
 .users-table td {
-  padding: 1rem;
+  padding: 1rem 1.75rem;
   color: #2c3e50;
+  vertical-align: middle;
+}
+
+.users-table th:first-child,
+.users-table td:first-child {
+  text-align: left;
+  white-space: nowrap;
+  min-width: 320px;
+  width: 22%;
+  padding-right: 3.5rem;
+}
+
+/* Column Alignment Tweaks */
+.users-table th:nth-child(4),
+.users-table th:nth-child(5),
+.users-table th:nth-child(6),
+.users-table th:nth-child(7),
+.users-table th:nth-child(8),
+.users-table td:nth-child(4),
+.users-table td:nth-child(5),
+.users-table td:nth-child(6),
+.users-table td:nth-child(7),
+.users-table td:nth-child(8) {
+  text-align: center;
+}
+
+.users-table th:nth-child(2),
+.users-table td:nth-child(2) {
+  text-align: left;
+  padding-left: 2.75rem;
+  white-space: nowrap;
 }
 
 /* Role Badge */
@@ -179,6 +212,7 @@
 .actions-cell {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .btn-action {

@@ -469,7 +469,7 @@ const SkillsManagement: React.FC = () => {
                       skill.isAccepted ? "accepted" : "pending"
                     }`}
                   >
-                    {skill.isAccepted ? "✅ Accepted" : "⏳ Pending"}
+                    {skill.isAccepted ? " Accepted" : " Pending"}
                   </span>
                 </td>
                 <td className="td-date">

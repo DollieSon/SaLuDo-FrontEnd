@@ -334,8 +334,8 @@ const AssignCandidate: React.FC = () => {
             </ol>
 
             <div className="tip-box">
-              <strong>💡 Tip:</strong> Users can only see candidates assigned to
-              them, while Managers and Admins can see all candidates.
+              <strong>Note:</strong> Users can only view candidates assigned to
+              them, while Managers and Admins can view all candidates.
             </div>
           </div>
         )}

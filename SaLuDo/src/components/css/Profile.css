@@ -180,10 +180,7 @@
   gap: 0.5rem;
 }
 
-.box-header h3::before {
-  content: "👤";
-  font-size: 1.5rem;
-}
+
 
 .edit-btn {
   background: linear-gradient(135deg, #3b82f6, #1e40af);
@@ -304,14 +301,6 @@
 
 .parsed-section:hover::before {
   opacity: 1;
-}
-
-.parsed-section .box-header h3::before {
-  content: "📄";
-}
-
-.parsed-section:nth-child(2) .box-header h3::before {
-  content: "🧠";
 }
 
 /* Skills Grid - Enhanced with better visual hierarchy */
@@ -759,12 +748,6 @@
   position: relative;
 }
 
-.section p[style*="italic"]::before {
-  content: "📭";
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
 
 /* Responsive Design */
 @media (max-width: 1024px) {
