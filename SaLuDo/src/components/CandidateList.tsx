@@ -420,7 +420,7 @@ const CandidateList: React.FC = () => {
       </div>
 
       {selectedJob !== "all" && topCandidateForJob && (
-        <div className="card highlight-card" style={{ margin: '0 2rem 2rem 2rem' }}>
+        <div className="card highlight-card" style={{ margin: '0 2rem 0rem 2rem' }}>
           <h4>Best Match for {getJobNameById(selectedJob)}</h4>
           <div className="number">{topCandidateForJob.name}</div>
           <div className="detail">

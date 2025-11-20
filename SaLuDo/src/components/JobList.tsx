@@ -7,6 +7,9 @@ import { Job } from '../types/job';
 const JobList: React.FC = () => {
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user.role === "admin";
+
   const [searchTerm, setSearchTerm] = useState('');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [candidates, setCandidates] = useState<any[]>([]);
@@ -122,7 +125,11 @@ const JobList: React.FC = () => {
           <img src="/images/search.png" alt="Search" />
         </div>
         {/* <img src="/images/filter.png" alt="Filter" /> */}
-        <button className="compare-candidates-btn" onClick={handleAddNewJob}>+ Add New Job</button>
+        {isAdmin && (
+          <button className="compare-candidates-btn" onClick={handleAddNewJob}>
+            + Add New Job
+          </button>
+        )}
       </div>
       <div className="summary-cards">
         <div className="card">

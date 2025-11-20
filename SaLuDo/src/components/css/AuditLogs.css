@@ -299,7 +299,7 @@
   color: #6b7280;
 }
 
-.table-wrapper {
+/* .table-wrapper {
   overflow-x: auto;
 }
 
@@ -350,7 +350,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #6b7280;
-}
+} */
 
 .event-label {
   font-weight: 600;
