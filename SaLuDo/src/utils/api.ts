@@ -418,7 +418,7 @@ export const candidatesApi = {
     }
 
     const response = await fetch(
-      `${apiUrl}candidates/compare/${candidateId1}/${candidateId2}`,
+      `${apiUrl}candidates/${candidateId1}/compare/${candidateId2}`,
       { headers }
     );
     if (!response.ok) throw new Error("Failed to compare candidates");
