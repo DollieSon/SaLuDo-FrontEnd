@@ -811,3 +811,274 @@ export const auditLogsApi = {
     return response.json();
   },
 };
+
+// Comments API
+export const commentsApi = {
+  // Create comment
+  createComment: async (
+    accessToken: string,
+    data: {
+      text: string;
+      entityType: string;
+      entityId: string;
+      parentCommentId?: string | null;
+    }
+  ) => {
+    const response = await fetch(`${apiUrl}comments`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Failed to create comment");
+    return response.json();
+  },
+
+  // Get comments for entity
+  getComments: async (
+    accessToken: string,
+    entityType: string,
+    entityId: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: string;
+    }
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.page) params.append("page", String(options.page));
+    if (options?.limit) params.append("limit", String(options.limit));
+    if (options?.sortBy) params.append("sortBy", options.sortBy);
+    if (options?.sortOrder) params.append("sortOrder", options.sortOrder);
+
+    const response = await fetch(
+      `${apiUrl}comments/${entityType}/${entityId}${
+        params.toString() ? `?${params.toString()}` : ""
+      }`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch comments");
+    return response.json();
+  },
+
+  // Get top-level comments
+  getTopLevelComments: async (
+    accessToken: string,
+    entityType: string,
+    entityId: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: string;
+    }
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.page) params.append("page", String(options.page));
+    if (options?.limit) params.append("limit", String(options.limit));
+    if (options?.sortBy) params.append("sortBy", options.sortBy);
+    if (options?.sortOrder) params.append("sortOrder", options.sortOrder);
+
+    const response = await fetch(
+      `${apiUrl}comments/${entityType}/${entityId}/top-level${
+        params.toString() ? `?${params.toString()}` : ""
+      }`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch top-level comments");
+    return response.json();
+  },
+
+  // Get replies for a comment
+  getReplies: async (accessToken: string, commentId: string) => {
+    const response = await fetch(`${apiUrl}comments/${commentId}/replies`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch replies");
+    return response.json();
+  },
+
+  // Update comment
+  updateComment: async (
+    accessToken: string,
+    commentId: string,
+    text: string
+  ) => {
+    const response = await fetch(`${apiUrl}comments/${commentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ text }),
+    });
+    if (!response.ok) throw new Error("Failed to update comment");
+    return response.json();
+  },
+
+  // Delete comment
+  deleteComment: async (accessToken: string, commentId: string) => {
+    const response = await fetch(`${apiUrl}comments/${commentId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to delete comment");
+    return response.json();
+  },
+
+  // Get comment stats
+  getStats: async (
+    accessToken: string,
+    entityType: string,
+    entityId: string
+  ) => {
+    const response = await fetch(
+      `${apiUrl}comments/stats/${entityType}/${entityId}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch comment stats");
+    return response.json();
+  },
+
+  // Search users for mentions
+  searchUsers: async (accessToken: string, query: string) => {
+    const params = new URLSearchParams();
+    params.append("query", query);
+
+    const response = await fetch(
+      `${apiUrl}comments/autocomplete/users?${params.toString()}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to search users");
+    return response.json();
+  },
+};
+
+// Notifications API
+export const notificationsApi = {
+  // Get notifications
+  getNotifications: async (
+    accessToken: string,
+    options?: {
+      isRead?: boolean;
+      priority?: string;
+      category?: string;
+      type?: string;
+      limit?: number;
+      page?: number;
+    }
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.isRead !== undefined)
+      params.append("isRead", String(options.isRead));
+    if (options?.priority) params.append("priority", options.priority);
+    if (options?.category) params.append("category", options.category);
+    if (options?.type) params.append("type", options.type);
+    if (options?.limit) params.append("limit", String(options.limit));
+    if (options?.page)
+      params.append("skip", String((options.page - 1) * (options.limit || 50)));
+
+    const response = await fetch(
+      `${apiUrl}notifications${
+        params.toString() ? `?${params.toString()}` : ""
+      }`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch notifications");
+    return response.json();
+  },
+
+  // Get unread count
+  getUnreadCount: async (accessToken: string) => {
+    const response = await fetch(`${apiUrl}notifications/unread-count`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch unread count");
+    return response.json();
+  },
+
+  // Get notification summary
+  getSummary: async (accessToken: string) => {
+    const response = await fetch(`${apiUrl}notifications/summary`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch notification summary");
+    return response.json();
+  },
+
+  // Mark as read
+  markAsRead: async (accessToken: string, notificationId: string) => {
+    const response = await fetch(
+      `${apiUrl}notifications/${notificationId}/read`,
+      {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to mark notification as read");
+    return response.json();
+  },
+
+  // Mark all as read
+  markAllAsRead: async (accessToken: string) => {
+    const response = await fetch(`${apiUrl}notifications/read-all`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok)
+      throw new Error("Failed to mark all notifications as read");
+    return response.json();
+  },
+
+  // Delete notification
+  deleteNotification: async (accessToken: string, notificationId: string) => {
+    const response = await fetch(`${apiUrl}notifications/${notificationId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to delete notification");
+    return response.json();
+  },
+
+  // Get preferences
+  getPreferences: async (accessToken: string) => {
+    const response = await fetch(
+      `${apiUrl}notifications/preferences/settings`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch preferences");
+    return response.json();
+  },
+
+  // Update preferences
+  updatePreferences: async (accessToken: string, preferences: any) => {
+    const response = await fetch(
+      `${apiUrl}notifications/preferences/settings`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(preferences),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to update preferences");
+    return response.json();
+  },
+};

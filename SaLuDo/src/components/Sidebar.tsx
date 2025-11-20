@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import "./css/Sidebar.css";
 import { useAuth } from "../context/AuthContext";
+import { NotificationBell } from "./NotificationBell";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -141,6 +142,7 @@ const Sidebar = () => {
             <h4>{user?.fullName || "User"}</h4>
             <p>{user ? getRoleDisplayName(user.role) : "Role"}</p>
           </div>
+          <NotificationBell />
         </div>
         <button onClick={handleLogout} className="logout-btn" title="Logout">
           🚪 Logout
