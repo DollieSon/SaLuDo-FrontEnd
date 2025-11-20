@@ -35,7 +35,6 @@ import AuditLogs from "./components/AuditLogs.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
-  const [isRightPanelActive, setIsRightPanelActive] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -73,34 +72,15 @@ function AuthPage() {
 
   return (
     <div
-      className={`container ${isRightPanelActive ? "right-panel-active" : ""}`}
+      className="container"
       id="container"
     >
-      {/* Sign Up Form */}
-      <div className="form-container sign-up-container">
-        <form className="app-form">
-          <h2>Create Account</h2>
-          <div className="social-icons">
-            <button type="button">f</button>
-            <button type="button">G</button>
-            <button type="button">in</button>
-          </div>
-          <span>or use your email:</span>
-          <input type="text" placeholder="Name" />
-          <input type="email" placeholder="Email" />
-          <input type="password" placeholder="Password" />
-          <button type="button" className="submitbtn">
-            Sign Up
-          </button>
-        </form>
-      </div>
-
       {/* Sign In Form */}
       <div className="form-container sign-in-container">
         <img src="/images/logo 1.png" className="logo" alt="Alliance Logo" />
         <form
           className="app-form"
-          style={{ height: "80%" }}
+          style={{ height: "60%" }}
           onSubmit={handleLogin}
         >
           <h2>Login</h2>
@@ -111,12 +91,6 @@ function AuthPage() {
               {error}
             </div>
           )}
-          <div className="social-icons">
-            <button type="button">f</button>
-            <button type="button">G</button>
-            <button type="button">in</button>
-          </div>
-          <span>or use your account:</span>
           <input
             type="email"
             placeholder="Email"
@@ -149,26 +123,14 @@ function AuthPage() {
             <p>
               To keep connected with us please login with your personal info
             </p>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setIsRightPanelActive(false)}
-            >
-              LOG IN
-            </button>
           </div>
 
           {/* Overlay for Sign Up */}
           <div className="overlay-panel overlay-right">
-            <h2>New Here?</h2>
-            <p>Enter your personal details and start your journey with us</p>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setIsRightPanelActive(true)}
-            >
-              SIGN UP
-            </button>
+            <h2>Welcome Back!</h2>
+            <p>
+              To keep connected with us please login with your personal info
+            </p>
           </div>
         </div>
       </div>
