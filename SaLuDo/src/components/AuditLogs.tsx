@@ -225,12 +225,9 @@ const AuditLogs = () => {
   };
 
   return (
-    <div className="audit-log-page">
-      <div className="audit-header">
-        <div>
-          <h1>Security Audit Logs</h1>
-          <p>Track authentication events and privileged admin actions</p>
-        </div>
+    <div className="candidate-list">
+      <div className="candidate-list-header" data-text="Track authentication events and privileged admin actions">
+        <h2>Security Audit Logs</h2>
         <div className="audit-header-controls">
           <label>
             Page Size
@@ -251,7 +248,7 @@ const AuditLogs = () => {
         </div>
       </div>
 
-      <section className="audit-overview">
+      <section className="stats-grid">
         <div className="audit-card">
           <p>Total Events</p>
           <h3>{loadingStats ? "--" : stats?.totalEvents ?? 0}</h3>
@@ -292,7 +289,7 @@ const AuditLogs = () => {
         </div>
       </section>
 
-      <section className="audit-filters">
+      <section className="info-box" style={{padding: "20px", margin: "20px"}}>
         <form onSubmit={handleApplyFilters}>
           <div className="filter-grid">
             <label>
@@ -401,7 +398,7 @@ const AuditLogs = () => {
         </form>
       </section>
 
-      <section className="audit-alerts">
+      <section className="info-box" style={{padding: "20px", margin: "20px"}}>
         <div className="alerts-header">
           <div>
             <h2>Security Alerts</h2>
@@ -464,7 +461,7 @@ const AuditLogs = () => {
         )}
       </section>
 
-      <section className="audit-table-card">
+      <section className="info-box" style={{padding: "20px", margin: "20px"}}>
         <div className="table-header">
           <h2>Event Log</h2>
           <p>
