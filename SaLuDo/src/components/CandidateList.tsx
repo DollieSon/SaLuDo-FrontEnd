@@ -353,6 +353,7 @@ const CandidateList: React.FC = () => {
           <h4>Total Candidates</h4>
           <div className="number">{totalCandidates}</div>
           <div className="detail">{filteredCandidates.length} Shown</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>{selectedJob !== "all" ? "Top Match" : "Most Common Role"}</h4>
@@ -370,6 +371,7 @@ const CandidateList: React.FC = () => {
               ? `${formatScore(topCandidateForJob.jobMatchScore)}% Match`
               : `${roleCount[mostCommonRole] || 0} Candidates`}
           </div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Newest Candidate</h4>
@@ -381,6 +383,7 @@ const CandidateList: React.FC = () => {
               ? formatDate(newestCandidate.dateCreated)
               : "No Data"}
           </div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
       </div>
 
@@ -417,7 +420,7 @@ const CandidateList: React.FC = () => {
       </div>
 
       {selectedJob !== "all" && topCandidateForJob && (
-        <div className="card highlight-card" style={{ margin: '0 2rem 2rem 2rem' }}>
+        <div className="card highlight-card" style={{ margin: '0 2rem 0rem 2rem' }}>
           <h4>Best Match for {getJobNameById(selectedJob)}</h4>
           <div className="number">{topCandidateForJob.name}</div>
           <div className="detail">
@@ -438,7 +441,7 @@ const CandidateList: React.FC = () => {
           <thead>
             <tr>
               <th>
-                <img src="/images/sort.png" alt="Sort" />
+                {/* <img src="/images/sort.png" alt="Sort" /> */}
               </th>
               <th>Name</th>
               <th>{selectedJob !== "all" ? "Job Match" : "Average Score"}</th>

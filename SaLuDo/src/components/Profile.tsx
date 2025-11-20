@@ -824,7 +824,7 @@ const Profile: React.FC = () => {
                     <span style={{ color: "#6b7280", fontStyle: "italic" }}>
                       No transcripts uploaded
                     </span>
-                    {isEditing && (
+                    {(candidate.transcripts.length === 0 || isEditing) && (
                       <div style={{ marginTop: "8px" }}>
                         <label
                           htmlFor="transcript-upload"
@@ -921,7 +921,7 @@ const Profile: React.FC = () => {
                     <span style={{ color: "#6b7280", fontStyle: "italic" }}>
                       No interview videos uploaded
                     </span>
-                    {isEditing && (
+                    {(candidate.interviewVideos.length === 0 || isEditing) && (
                       <div style={{ marginTop: "8px" }}>
                         <label
                           htmlFor="interview-video-upload"
@@ -1022,7 +1022,7 @@ const Profile: React.FC = () => {
                     <span style={{ color: "#6b7280", fontStyle: "italic" }}>
                       No introduction videos uploaded
                     </span>
-                    {isEditing && (
+                    {(candidate.introductionVideos.length === 0 || isEditing) && (
                       <div style={{ marginTop: "8px" }}>
                         <label
                           htmlFor="introduction-video-upload"
