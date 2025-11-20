@@ -35,6 +35,15 @@ const Profile: React.FC = () => {
   const [uploadingInterviewVideo, setUploadingInterviewVideo] = useState(false);
   const [uploadingIntroductionVideo, setUploadingIntroductionVideo] =
     useState(false);
+  const [expandedIndex, setExpandedIndex] = useState<{ section: string; index: number } | null>(null);
+
+  const toggleExpand = (section: string, index: number) => {
+    if (expandedIndex && expandedIndex.section === section && expandedIndex.index === index) {
+      setExpandedIndex(null);
+    } else {
+      setExpandedIndex({ section, index });
+    }
+  };
 
   // State for collapsible personality categories
   const [collapsedCategories, setCollapsedCategories] = useState<{
@@ -1119,29 +1128,51 @@ const Profile: React.FC = () => {
               <strong>Skills:</strong>
               {resumeParsed.skills.length > 0 ? (
                 <div className="skills-grid">
-                  {resumeParsed.skills.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || item.text}
-                          </span>
-                          {item.evidence &&
-                            item.evidence !== item.skillName && (
-                              <p className="skill-evidence">{item.evidence}</p>
+                  {resumeParsed.skills.map((item: ProfileItem, idx: number) => {
+                    const isExpanded =
+                      expandedIndex?.section === "skills" &&
+                      expandedIndex.index === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
+                        onClick={() => toggleExpand("skills", idx)}
+                      >
+                        <div className="skill-content">
+                          <div className="skill-info">
+                            <span className="skill-name">
+                              {item.skillName || item.text}
+                            </span>
+
+                            {/* Preview evidence ONLY when NOT expanded */}
+                            {!isExpanded &&
+                              item.evidence &&
+                              item.evidence !== item.skillName && (
+                                <p className="skill-evidence">
+                                  {item.evidence.substring(0, 60)}...
+                                </p>
+                              )}
+
+                            {item.score && (
+                              <div className="skill-score">
+                                <span className="score-label">Score:</span>
+                                <span className="score-value">{item.score}/10</span>
+                              </div>
                             )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Score:</span>
-                              <span className="score-value">
-                                {item.score}/10
-                              </span>
-                            </div>
-                          )}
+                          </div>
                         </div>
+
+                        {/* Full AI analysis ONLY when expanded */}
+                        {isExpanded && (
+                          <div className="skill-expanded">
+                            <strong>AI Analysis:</strong>
+                            <p>{item.evidence}</p>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p style={{ color: "#6b7280", fontStyle: "italic" }}>
@@ -1153,30 +1184,49 @@ const Profile: React.FC = () => {
               <strong>Experience:</strong>
               {resumeParsed.experience.length > 0 ? (
                 <div className="skills-grid">
-                  {resumeParsed.experience.map(
-                    (item: ProfileItem, idx: number) => (
-                      <div key={idx} className="skill-card">
+                  {resumeParsed.experience.map((item: ProfileItem, idx: number) => {
+                    const isExpanded =
+                      expandedIndex?.section === "experience" &&
+                      expandedIndex.index === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
+                        onClick={() => toggleExpand("experience", idx)}
+                      >
                         <div className="skill-content">
                           <div className="skill-info">
                             <span className="skill-name">
                               {item.skillName || "Experience"}
                             </span>
-                            {item.evidence && (
-                              <p className="skill-evidence">{item.evidence}</p>
+
+                            {/* Preview only when collapsed */}
+                            {!isExpanded && item.evidence && (
+                              <p className="skill-evidence">
+                                {item.evidence.substring(0, 60)}...
+                              </p>
                             )}
+
                             {item.score && (
                               <div className="skill-score">
                                 <span className="score-label">Rating:</span>
-                                <span className="score-value">
-                                  {item.score}/10
-                                </span>
+                                <span className="score-value">{item.score}/10</span>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {/* Full AI analysis */}
+                        {isExpanded && (
+                          <div className="skill-expanded">
+                            <strong>AI Analysis:</strong>
+                            <p>{item.evidence}</p>
+                          </div>
+                        )}
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               ) : (
                 <p style={{ color: "#6b7280", fontStyle: "italic" }}>
@@ -1184,34 +1234,51 @@ const Profile: React.FC = () => {
                 </p>
               )}
             </div>
-            <div className="section">
+                        <div className="section">
               <strong>Education:</strong>
               {resumeParsed.education.length > 0 ? (
                 <div className="skills-grid">
-                  {resumeParsed.education.map(
-                    (item: ProfileItem, idx: number) => (
-                      <div key={idx} className="skill-card">
+                  {resumeParsed.education.map((item: ProfileItem, idx: number) => {
+                    const isExpanded =
+                      expandedIndex?.section === "education" &&
+                      expandedIndex.index === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
+                        onClick={() => toggleExpand("education", idx)}
+                      >
                         <div className="skill-content">
                           <div className="skill-info">
                             <span className="skill-name">
                               {item.skillName || "Education"}
                             </span>
-                            {item.evidence && (
-                              <p className="skill-evidence">{item.evidence}</p>
+
+                            {!isExpanded && item.evidence && (
+                              <p className="skill-evidence">
+                                {item.evidence.substring(0, 60)}...
+                              </p>
                             )}
+
                             {item.score && (
                               <div className="skill-score">
                                 <span className="score-label">Rating:</span>
-                                <span className="score-value">
-                                  {item.score}/10
-                                </span>
+                                <span className="score-value">{item.score}/10</span>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {isExpanded && (
+                          <div className="skill-expanded">
+                            <strong>AI Analysis:</strong>
+                            <p>{item.evidence}</p>
+                          </div>
+                        )}
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               ) : (
                 <p style={{ color: "#6b7280", fontStyle: "italic" }}>
@@ -1219,34 +1286,51 @@ const Profile: React.FC = () => {
                 </p>
               )}
             </div>
-            <div className="section">
+                        <div className="section">
               <strong>Certification:</strong>
               {resumeParsed.certification.length > 0 ? (
                 <div className="skills-grid">
-                  {resumeParsed.certification.map(
-                    (item: ProfileItem, idx: number) => (
-                      <div key={idx} className="skill-card">
+                  {resumeParsed.certification.map((item: ProfileItem, idx: number) => {
+                    const isExpanded =
+                      expandedIndex?.section === "certification" &&
+                      expandedIndex.index === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
+                        onClick={() => toggleExpand("certification", idx)}
+                      >
                         <div className="skill-content">
                           <div className="skill-info">
                             <span className="skill-name">
                               {item.skillName || "Certification"}
                             </span>
-                            {item.evidence && (
-                              <p className="skill-evidence">{item.evidence}</p>
+
+                            {!isExpanded && item.evidence && (
+                              <p className="skill-evidence">
+                                {item.evidence.substring(0, 60)}...
+                              </p>
                             )}
+
                             {item.score && (
                               <div className="skill-score">
                                 <span className="score-label">Rating:</span>
-                                <span className="score-value">
-                                  {item.score}/10
-                                </span>
+                                <span className="score-value">{item.score}/10</span>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {isExpanded && (
+                          <div className="skill-expanded">
+                            <strong>AI Analysis:</strong>
+                            <p>{item.evidence}</p>
+                          </div>
+                        )}
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               ) : (
                 <p style={{ color: "#6b7280", fontStyle: "italic" }}>
@@ -1254,34 +1338,51 @@ const Profile: React.FC = () => {
                 </p>
               )}
             </div>
-            <div className="section">
+                        <div className="section">
               <strong>Strength:</strong>
               {resumeParsed.strength.length > 0 ? (
                 <div className="skills-grid">
-                  {resumeParsed.strength.map(
-                    (item: ProfileItem, idx: number) => (
-                      <div key={idx} className="skill-card">
+                  {resumeParsed.strength.map((item: ProfileItem, idx: number) => {
+                    const isExpanded =
+                      expandedIndex?.section === "strength" &&
+                      expandedIndex.index === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
+                        onClick={() => toggleExpand("strength", idx)}
+                      >
                         <div className="skill-content">
                           <div className="skill-info">
                             <span className="skill-name">
                               {item.skillName || "Strength"}
                             </span>
-                            {item.evidence && (
-                              <p className="skill-evidence">{item.evidence}</p>
+
+                            {!isExpanded && item.evidence && (
+                              <p className="skill-evidence">
+                                {item.evidence.substring(0, 60)}...
+                              </p>
                             )}
+
                             {item.score && (
                               <div className="skill-score">
                                 <span className="score-label">Rating:</span>
-                                <span className="score-value">
-                                  {item.score}/10
-                                </span>
+                                <span className="score-value">{item.score}/10</span>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {isExpanded && (
+                          <div className="skill-expanded">
+                            <strong>AI Analysis:</strong>
+                            <p>{item.evidence}</p>
+                          </div>
+                        )}
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               ) : (
                 <p style={{ color: "#6b7280", fontStyle: "italic" }}>
@@ -1289,34 +1390,51 @@ const Profile: React.FC = () => {
                 </p>
               )}
             </div>
-            <div className="section">
+                        <div className="section">
               <strong>Weaknesses:</strong>
               {resumeParsed.weaknesses.length > 0 ? (
                 <div className="skills-grid">
-                  {resumeParsed.weaknesses.map(
-                    (item: ProfileItem, idx: number) => (
-                      <div key={idx} className="skill-card">
+                  {resumeParsed.weaknesses.map((item: ProfileItem, idx: number) => {
+                    const isExpanded =
+                      expandedIndex?.section === "weaknesses" &&
+                      expandedIndex.index === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
+                        onClick={() => toggleExpand("weaknesses", idx)}
+                      >
                         <div className="skill-content">
                           <div className="skill-info">
                             <span className="skill-name">
                               {item.skillName || "Weakness"}
                             </span>
-                            {item.evidence && (
-                              <p className="skill-evidence">{item.evidence}</p>
+
+                            {!isExpanded && item.evidence && (
+                              <p className="skill-evidence">
+                                {item.evidence.substring(0, 60)}...
+                              </p>
                             )}
+
                             {item.score && (
                               <div className="skill-score">
                                 <span className="score-label">Rating:</span>
-                                <span className="score-value">
-                                  {item.score}/10
-                                </span>
+                                <span className="score-value">{item.score}/10</span>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {isExpanded && (
+                          <div className="skill-expanded">
+                            <strong>AI Analysis:</strong>
+                            <p>{item.evidence}</p>
+                          </div>
+                        )}
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               ) : (
                 <p style={{ color: "#6b7280", fontStyle: "italic" }}>
@@ -1349,7 +1467,7 @@ const Profile: React.FC = () => {
               {isEditing ? "Save" : "Edit"}
             </button>
           </div>
-          <div className="box-content">
+          <div className="radar-content">
             <div className="section radar-chart">
               <strong>Personality Traits Radar</strong>
               <div className="radar-chart-container">
