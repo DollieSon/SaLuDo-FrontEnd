@@ -90,6 +90,19 @@ const Sidebar = () => {
           </NavLink>
         )}
 
+        {/* Audit logs reserved for admins */}
+        {user?.role === "admin" && (
+          <NavLink
+            to="/audit-logs"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="Audit Logs" />
+              Audit Logs
+            </div>
+          </NavLink>
+        )}
+
         {/* Show Assign Candidates for admins and hr_manager */}
         {(user?.role === "admin" || user?.role === "hr_manager") && (
           <NavLink

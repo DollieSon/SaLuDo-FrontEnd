@@ -1,4 +1,11 @@
 import { Data } from "../types/data";
+import {
+  AuditEventType,
+  AuditLogResponse,
+  AuditSeverity,
+  AuditStatistics,
+  SecurityAlert,
+} from "../types/audit";
 
 // Get API URL from environment variables with fallback
 const getApiUrl = (): string => {
@@ -692,6 +699,115 @@ export const usersApi = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!response.ok) throw new Error("Failed to delete user");
+    return response.json();
+  },
+};
+
+export const auditLogsApi = {
+  getLogs: async (
+    accessToken: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      eventTypes?: AuditEventType[];
+      severityLevels?: AuditSeverity[];
+      userId?: string;
+      ipAddress?: string;
+      success?: boolean;
+      startDate?: string;
+      endDate?: string;
+    }
+  ): Promise<AuditLogResponse> => {
+    const params = new URLSearchParams();
+    params.append("page", String(options?.page ?? 1));
+    params.append("limit", String(options?.limit ?? 25));
+
+    if (options?.eventTypes?.length) {
+      params.append("eventType", options.eventTypes.join(","));
+    }
+
+    if (options?.severityLevels?.length) {
+      params.append("severity", options.severityLevels.join(","));
+    }
+
+    if (options?.userId) {
+      params.append("userId", options.userId);
+    }
+
+    if (options?.ipAddress) {
+      params.append("ipAddress", options.ipAddress);
+    }
+
+    if (options?.success !== undefined) {
+      params.append("success", String(options.success));
+    }
+
+    if (options?.startDate) {
+      params.append("startDate", options.startDate);
+    }
+
+    if (options?.endDate) {
+      params.append("endDate", options.endDate);
+    }
+
+    const response = await fetch(`${apiUrl}audit-logs?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch audit logs");
+    return response.json();
+  },
+
+  getAlerts: async (
+    accessToken: string,
+    hours?: number
+  ): Promise<{
+    success: boolean;
+    data: SecurityAlert[];
+    windowHours: number;
+    count: number;
+  }> => {
+    const params = new URLSearchParams();
+    if (hours) {
+      params.append("hours", String(hours));
+    }
+
+    const response = await fetch(
+      `${apiUrl}audit-logs/alerts${
+        params.toString() ? `?${params.toString()}` : ""
+      }`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch security alerts");
+    return response.json();
+  },
+
+  getStats: async (
+    accessToken: string,
+    days?: number
+  ): Promise<{
+    success: boolean;
+    data: AuditStatistics;
+    windowDays: number;
+  }> => {
+    const params = new URLSearchParams();
+    if (days) {
+      params.append("days", String(days));
+    }
+
+    const response = await fetch(
+      `${apiUrl}audit-logs/stats${
+        params.toString() ? `?${params.toString()}` : ""
+      }`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch audit statistics");
     return response.json();
   },
 };
