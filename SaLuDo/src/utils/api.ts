@@ -314,6 +314,26 @@ export const candidatesApi = {
     return response.json();
   },
 
+  // Delete candidate
+  deleteCandidate: async (candidateId: string, accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+      method: "DELETE",
+      headers,
+    });
+    if (!response.ok) throw new Error("Failed to delete candidate");
+    return response.json();
+  },
+
   // Upload transcript file
   uploadTranscript: async (
     candidateId: string,
