@@ -103,8 +103,8 @@ const Sidebar = () => {
           </NavLink>
         )}
 
-        {/* Show Dashboard for admins and hr_manager */}
-        {(user?.role === "admin" || user?.role === "hr_manager") && (
+        {/* Show Dashboard for admins */}
+        {(user?.role === "admin") && (
           <NavLink
             to="/dashboard"
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}

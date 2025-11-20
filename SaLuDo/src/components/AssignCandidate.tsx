@@ -199,10 +199,9 @@ const AssignCandidate: React.FC = () => {
   };
 
   return (
-    <div className="assign-candidate-container">
-      <div className="assign-header">
-        <h1>Assign Candidates to Users</h1>
-        <p>Assign candidates to HR users, recruiters, or interviewers</p>
+    <div className="candidate-list">
+      <div className="candidate-list-header" data-text="Assign candidates to HR users, recruiters, or interviewers">
+        <h2>Assign Candidates to Users</h2>
       </div>
 
       {message && (

@@ -139,19 +139,21 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
   }
 
   return (
-    <div className="user-management-container">
-      <div className="user-management-header">
-        <h1>User Management</h1>
-        <button
-          className="btn-create-user"
+    <div className="candidate-list">
+      <div className="candidate-list-header" data-text="Create and update user accounts">
+        <h2>User Management</h2>
+        <div className="header-actions">
+          <button
+          className="compare-candidates-btn"
           onClick={() => setShowCreateModal(true)}
-        >
-          + Create New User
-        </button>
+          >
+            + Create New User
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="user-filters">
+      <div className="controls" style={{margin: "20px 30px"}}>
         <input
           type="text"
           placeholder="Search by name or email..."
@@ -185,8 +187,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
       {error && <div className="error-message">{error}</div>}
 
       {/* Users Table */}
-      <div className="users-table-container">
-        <table className="users-table">
+      <div className="table-wrapper">
+        <table>
           <thead>
             <tr>
               <th>Name</th>
@@ -229,25 +231,27 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                     ? new Date(user.lastLogin).toLocaleDateString()
                     : "No logins yet"}
                 </td>
-                <td className="actions-cell">
-                  <button
-                    className={`btn-action ${
-                      user.isActive ? "btn-deactivate" : "btn-activate"
-                    }`}
-                    onClick={() =>
-                      handleToggleStatus(user.userId, user.isActive)
-                    }
-                    title={user.isActive ? "Deactivate" : "Activate"}
-                  >
-                    {user.isActive ? "Deactivate" : "Activate"}
-                  </button>
-                  <button
-                    className="btn-action btn-delete"
-                    onClick={() => handleDeleteUser(user.userId, user.fullName)}
-                    title="Delete"
-                  >
-                    Delete
-                  </button>
+                <td>
+                  <div className="actions-buttons">
+                    <button
+                      className={`action-btn edit ${
+                        user.isActive ? "btn-deactivate" : "btn-activate"
+                      }`}
+                      onClick={() =>
+                        handleToggleStatus(user.userId, user.isActive)
+                      }
+                      title={user.isActive ? "Deactivate" : "Activate"}
+                    >
+                      {user.isActive ? "Deactivate" : "Activate"}
+                    </button>
+                    <button
+                      className="action-btn delete"
+                      onClick={() => handleDeleteUser(user.userId, user.fullName)}
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

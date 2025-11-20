@@ -122,18 +122,20 @@ const JobList: React.FC = () => {
           <img src="/images/search.png" alt="Search" />
         </div>
         {/* <img src="/images/filter.png" alt="Filter" /> */}
-        <button className="compare-candidates-btn" onClick={handleAddNewJob}>Add New Job</button>
+        <button className="compare-candidates-btn" onClick={handleAddNewJob}>+ Add New Job</button>
       </div>
       <div className="summary-cards">
         <div className="card">
           <h4>Total Jobs</h4>
           <div className="number">{jobs.length}</div>
           <div className="detail">{filteredJobs.length} Shown</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Job with Most Applicants</h4>
           <div className="number">{applicantStats.maxApplicants}</div>
           <div className="detail">{applicantStats.jobWithMostApplicants || 'No applicants yet'}</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Total Unique Skills</h4>
@@ -147,6 +149,7 @@ const JobList: React.FC = () => {
             return uniqueSkills.size;
           })()}</div>
           <div className="detail">Across All Jobs</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
       </div>
 
@@ -154,7 +157,7 @@ const JobList: React.FC = () => {
         <table>
           <thead>
             <tr>
-              <th><img src="/images/sort.png" alt="Sort" /></th>
+              <th></th>
               <th>Job Name</th>
               <th>Amount of Skills</th>
               <th>Created At</th>

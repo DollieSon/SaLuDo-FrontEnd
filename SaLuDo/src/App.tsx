@@ -31,6 +31,7 @@ import CandidateComparison from "./components/CandidateComparison.tsx";
 import UserManagement from "./components/UserManagement.tsx";
 import AssignCandidate from "./components/AssignCandidate.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Dashboard from "./components/Dashboard.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -153,7 +154,7 @@ function DashboardLayout({ children }: Props) {
   );
 }
 
-function Dashboard() {
+function CandidateListPage() {
   return (
     <ProtectedRoute>
       <DashboardLayout>
@@ -278,6 +279,19 @@ function AssignCandidatePage() {
   );
 }
 
+function DashboardPage() {
+  // For now, we'll use a mock token. In production, this should come from auth context
+  const accessToken = localStorage.getItem("accessToken") || "";
+
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout>
+        <Dashboard accessToken={accessToken} />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   const [data, setData] = useState<Data | null>(null);
 
@@ -294,7 +308,7 @@ function App() {
             <ApiData data={data} />
           </div>
         } /> */}
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<CandidateListPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/userform" element={<UserForm />} />
         <Route path="/jobform" element={<JobFormPage />} />
@@ -312,6 +326,7 @@ function App() {
         />
         <Route path="/user-management" element={<UserManagementPage />} />
         <Route path="/assign-candidates" element={<AssignCandidatePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </Router>
   );

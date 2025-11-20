@@ -353,16 +353,19 @@ const SkillsManagement: React.FC = () => {
           <h4>Total Skills</h4>
           <div className="number">{stats.total}</div>
           <div className="detail">0 Shown</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Accepted</h4>
           <div className="number">{stats.accepted}</div>
           <div className="detail">0 Shown</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Pending</h4>
           <div className="number">{stats.pending}</div>
           <div className="detail">0 Shown</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Most Used</h4>
@@ -370,6 +373,7 @@ const SkillsManagement: React.FC = () => {
           <div className="detail">
             {stats.mostUsed ? stats.mostUsedCount + " Users" : "No Data"}
           </div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
       </div>
 
