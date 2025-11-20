@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../utils/api';
 import './css/CandidateForm.css'; // Using the same CSS as CandidateForm
 
 const JobForm: React.FC = () => {
+    const { accessToken } = useAuth();
     const [title, setTitle] = useState('');
     const [details, setDetails] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,11 +24,17 @@ const JobForm: React.FC = () => {
                 jobDescription: details
             };
 
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+            };
+
+            if (accessToken) {
+                headers['Authorization'] = `Bearer ${accessToken}`;
+            }
+
             const response = await fetch(`${apiUrl}jobs`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(jobData),
             });
 
