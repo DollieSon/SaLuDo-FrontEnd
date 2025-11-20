@@ -47,14 +47,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (response.success) {
           const newAccessToken = response.data.accessToken;
+          const newRefreshToken = response.data.refreshToken;
+          
           setAccessToken(newAccessToken);
           localStorage.setItem("accessToken", newAccessToken);
+          
+          // Update refresh token if rotated
+          if (newRefreshToken) {
+            setRefreshToken(newRefreshToken);
+            localStorage.setItem("refreshToken", newRefreshToken);
+          }
+          
           console.log("✅ Token refreshed successfully");
         }
       } catch (error) {
         console.error("❌ Auto-refresh failed:", error);
-        // If refresh fails, log the user out
-        logout();
+        // Note: Don't logout here - the 401 interceptor will handle expired tokens
       }
     }, 7 * 60 * 60 * 1000); // Refresh every 7 hours (token expires in 8 hours)
 
