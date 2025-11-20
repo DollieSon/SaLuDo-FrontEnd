@@ -40,6 +40,31 @@
   line-height: 1;
 }
 
+.connection-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid white;
+  animation: pulse 2s infinite;
+}
+
+.connection-indicator.connected {
+  background: #10b981;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .notification-dropdown {
   position: absolute;
   bottom: calc(100% + 0.5rem);
@@ -63,11 +88,26 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.notification-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .notification-header h3 {
   margin: 0;
   font-size: 1rem;
   color: #1f2937;
   font-weight: 600;
+}
+
+.connection-status {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.connection-status.offline {
+  color: #f59e0b;
 }
 
 .btn-mark-all-read {

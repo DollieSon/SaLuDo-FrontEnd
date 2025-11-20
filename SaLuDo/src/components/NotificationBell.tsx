@@ -1,27 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { notificationsApi } from "../utils/api";
-import { Notification, NotificationSummary } from "../types/notification";
+import { useNotifications } from "../context/NotificationContext";
+import { Notification } from "../types/notification";
 import "./css/NotificationBell.css";
 
 export const NotificationBell: React.FC = () => {
-  const { accessToken } = useAuth();
   const navigate = useNavigate();
+  const {
+    notifications: allNotifications,
+    unreadCount,
+    isConnected,
+    loading,
+    error,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
+  
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [summary, setSummary] = useState<NotificationSummary | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [displayNotifications, setDisplayNotifications] = useState<Notification[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Update display notifications when dropdown opens or notifications change
   useEffect(() => {
-    if (accessToken) {
-      loadSummary();
-      const interval = setInterval(loadSummary, 30000); // Refresh every 30 seconds
-      return () => clearInterval(interval);
+    if (isOpen) {
+      setDisplayNotifications(allNotifications.slice(0, 10));
     }
-  }, [accessToken]);
+  }, [isOpen, allNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -35,7 +39,6 @@ export const NotificationBell: React.FC = () => {
 
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      loadNotifications();
     }
 
     return () => {
@@ -43,53 +46,17 @@ export const NotificationBell: React.FC = () => {
     };
   }, [isOpen]);
 
-  const loadSummary = async () => {
-    if (!accessToken) return;
-    try {
-      const data = await notificationsApi.getSummary(accessToken);
-      setSummary(data);
-    } catch (err: any) {
-      console.error("Failed to load notification summary:", err);
-    }
-  };
-
-  const loadNotifications = async () => {
-    if (!accessToken) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await notificationsApi.getNotifications(accessToken, {
-        limit: 10,
-      });
-      setNotifications(data.notifications || []);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleMarkAsRead = async (notificationId: string) => {
-    if (!accessToken) return;
     try {
-      await notificationsApi.markAsRead(accessToken, notificationId);
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.notificationId === notificationId ? { ...n, isRead: true } : n
-        )
-      );
-      loadSummary();
+      await markAsRead(notificationId);
     } catch (err: any) {
       console.error("Failed to mark as read:", err);
     }
   };
 
   const handleMarkAllAsRead = async () => {
-    if (!accessToken) return;
     try {
-      await notificationsApi.markAllAsRead(accessToken);
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      loadSummary();
+      await markAllAsRead();
     } catch (err: any) {
       console.error("Failed to mark all as read:", err);
     }
@@ -143,14 +110,12 @@ export const NotificationBell: React.FC = () => {
     return `priority-${priority.toLowerCase()}`;
   };
 
-  const unreadCount = summary?.unread || 0;
-
   return (
     <div className="notification-bell-container" ref={dropdownRef}>
       <button
         className="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}
-        title="Notifications"
+        title={isConnected ? "Notifications (Live)" : "Notifications (Offline)"}
       >
         <svg
           className="bell-icon"
@@ -171,12 +136,20 @@ export const NotificationBell: React.FC = () => {
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
+        {isConnected && (
+          <span className="connection-indicator connected" title="Live updates active"></span>
+        )}
       </button>
 
       {isOpen && (
         <div className="notification-dropdown">
           <div className="notification-header">
-            <h3>Notifications</h3>
+            <div>
+              <h3>Notifications</h3>
+              {!isConnected && (
+                <span className="connection-status offline">Reconnecting...</span>
+              )}
+            </div>
             {unreadCount > 0 && (
               <button
                 className="btn-mark-all-read"
@@ -191,7 +164,7 @@ export const NotificationBell: React.FC = () => {
 
           {error && <div className="notification-error">{error}</div>}
 
-          {!loading && !error && notifications.length === 0 && (
+          {!loading && !error && displayNotifications.length === 0 && (
             <div className="no-notifications">
               <svg
                 className="no-notifications-icon"
@@ -210,9 +183,9 @@ export const NotificationBell: React.FC = () => {
             </div>
           )}
 
-          {!loading && !error && notifications.length > 0 && (
+          {!loading && !error && displayNotifications.length > 0 && (
             <div className="notification-list">
-              {notifications.map((notification) => (
+              {displayNotifications.map((notification) => (
                 <div
                   key={notification.notificationId}
                   className={`notification-item ${

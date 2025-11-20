@@ -145,7 +145,7 @@ const Sidebar = () => {
           <NotificationBell />
         </div>
         <button onClick={handleLogout} className="logout-btn" title="Logout">
-          🚪 Logout
+        Logout
         </button>
       </div>
     </div>
