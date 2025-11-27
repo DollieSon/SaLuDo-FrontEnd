@@ -73,7 +73,7 @@ export const NotificationToast: React.FC = () => {
           className={`notification-toast ${toast.show ? 'show' : ''} ${getPriorityClass(toast.priority)}`}
         >
           <div className="toast-icon">
-            {(toast.priority === 'URGENT' || toast.priority === 'HIGH') ? (
+            {(toast.priority === 'CRITICAL' || toast.priority === 'HIGH') ? (
               <svg
                 className="icon"
                 fill="none"
