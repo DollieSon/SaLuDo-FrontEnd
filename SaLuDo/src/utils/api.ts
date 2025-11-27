@@ -662,6 +662,13 @@ export const usersApi = {
       lastName?: string;
       middleName?: string;
       title?: string;
+      phoneNumber?: string;
+      location?: string;
+      timezone?: string;
+      linkedInUrl?: string;
+      bio?: string;
+      availability?: any;
+      roleSpecificData?: any;
     }
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/profile`, {
@@ -673,6 +680,67 @@ export const usersApi = {
       body: JSON.stringify(updates),
     });
     if (!response.ok) throw new Error("Failed to update user profile");
+    return response.json();
+  },
+
+  // Upload profile photo
+  uploadProfilePhoto: async (
+    accessToken: string,
+    userId: string,
+    photoFile: File
+  ) => {
+    const formData = new FormData();
+    formData.append('photo', photoFile);
+
+    const response = await fetch(`${apiUrl}users/${userId}/profile/photo`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+    if (!response.ok) throw new Error("Failed to upload profile photo");
+    return response.json();
+  },
+
+  // Get profile photo URL
+  getProfilePhotoUrl: (userId: string, thumbnail: boolean = false) => {
+    const params = thumbnail ? '?thumbnail=true' : '';
+    return `${apiUrl}users/${userId}/profile/photo${params}`;
+  },
+
+  // Delete profile photo
+  deleteProfilePhoto: async (accessToken: string, userId: string) => {
+    const response = await fetch(`${apiUrl}users/${userId}/profile/photo`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to delete profile photo");
+    return response.json();
+  },
+
+  // Get user profile stats
+  getUserStats: async (accessToken: string, userId: string) => {
+    const response = await fetch(`${apiUrl}users/${userId}/profile/stats`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) throw new Error("Failed to fetch user stats");
+    return response.json();
+  },
+
+  // Get user profile activity
+  getProfileActivity: async (
+    accessToken: string,
+    userId: string,
+    limit: number = 10
+  ) => {
+    const response = await fetch(
+      `${apiUrl}users/${userId}/profile/activity?limit=${limit}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    if (!response.ok) throw new Error("Failed to fetch profile activity");
     return response.json();
   },
 

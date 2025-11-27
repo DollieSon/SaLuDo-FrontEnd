@@ -7,6 +7,44 @@ export enum UserRole {
   INTERVIEWER = "interviewer",
 }
 
+// =======================
+// EXTENDED PROFILE TYPES
+// =======================
+
+export type AvailabilityStatus = 'available' | 'busy' | 'away';
+export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+export type TimeSlot = 'morning' | 'afternoon' | 'evening';
+
+export interface Availability {
+  status: AvailabilityStatus;
+  daysAvailable: DayOfWeek[];
+  preferredTimeSlots?: TimeSlot[];
+  notes?: string;
+}
+
+export interface ProfilePhotoMetadata {
+  fileId: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  uploadedAt: Date;
+  thumbnailFileId?: string;
+}
+
+export interface RoleSpecificData {
+  // For INTERVIEWER
+  expertiseAreas?: Array<'technical' | 'behavioral' | 'leadership' | 'cultural-fit' | 'skills-assessment'>;
+  interviewTypes?: Array<'phone' | 'video' | 'in-person' | 'panel'>;
+  
+  // For RECRUITER
+  specializations?: Array<'software-engineering' | 'marketing' | 'sales' | 'design' | 'operations' | 'executive' | 'general'>;
+  candidatePipelineLimit?: number;
+  
+  // For HR_MANAGER
+  teamSize?: number;
+  canApproveOffers?: boolean;
+}
+
 export interface UserProfile {
   userId: string;
   email: string;
@@ -20,6 +58,45 @@ export interface UserProfile {
   isVerified: boolean;
   createdAt: Date;
   lastLogin?: Date;
+  // Extended profile fields
+  photoMetadata?: ProfilePhotoMetadata;
+  phoneNumber?: string;
+  location?: string;
+  timezone?: string;
+  linkedInUrl?: string;
+  bio?: string;
+  availability?: Availability;
+  roleSpecificData?: RoleSpecificData;
+}
+
+export interface ProfileStats {
+  userId: string;
+  totalCandidatesAssigned: number;
+  activeCandidatesCount: number;
+  candidatesHired: number;
+  candidatesRejected: number;
+  interviewsConducted?: number;
+  lastActivityDate?: Date;
+  accountAge: number;
+}
+
+export type ProfileActivityType = 
+  | 'profile_updated'
+  | 'photo_uploaded'
+  | 'photo_deleted'
+  | 'availability_updated'
+  | 'bio_updated'
+  | 'contact_updated';
+
+export interface ProfileActivity {
+  activityId: string;
+  userId: string;
+  activityType: ProfileActivityType;
+  fieldChanged?: string;
+  oldValue?: string;
+  newValue?: string;
+  timestamp: Date;
+  ipAddress?: string;
 }
 
 export interface CreateUserData {
@@ -38,6 +115,14 @@ export interface UpdateUserData {
   lastName?: string;
   middleName?: string;
   title?: string;
+  // Extended profile fields
+  phoneNumber?: string;
+  location?: string;
+  timezone?: string;
+  linkedInUrl?: string;
+  bio?: string;
+  availability?: Availability;
+  roleSpecificData?: RoleSpecificData;
 }
 
 export interface LoginCredentials {

@@ -34,6 +34,7 @@ import AssignCandidate from "./components/AssignCandidate.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import AuditLogs from "./components/AuditLogs.tsx";
 import Dashboard from "./components/Dashboard.tsx";
+import UserProfile from "./components/UserProfile.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -304,6 +305,16 @@ function DashboardPage() {
   );
 }
 
+function UserProfilePage() {
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <UserProfile />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   const [data, setData] = useState<Data | null>(null);
 
@@ -341,6 +352,7 @@ function App() {
         <Route path="/assign-candidates" element={<AssignCandidatePage />} />
         <Route path="/audit-logs" element={<AuditLogsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/user-profile/:userId" element={<UserProfilePage />} />
       </Routes>
     </Router>
   );
