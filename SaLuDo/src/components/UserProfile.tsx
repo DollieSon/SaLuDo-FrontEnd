@@ -8,6 +8,7 @@ import ProfilePhotoUpload from "./ProfilePhotoUpload.tsx";
 import ProfileEditForm from "./ProfileEditForm.tsx";
 import ProfileStatsWidget from "./ProfileStatsWidget.tsx";
 import ProfileActivityTimeline from "./ProfileActivityTimeline.tsx";
+import ProfileSettings from "./ProfileSettings.tsx";
 
 const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -19,7 +20,7 @@ const UserProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'activity'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'activity' | 'settings'>('profile');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const accessToken = localStorage.getItem("accessToken") || "";
@@ -108,78 +109,81 @@ const UserProfile: React.FC = () => {
   const canEdit = currentUserId === targetUserId || currentUser?.role === 'admin';
 
   if (isLoading) {
-    return (
-      <div className="user-profile-container">
-        <div className="loading">Loading profile...</div>
-      </div>
-    );
+    return null;
   }
 
   if (error || !user) {
     return (
-      <div className="user-profile-container">
-        <div className="error">{error || "User not found"}</div>
+      <div className="user-profile-page">
+        <div className="error-message">
+          <p>{error || "User not found"}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="user-profile-container">
+    <div className="user-profile-page">
       {toast && (
-        <div className={`toast toast-${toast.type}`}>
+        <div className={`toast ${toast.type}`}>
           {toast.message}
         </div>
       )}
 
       <div className="profile-header">
-        <div className="profile-header-content">
-          <ProfilePhotoUpload
-            userId={targetUserId}
-            photoMetadata={user.photoMetadata}
-            canEdit={canEdit}
-            onUpload={handlePhotoUpload}
-            onDelete={handlePhotoDelete}
-          />
-          
-          <div className="profile-header-info">
-            <h1>{user.fullName}</h1>
-            <p className="profile-title">{user.title}</p>
-            <p className="profile-role">{user.role.replace('_', ' ').toUpperCase()}</p>
-            {user.location && <p className="profile-location">📍 {user.location}</p>}
-          </div>
-
-          {canEdit && (
-            <div className="profile-header-actions">
-              <button
-                className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`}
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                {isEditing ? 'Cancel' : 'Edit Profile'}
-              </button>
-            </div>
-          )}
+        <ProfilePhotoUpload
+          userId={targetUserId}
+          fullName={user.fullName}
+          photoMetadata={user.photoMetadata}
+          canEdit={canEdit}
+          onUpload={handlePhotoUpload}
+          onDelete={handlePhotoDelete}
+        />
+        
+        <div className="profile-header-info">
+          <h1 className="profile-name">{user.fullName}</h1>
+          <span className="profile-role">{user.role.replace('_', ' ')}</span>
         </div>
+
+        {canEdit && (
+          <div className="profile-actions">
+            <button
+              className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`}
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              {isEditing ? 'Cancel' : 'Edit Profile'}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="profile-tabs">
         <button
-          className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
+          className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
           Profile
         </button>
         <button
-          className={`tab ${activeTab === 'stats' ? 'active' : ''}`}
+          className={`tab-button ${activeTab === 'stats' ? 'active' : ''}`}
           onClick={() => setActiveTab('stats')}
         >
           Statistics
         </button>
         <button
-          className={`tab ${activeTab === 'activity' ? 'active' : ''}`}
+          className={`tab-button ${activeTab === 'activity' ? 'active' : ''}`}
           onClick={() => setActiveTab('activity')}
         >
           Activity
         </button>
+        {canEdit && (
+          <button
+            className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            Settings
+          </button>
+        )}
       </div>
 
       <div className="profile-content">
@@ -317,6 +321,10 @@ const UserProfile: React.FC = () => {
 
         {activeTab === 'activity' && (
           <ProfileActivityTimeline activities={activity} />
+        )}
+
+        {activeTab === 'settings' && canEdit && (
+          <ProfileSettings userId={targetUserId} accessToken={accessToken} />
         )}
       </div>
     </div>

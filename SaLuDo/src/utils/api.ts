@@ -1171,7 +1171,24 @@ export const notificationsApi = {
         body: JSON.stringify(preferences),
       }
     );
-    if (!response.ok) throw new Error("Failed to update preferences");
+    
+    if (!response.ok) {
+      // Try to get error details from response
+      let errorMessage = "Failed to update preferences";
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = `Failed to update preferences: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+    
     return response.json();
   },
 };

@@ -5,6 +5,7 @@ import "./css/ProfilePhotoUpload.css";
 
 interface ProfilePhotoUploadProps {
   userId: string;
+  fullName: string;
   photoMetadata?: ProfilePhotoMetadata;
   canEdit: boolean;
   onUpload: (file: File) => Promise<void>;
@@ -13,6 +14,7 @@ interface ProfilePhotoUploadProps {
 
 const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({
   userId,
+  fullName,
   photoMetadata,
   canEdit,
   onUpload,
@@ -109,7 +111,7 @@ const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({
           />
         ) : (
           <div className="profile-photo-placeholder">
-            {getInitials(userId)}
+            {getInitials(fullName)}
           </div>
         )}
         

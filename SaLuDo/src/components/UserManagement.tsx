@@ -241,7 +241,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                 </td>
                 <td>
                   {user.lastLogin
-                    ? new Date(user.lastLogin).toLocaleDateString()
+                    ? new Date(user.lastLogin).toLocaleString()
                     : "No logins yet"}
                 </td>
                 <td>
