@@ -1,6 +1,7 @@
 import "./css/UserProfile.css";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { usersApi } from "../utils/api";
 import { UserProfile as UserProfileType, ProfileStats, ProfileActivity } from "../types/user";
 import ProfilePhotoUpload from "./ProfilePhotoUpload.tsx";
@@ -10,6 +11,7 @@ import ProfileActivityTimeline from "./ProfileActivityTimeline.tsx";
 
 const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
+  const { user: currentUser } = useAuth();
   
   const [user, setUser] = useState<UserProfileType | null>(null);
   const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -21,7 +23,7 @@ const UserProfile: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const accessToken = localStorage.getItem("accessToken") || "";
-  const currentUserId = localStorage.getItem("userId") || "";
+  const currentUserId = currentUser?.userId || "";
   const targetUserId = userId || currentUserId;
 
   useEffect(() => {
@@ -103,7 +105,7 @@ const UserProfile: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const canEdit = currentUserId === targetUserId || user?.role === 'admin';
+  const canEdit = currentUserId === targetUserId || currentUser?.role === 'admin';
 
   if (isLoading) {
     return (

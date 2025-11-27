@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { usersApi } from "../utils/api";
 import { UserProfile, UserRole } from "../types/user";
 import "../styles/UserManagement.css";
@@ -8,6 +9,7 @@ interface UserManagementProps {
 }
 
 const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -203,7 +205,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.userId}>
+              <tr 
+                key={user.userId}
+                onClick={(e) => {
+                  // Don't navigate if clicking on action buttons
+                  if ((e.target as HTMLElement).closest('.actions-buttons')) {
+                    return;
+                  }
+                  navigate(`/user-profile/${user.userId}`);
+                }}
+                style={{ cursor: 'pointer' }}
+                title="Click to view profile"
+              >
                 <td>{user.fullName}</td>
                 <td>{user.email}</td>
                 <td>{user.title}</td>

@@ -133,7 +133,12 @@ const Sidebar = () => {
 
       {/* User Profile Section */}
       <div className="user-profile">
-        <div className="user-profile-card">
+        <div 
+          className="user-profile-card" 
+          onClick={() => user?.userId && navigate(`/user-profile/${user.userId}`)}
+          style={{ cursor: 'pointer' }}
+          title="View my profile"
+        >
           <div className="user-avatar">
             {user?.firstName?.[0]}
             {user?.lastName?.[0]}
