@@ -45,6 +45,8 @@ const JobDetails: React.FC = () => {
   
   const [job, setJob] = useState<Job | null>(null);
   const [candidateMatches, setCandidateMatches] = useState<CandidateMatch[]>([]);
+  const [applicants, setApplicants] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<'matches' | 'applicants'>('matches');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [includeAcceptedOnly, setIncludeAcceptedOnly] = useState(false);
@@ -68,6 +70,7 @@ const JobDetails: React.FC = () => {
         
         setJob(jobData);
         await calculateCandidateMatches(jobData);
+        await fetchApplicants(jobId);
         setError(null);
       } else {
         throw new Error('Failed to load job details');
@@ -246,6 +249,26 @@ const JobDetails: React.FC = () => {
       missingSkills,
       skills: candidate.skills
     };
+  };
+
+  // Fetch candidates who have applied for this job
+  const fetchApplicants = async (jobId: string) => {
+    try {
+      const candidatesResponse = await candidatesApi.getAllCandidates();
+      
+      if (candidatesResponse.success && candidatesResponse.data) {
+        // Filter candidates who applied for this job
+        const jobApplicants = candidatesResponse.data.filter(
+          (candidate: any) => candidate.roleApplied === jobId
+        );
+        setApplicants(jobApplicants);
+      } else {
+        setApplicants([]);
+      }
+    } catch (err) {
+      console.error('Error fetching applicants:', err);
+      setApplicants([]);
+    }
   };
 
   // Generate application link and QR code
@@ -639,15 +662,48 @@ const JobDetails: React.FC = () => {
         {/* Candidate Matches Panel - Full Width */}
         <div style={{ backgroundColor: '#f9fafb', padding: '24px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ margin: '0', fontSize: '24px', color: '#1f2937' }}>Candidate Matches</h2>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                <input
-                  type="checkbox"
-                  checked={includeAcceptedOnly}
-                  onChange={(e) => setIncludeAcceptedOnly(e.target.checked)}
-                />
-                Include Accepted Skills Only
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <h2 style={{ margin: '0', fontSize: '24px', color: '#1f2937' }}>Candidates</h2>
+              <div style={{ display: 'flex', gap: '4px', marginLeft: '16px' }}>
+                <button
+                  onClick={() => setViewMode('matches')}
+                  style={{ 
+                    padding: '8px 16px', 
+                    backgroundColor: viewMode === 'matches' ? '#007bff' : '#e5e7eb',
+                    color: viewMode === 'matches' ? 'white' : '#6b7280',
+                    border: 'none', 
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: viewMode === 'matches' ? 'bold' : 'normal'
+                  }}
+                >
+                  Matches ({candidateMatches.length})
+                </button>
+                <button
+                  onClick={() => setViewMode('applicants')}
+                  style={{ 
+                    padding: '8px 16px', 
+                    backgroundColor: viewMode === 'applicants' ? '#007bff' : '#e5e7eb',
+                    color: viewMode === 'applicants' ? 'white' : '#6b7280',
+                    border: 'none', 
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: viewMode === 'applicants' ? 'bold' : 'normal'
+                  }}
+                >
+                  Applicants ({applicants.length})
+                </button>
+              </div>
+            </div>
+            {viewMode === 'matches' && (
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={includeAcceptedOnly}
+                    onChange={(e) => setIncludeAcceptedOnly(e.target.checked)}
+                  />
+                  Include Accepted Skills Only
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                 Min Match:
@@ -676,11 +732,13 @@ const JobDetails: React.FC = () => {
               >
                 Refresh
               </button>
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Match Statistics */}
-          <div className="job-details-match-stats">
+          {/* Match Statistics - Only show for matches view */}
+          {viewMode === 'matches' && (
+            <div className="job-details-match-stats">
             <div style={{ backgroundColor: 'white', padding: '16px', borderRadius: '6px', textAlign: 'center' }}>
               <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#10b981' }}>{perfectMatches}</div>
               <div style={{ fontSize: '12px', color: '#6b7280' }}>Perfect Match (90-100%)</div>
@@ -698,10 +756,14 @@ const JobDetails: React.FC = () => {
               <div style={{ fontSize: '12px', color: '#6b7280' }}>Poor Match (&lt;50%)</div>
             </div>
           </div>
+          )}
 
-          {/* Candidates List */}
+          {/* Candidates List - Conditional rendering based on view mode */}
           <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            {candidateMatches.length === 0 ? (
+            {viewMode === 'matches' ? (
+              // Candidate Matches View
+              <>
+                {candidateMatches.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
                 <p>No candidate matches found. Try adjusting your filters or adding more skills to the job.</p>
               </div>
@@ -794,6 +856,85 @@ const JobDetails: React.FC = () => {
                   </div>
                 );
               })
+            )}
+            </>
+            ) : (
+              // Applicants View
+              <>
+                {applicants.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                    <p>No applicants yet. Share the job posting to receive applications.</p>
+                  </div>
+                ) : (
+                  applicants.map((applicant, index) => (
+                    <div 
+                      key={index}
+                      style={{ 
+                        backgroundColor: 'white', 
+                        padding: '20px', 
+                        borderRadius: '8px', 
+                        border: '1px solid #e5e7eb',
+                        marginBottom: '16px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#6b7280' }}>•</div>
+                          <div>
+                            <h3 style={{ margin: '0', fontSize: '18px', color: '#1f2937' }}>
+                              {applicant.name}
+                            </h3>
+                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                              ID: {applicant.candidateId} • Email: {applicant.email || 'N/A'}
+                            </div>
+                            <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                              Status: <span style={{ 
+                                fontWeight: 'bold',
+                                color: applicant.status === 'Approved' ? '#10b981' : 
+                                       applicant.status === 'Rejected' ? '#ef4444' : '#f59e0b'
+                              }}>{applicant.status}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                            Applied: {new Date(applicant.dateCreated).toLocaleDateString()}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                            Skills: {applicant.skills?.length || 0}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Applicant Quick Info */}
+                      <div style={{ fontSize: '14px', color: '#4b5563', marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        {applicant.phone && (
+                          <div><strong>Phone:</strong> {applicant.phone}</div>
+                        )}
+                        {applicant.location && (
+                          <div><strong>Location:</strong> {applicant.location}</div>
+                        )}
+                      </div>
+
+                      {/* View Profile Button */}
+                      <button
+                        onClick={() => navigate(`/profile/${applicant.candidateId}`)}
+                        style={{ 
+                          padding: '10px 20px', 
+                          backgroundColor: '#007bff', 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        View Profile
+                      </button>
+                    </div>
+                  ))
+                )}
+              </>
             )}
           </div>
         </div>

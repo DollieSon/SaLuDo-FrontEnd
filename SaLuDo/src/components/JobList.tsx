@@ -92,6 +92,11 @@ const JobList: React.FC = () => {
   
   const applicantStats = calculateApplicantStats();
 
+  // Get applicant count for a specific job
+  const getApplicantCount = (jobId: string): number => {
+    return candidates.filter(candidate => candidate.roleApplied === jobId).length;
+  };
+
   // Format date for display
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -167,6 +172,7 @@ const JobList: React.FC = () => {
               <th></th>
               <th>Job Name</th>
               <th>Amount of Skills</th>
+              <th>Applicants</th>
               <th>Created At</th>
               <th>Action</th>
             </tr>
@@ -174,19 +180,19 @@ const JobList: React.FC = () => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>
                   Loading jobs...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
                   {error}
                 </td>
               </tr>
             ) : filteredJobs.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
                   No jobs found
                 </td>
               </tr>
@@ -200,6 +206,14 @@ const JobList: React.FC = () => {
                     </a>
                   </td>
                   <td>{job.skills.filter(skill => !skill.isDeleted).length}</td>
+                  <td>
+                    <span style={{ 
+                      fontWeight: 'bold',
+                      color: getApplicantCount(job._id) > 0 ? '#10b981' : '#6b7280'
+                    }}>
+                      {getApplicantCount(job._id)}
+                    </span>
+                  </td>
                   <td>{formatDate(job.createdAt)}</td>
                   <td>
                     <button
