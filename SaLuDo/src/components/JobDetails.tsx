@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { jobsApi, skillsApi, candidatesApi } from '../utils/api';
-import './css/CandidateForm.css'; // Using the same CSS for consistent styling
+import './css/JobDetails.css';
 
 interface JobSkillRequirement {
   skillId: string;
@@ -45,12 +45,39 @@ const JobDetails: React.FC = () => {
   
   const [job, setJob] = useState<Job | null>(null);
   const [candidateMatches, setCandidateMatches] = useState<CandidateMatch[]>([]);
+  const [applicants, setApplicants] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<'matches' | 'applicants'>('matches');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [includeAcceptedOnly, setIncludeAcceptedOnly] = useState(false);
   const [minMatchThreshold, setMinMatchThreshold] = useState(50);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showAddSkillModal, setShowAddSkillModal] = useState(false);
+  const [showEditJobModal, setShowEditJobModal] = useState(false);
+  const [showEditSkillModal, setShowEditSkillModal] = useState(false);
+  const [editingSkillIndex, setEditingSkillIndex] = useState<number | null>(null);
+  const [editJobData, setEditJobData] = useState({ jobName: '', jobDescription: '' });
+  const [newSkill, setNewSkill] = useState({ skillName: '', requiredLevel: 5, evidence: '' });
+  const [editSkillData, setEditSkillData] = useState({ skillName: '', requiredLevel: 5, evidence: '' });
+  const [masterSkillsList, setMasterSkillsList] = useState<any[]>([]);
+  const [skillSuggestions, setSkillSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Fetch master skills list for autocomplete
+  useEffect(() => {
+    const fetchMasterSkills = async () => {
+      try {
+        const response = await skillsApi.getAllMasterSkills();
+        if (response.success && response.data) {
+          setMasterSkillsList(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching master skills:', error);
+      }
+    };
+    fetchMasterSkills();
+  }, []);
 
   // Fetch job details
   const fetchJobDetails = async () => {
@@ -68,6 +95,7 @@ const JobDetails: React.FC = () => {
         
         setJob(jobData);
         await calculateCandidateMatches(jobData);
+        await fetchApplicants(jobId);
         setError(null);
       } else {
         throw new Error('Failed to load job details');
@@ -248,6 +276,26 @@ const JobDetails: React.FC = () => {
     };
   };
 
+  // Fetch candidates who have applied for this job
+  const fetchApplicants = async (jobId: string) => {
+    try {
+      const candidatesResponse = await candidatesApi.getAllCandidates();
+      
+      if (candidatesResponse.success && candidatesResponse.data) {
+        // Filter candidates who applied for this job
+        const jobApplicants = candidatesResponse.data.filter(
+          (candidate: any) => candidate.roleApplied === jobId
+        );
+        setApplicants(jobApplicants);
+      } else {
+        setApplicants([]);
+      }
+    } catch (err) {
+      console.error('Error fetching applicants:', err);
+      setApplicants([]);
+    }
+  };
+
   // Generate application link and QR code
   const generateApplicationLink = () => {
     const baseUrl = window.location.origin;
@@ -357,7 +405,7 @@ const JobDetails: React.FC = () => {
   return (
     <div style={{ 
       padding: '20px', 
-      height: 'calc(100vh - 70px)', // Account for header height
+      height: 'calc(100vh - 70px)',
       overflow: 'auto',
       backgroundColor: '#f8f9fa'
     }}>
@@ -369,36 +417,25 @@ const JobDetails: React.FC = () => {
         padding: '24px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
       }}>
-        {/* Header */}          <div style={{ marginBottom: '24px', borderBottom: '2px solid #e5e7eb', paddingBottom: '16px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '24px', borderBottom: '2px solid #e5e7eb', paddingBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <nav style={{ fontSize: '14px', color: '#6b7280' }}>
               <span onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer', color: '#007bff' }}>Dashboard</span> {' > '}
               <span onClick={() => navigate('/job-list')} style={{ cursor: 'pointer', color: '#007bff' }}>Jobs</span> {' > '}
               <span>{job.jobName}</span>
             </nav>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="job-details-header-actions">
               <button 
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: '#007bff', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: 'pointer'
+                onClick={() => {
+                  setEditJobData({ jobName: job.jobName, jobDescription: job.jobDescription });
+                  setShowEditJobModal(true);
                 }}
+                className="btn-primary"
               >
                 Edit
               </button>
-              <button 
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: '#ef4444', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
+              <button className="btn-danger">
                 Delete
               </button>
             </div>
@@ -410,7 +447,7 @@ const JobDetails: React.FC = () => {
         <div className="job-details-grid">
           
           {/* Job Information Panel */}
-          <div style={{ backgroundColor: '#f9fafb', padding: '24px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+          <div className="panel panel-half">
             <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', color: '#1f2937' }}>Job Information</h2>
             
             {/* Basic Info */}
@@ -477,14 +514,10 @@ const JobDetails: React.FC = () => {
               
               <button
                 onClick={generateApplicationLink}
+                className="btn-primary"
                 style={{ 
                   width: '100%',
-                  padding: '12px 16px', 
-                  backgroundColor: '#10b981', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '6px',
-                  cursor: 'pointer',
+                  backgroundColor: '#10b981',
                   marginBottom: '16px',
                   fontSize: '16px'
                 }}
@@ -528,13 +561,8 @@ const JobDetails: React.FC = () => {
                     </div>
                     <button
                       onClick={downloadQRCode}
+                      className="btn-primary"
                       style={{ 
-                        padding: '8px 16px', 
-                        backgroundColor: '#007bff', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '4px',
-                        cursor: 'pointer',
                         fontSize: '14px',
                         whiteSpace: 'nowrap'
                       }}
@@ -548,60 +576,73 @@ const JobDetails: React.FC = () => {
           </div>
 
           {/* Skills Requirements Panel */}
-          <div style={{ 
-            backgroundColor: '#f9fafb', 
-            padding: '24px', 
-            borderRadius: '8px', 
-            border: '1px solid #e5e7eb',
-            minHeight: '300px', // Fixed minimum height
-            maxHeight: '600px', // Prevent it from growing too large
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
+          <div className="panel panel-half">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 style={{ margin: '0', fontSize: '24px', color: '#1f2937' }}>Skills Required ({job.skills.length})</h2>
               <button 
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: '#10b981', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
+                onClick={() => setShowAddSkillModal(true)}
+                className="btn-primary"
+                style={{ backgroundColor: '#10b981' }}
               >
                 + Add Skill
               </button>
             </div>
 
-            <div style={{ 
-              maxHeight: '400px', 
-              overflowY: 'auto',
-              flex: 1 // Take remaining space
-            }}>
-              {job.skills.map((skill, index) => (
+            <div className="panel-content-scrollable">
+              {job.skills.map((skill, index) => {
+                const isAICreated = skill.addedBy === undefined || skill.addedBy === null;
+                return (
                 <div 
                   key={index}
-                  style={{ 
-                    backgroundColor: 'white', 
-                    padding: '16px', 
-                    borderRadius: '6px', 
-                    border: '1px solid #e5e7eb',
-                    marginBottom: '12px'
-                  }}
+                  className={`skill-card ${isAICreated ? 'ai-created' : 'human-created'}`}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <h4 style={{ margin: '0', color: '#1f2937', fontSize: '16px' }}>
-                      {skill.skillName || 'Unknown Skill'}
-                      {skill.skillId && skill.skillName && skill.skillName !== skill.skillId && (
-                        <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 'normal' }}>
-                          {' '}(ID: {skill.skillId})
-                        </span>
-                      )}
-                    </h4>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      {/* <button style={{ padding: '4px 8px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Edit</button>
-                      <button style={{ padding: '4px 8px', backgroundColor: '#fee2e2', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Delete</button> */}
+                  <div className="skill-card-header">
+                    <div className="skill-card-title">
+                      <h4 style={{ margin: '0', color: '#1f2937', fontSize: '16px' }}>
+                        {skill.skillName || 'Unknown Skill'}
+                        {skill.skillId && skill.skillName && skill.skillName !== skill.skillId && (
+                          <span className="skill-card-title-id">
+                            {' '}(ID: {skill.skillId})
+                          </span>
+                        )}
+                      </h4>
+                      <span className={`skill-badge ${isAICreated ? 'ai' : 'human'}`}>
+                        {isAICreated ? 'AI' : 'Human'}
+                      </span>
+                    </div>
+                    <div className="skill-card-actions">
+                      <button 
+                        onClick={() => {
+                          setEditingSkillIndex(index);
+                          setEditSkillData({
+                            skillName: skill.skillName || '',
+                            requiredLevel: skill.requiredLevel,
+                            evidence: skill.evidence || ''
+                          });
+                          setShowEditSkillModal(true);
+                        }}
+                        className="btn-edit"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          if (window.confirm(`Are you sure you want to delete "${skill.skillName}"?`)) {
+                            try {
+                              const updatedSkills = job.skills.filter((_, i) => i !== index);
+                              await jobsApi.updateJob(jobId!, { skills: updatedSkills });
+                              setJob({ ...job, skills: updatedSkills });
+                              alert('Skill deleted successfully!');
+                            } catch (error) {
+                              console.error('Error deleting skill:', error);
+                              alert('Failed to delete skill. Please try again.');
+                            }
+                          }
+                        }}
+                        className="btn-delete"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                   
@@ -631,23 +672,41 @@ const JobDetails: React.FC = () => {
                     </p>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         </div>
 
         {/* Candidate Matches Panel - Full Width */}
-        <div style={{ backgroundColor: '#f9fafb', padding: '24px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+        <div className="panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2 style={{ margin: '0', fontSize: '24px', color: '#1f2937' }}>Candidate Matches</h2>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                <input
-                  type="checkbox"
-                  checked={includeAcceptedOnly}
-                  onChange={(e) => setIncludeAcceptedOnly(e.target.checked)}
-                />
-                Include Accepted Skills Only
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <h2 style={{ margin: '0', fontSize: '24px', color: '#1f2937' }}>Candidates</h2>
+              <div className="view-toggle">
+                <button
+                  onClick={() => setViewMode('matches')}
+                  className={`view-toggle-btn ${viewMode === 'matches' ? 'active' : ''}`}
+                >
+                  Matches ({candidateMatches.length})
+                </button>
+                <button
+                  onClick={() => setViewMode('applicants')}
+                  className={`view-toggle-btn ${viewMode === 'applicants' ? 'active' : ''}`}
+                >
+                  Applicants ({applicants.length})
+                </button>
+              </div>
+            </div>
+            {viewMode === 'matches' && (
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={includeAcceptedOnly}
+                    onChange={(e) => setIncludeAcceptedOnly(e.target.checked)}
+                  />
+                  Include Accepted Skills Only
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                 Min Match:
@@ -665,22 +724,17 @@ const JobDetails: React.FC = () => {
               </label>
               <button 
                 onClick={() => calculateCandidateMatches(job)}
-                style={{ 
-                  padding: '8px 16px', 
-                  backgroundColor: '#007bff', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
+                className="btn-primary"
               >
                 Refresh
               </button>
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Match Statistics */}
-          <div className="job-details-match-stats">
+          {/* Match Statistics - Only show for matches view */}
+          {viewMode === 'matches' && (
+            <div className="job-details-match-stats">
             <div style={{ backgroundColor: 'white', padding: '16px', borderRadius: '6px', textAlign: 'center' }}>
               <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#10b981' }}>{perfectMatches}</div>
               <div style={{ fontSize: '12px', color: '#6b7280' }}>Perfect Match (90-100%)</div>
@@ -698,10 +752,14 @@ const JobDetails: React.FC = () => {
               <div style={{ fontSize: '12px', color: '#6b7280' }}>Poor Match (&lt;50%)</div>
             </div>
           </div>
+          )}
 
-          {/* Candidates List */}
+          {/* Candidates List - Conditional rendering based on view mode */}
           <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            {candidateMatches.length === 0 ? (
+            {viewMode === 'matches' ? (
+              // Candidate Matches View
+              <>
+                {candidateMatches.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
                 <p>No candidate matches found. Try adjusting your filters or adding more skills to the job.</p>
               </div>
@@ -779,15 +837,7 @@ const JobDetails: React.FC = () => {
                     {/* View Profile Button */}
                     <button
                       onClick={() => navigate(`/profile/${candidate.candidateId}`)}
-                      style={{ 
-                        padding: '10px 20px', 
-                        backgroundColor: '#007bff', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px'
-                      }}
+                      className="btn-primary"
                     >
                       View Profile
                     </button>
@@ -795,9 +845,362 @@ const JobDetails: React.FC = () => {
                 );
               })
             )}
+            </>
+            ) : (
+              // Applicants View
+              <>
+                {applicants.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                    <p>No applicants yet. Share the job posting to receive applications.</p>
+                  </div>
+                ) : (
+                  applicants.map((applicant, index) => (
+                    <div 
+                      key={index}
+                      style={{ 
+                        backgroundColor: 'white', 
+                        padding: '20px', 
+                        borderRadius: '8px', 
+                        border: '1px solid #e5e7eb',
+                        marginBottom: '16px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#6b7280' }}>•</div>
+                          <div>
+                            <h3 style={{ margin: '0', fontSize: '18px', color: '#1f2937' }}>
+                              {applicant.name}
+                            </h3>
+                            <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                              ID: {applicant.candidateId} • Email: {applicant.email || 'N/A'}
+                            </div>
+                            <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                              Status: <span style={{ 
+                                fontWeight: 'bold',
+                                color: applicant.status === 'Approved' ? '#10b981' : 
+                                       applicant.status === 'Rejected' ? '#ef4444' : '#f59e0b'
+                              }}>{applicant.status}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
+                            Applied: {new Date(applicant.dateCreated).toLocaleDateString()}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#6b7280' }}>
+                            Skills: {applicant.skills?.length || 0}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Applicant Quick Info */}
+                      <div style={{ fontSize: '14px', color: '#4b5563', marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        {applicant.phone && (
+                          <div><strong>Phone:</strong> {applicant.phone}</div>
+                        )}
+                        {applicant.location && (
+                          <div><strong>Location:</strong> {applicant.location}</div>
+                        )}
+                      </div>
+
+                      {/* View Profile Button */}
+                      <button
+                        onClick={() => navigate(`/profile/${applicant.candidateId}`)}
+                        className="btn-primary"
+                      >
+                        View Profile
+                      </button>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Edit Job Modal */}
+      {showEditJobModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '600px' }}>
+            <h2 className="modal-header">Edit Job Details</h2>
+            
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Job Name
+              </label>
+              <input
+                type="text"
+                value={editJobData.jobName}
+                onChange={(e) => setEditJobData({ ...editJobData, jobName: e.target.value })}
+                placeholder="Enter job name"
+                className="modal-input"
+              />
+            </div>
+
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Job Description
+              </label>
+              <textarea
+                value={editJobData.jobDescription}
+                onChange={(e) => setEditJobData({ ...editJobData, jobDescription: e.target.value })}
+                placeholder="Enter job description"
+                rows={6}
+                className="modal-textarea"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  setShowEditJobModal(false);
+                }}
+                className="modal-btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await jobsApi.updateJob(jobId!, {
+                      jobName: editJobData.jobName,
+                      jobDescription: editJobData.jobDescription
+                    });
+                    // Update local state
+                    if (job) {
+                      setJob({
+                        ...job,
+                        jobName: editJobData.jobName,
+                        jobDescription: editJobData.jobDescription
+                      });
+                    }
+                    setShowEditJobModal(false);
+                    alert('Job updated successfully!');
+                  } catch (error) {
+                    console.error('Error updating job:', error);
+                    alert('Failed to update job. Please try again.');
+                  }
+                }}
+                disabled={!editJobData.jobName.trim() || !editJobData.jobDescription.trim()}
+                className="modal-btn-submit"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Skill Modal */}
+      {showEditSkillModal && editingSkillIndex !== null && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="modal-header">Edit Skill</h2>
+            
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Skill Name
+              </label>
+              <input
+                type="text"
+                value={editSkillData.skillName}
+                onChange={(e) => setEditSkillData({ ...editSkillData, skillName: e.target.value })}
+                placeholder="Enter skill name"
+                className="modal-input"
+              />
+            </div>
+
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Required Level: {editSkillData.requiredLevel}/10
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.5"
+                value={editSkillData.requiredLevel}
+                onChange={(e) => setEditSkillData({ ...editSkillData, requiredLevel: parseFloat(e.target.value) })}
+                className="modal-range"
+              />
+            </div>
+
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Evidence/Justification (Optional)
+              </label>
+              <textarea
+                value={editSkillData.evidence}
+                onChange={(e) => setEditSkillData({ ...editSkillData, evidence: e.target.value })}
+                placeholder="Why is this skill required?"
+                rows={3}
+                className="modal-textarea"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  setShowEditSkillModal(false);
+                  setEditingSkillIndex(null);
+                }}
+                className="modal-btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const updatedSkills = [...job.skills];
+                    updatedSkills[editingSkillIndex] = {
+                      ...updatedSkills[editingSkillIndex],
+                      skillName: editSkillData.skillName,
+                      requiredLevel: editSkillData.requiredLevel,
+                      evidence: editSkillData.evidence
+                    };
+                    await jobsApi.updateJob(jobId!, { skills: updatedSkills });
+                    setJob({ ...job, skills: updatedSkills });
+                    setShowEditSkillModal(false);
+                    setEditingSkillIndex(null);
+                    alert('Skill updated successfully!');
+                  } catch (error) {
+                    console.error('Error updating skill:', error);
+                    alert('Failed to update skill. Please try again.');
+                  }
+                }}
+                disabled={!editSkillData.skillName.trim()}
+                className="modal-btn-submit"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Skill Modal */}
+      {showAddSkillModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="modal-header">Add New Skill</h2>
+            
+            <div className="modal-form-group autocomplete">
+              <label className="modal-label">
+                Skill Name
+              </label>
+              <input
+                type="text"
+                value={newSkill.skillName}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNewSkill({ ...newSkill, skillName: value });
+                  
+                  // Filter suggestions
+                  if (value.trim().length > 0) {
+                    const filtered = masterSkillsList.filter((skill: any) =>
+                      skill.skillName.toLowerCase().includes(value.toLowerCase())
+                    ).slice(0, 10); // Limit to 10 suggestions
+                    setSkillSuggestions(filtered);
+                    setShowSuggestions(true);
+                  } else {
+                    setSkillSuggestions([]);
+                    setShowSuggestions(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (newSkill.skillName.trim().length > 0 && skillSuggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  // Delay to allow click on suggestion
+                  setTimeout(() => setShowSuggestions(false), 200);
+                }}
+                placeholder="Enter or search for a skill"
+                className="modal-input"
+              />
+              
+              {/* Autocomplete suggestions dropdown */}
+              {showSuggestions && skillSuggestions.length > 0 && (
+                <div className="autocomplete-dropdown">
+                  {skillSuggestions.map((skill: any, index: number) => (
+                    <div
+                      key={index}
+                      onClick={() => {
+                        setNewSkill({ ...newSkill, skillName: skill.skillName });
+                        setShowSuggestions(false);
+                      }}
+                      className="autocomplete-item"
+                    >
+                      <div className="autocomplete-item-name">{skill.skillName}</div>
+                      {skill.skillId && (
+                        <div className="autocomplete-item-id">ID: {skill.skillId}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Required Level: {newSkill.requiredLevel}/10
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.5"
+                value={newSkill.requiredLevel}
+                onChange={(e) => setNewSkill({ ...newSkill, requiredLevel: parseFloat(e.target.value) })}
+                className="modal-range"
+              />
+            </div>
+
+            <div className="modal-form-group">
+              <label className="modal-label">
+                Evidence/Justification (Optional)
+              </label>
+              <textarea
+                value={newSkill.evidence}
+                onChange={(e) => setNewSkill({ ...newSkill, evidence: e.target.value })}
+                placeholder="Why is this skill required?"
+                rows={3}
+                className="modal-textarea"
+              />
+            </div>
+
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  setShowAddSkillModal(false);
+                  setNewSkill({ skillName: '', requiredLevel: 5, evidence: '' });
+                }}
+                className="modal-btn-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  // TODO: Implement add skill functionality
+                  console.log('Adding skill:', newSkill);
+                  setShowAddSkillModal(false);
+                  setNewSkill({ skillName: '', requiredLevel: 5, evidence: '' });
+                }}
+                disabled={!newSkill.skillName.trim()}
+                className="modal-btn-submit"
+                style={{
+                  backgroundColor: newSkill.skillName.trim() ? '#10b981' : '#d1d5db'
+                }}
+              >
+                Add Skill
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

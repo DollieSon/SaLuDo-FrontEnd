@@ -1,38 +1,148 @@
-import './css/Profile.css';
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip} from 'recharts';
-import { candidatesApi, skillsApi } from '../utils/api';
-import { CandidateProfile, PersonalityData, ProfileItem, PersonalityTrait } from '../types/profile';
+import "./css/Profile.css";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { candidatesApi, skillsApi } from "../utils/api";
+import Comments from "./Comments";
+import { CommentEntityType } from "../types/comment";
+import { CandidateProfile, PersonalityData, ProfileItem } from "../types/profile";
+import { transformToProfileItems, createRadarData, formatDate } from "./profile/profileUtils";
+import { CandidateInfoSection } from "./profile/CandidateInfoSection";
+import { ResumeParsedSection } from "./profile/ResumeParsedSection";
+import { PersonalitySection } from "./profile/PersonalitySection";
+import { ProfileDetailModal } from "./profile/ProfileDetailModal";
+import { ResumeEditData } from "./profile/resumeEditTypes";
+import { SKILL_SCORE } from "./profile/resumeEditConstants";
+import { resumeEditApi } from "./profile/resumeEditApi";
 
 const Profile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [personality, setPersonality] = useState<PersonalityData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingResume, setIsEditingResume] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [editedStatus, setEditedStatus] = useState<string>('');
+  const [editedData, setEditedData] = useState({
+    name: "",
+    email: [] as string[],
+    birthdate: "",
+    roleApplied: "",
+    status: "",
+    socialLinks: [] as { url: string }[]
+  });
+  const [editedResumeData, setEditedResumeData] = useState<ResumeEditData>({
+    skills: [],
+    experience: [],
+    education: [],
+    certification: [],
+    strengths: [],
+    weaknesses: []
+  });
   const [uploadingTranscript, setUploadingTranscript] = useState(false);
-  
-  // State for collapsible personality categories
-  const [collapsedCategories, setCollapsedCategories] = useState<{[key: string]: boolean}>({});
+  const [uploadingInterviewVideo, setUploadingInterviewVideo] = useState(false);
+  const [uploadingIntroductionVideo, setUploadingIntroductionVideo] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{
+    data: ProfileItem;
+    section: string;
+    type: 'skill' | 'experience' | 'education' | 'certification' | 'strength' | 'weakness';
+  } | null>(null);
 
-  // Helper function to toggle category collapse
-  const toggleCategory = (categoryName: string) => {
-    setCollapsedCategories(prev => ({
-      ...prev,
-      [categoryName]: !prev[categoryName]
-    }));
+  const openDetailModal = (
+    item: ProfileItem,
+    section: string,
+    type: 'skill' | 'experience' | 'education' | 'certification' | 'strength' | 'weakness'
+  ) => {
+    setSelectedItem({ data: item, section, type });
+    setShowDetailModal(true);
   };
 
-  // Data fetching functions
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedItem(null);
+  };
+
+  const enrichSkillsWithNames = async (candidateData: CandidateProfile): Promise<CandidateProfile> => {
+    try {
+      const skillResponse = await skillsApi.getAllMasterSkills();
+      console.log("🎨 SkillMaster API Response:", skillResponse);
+
+      let masterSkills: any[] = [];
+
+      if (skillResponse.success && skillResponse.data) {
+        masterSkills = skillResponse.data;
+        console.log("🎯 Master Skills Data:", masterSkills);
+        console.log("🔢 Total Master Skills Found:", masterSkills.length);
+      }
+
+      const enrichedSkills = candidateData.skills.map((skill: any, index: number) => {
+        console.log(`🔍 Processing skill ${index + 1}:`, skill);
+
+        if (skill.skillId && (!skill.skillName || skill.skillName === skill.skillId)) {
+          const masterSkill = masterSkills.find(
+            (ms: any) => ms.skillId === skill.skillId || ms._id === skill.skillId
+          );
+
+          if (masterSkill) {
+            console.log(`✅ Found master skill for ${skill.skillId}:`, masterSkill);
+            return {
+              ...skill,
+              skillName: masterSkill.skillName,
+              isAccepted: masterSkill.isAccepted,
+            };
+          } else {
+            const readableName = skill.skillId
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str: string) => str.toUpperCase())
+              .trim();
+            console.warn(`⚠️ Could not find skill name for ID: ${skill.skillId}, using fallback: ${readableName}`);
+            return {
+              ...skill,
+              skillName: readableName,
+            };
+          }
+        }
+        console.log(`✨ Skill already has name, keeping as-is:`, skill);
+        return skill;
+      });
+
+      console.log("🎉 Final enriched skills:", enrichedSkills);
+
+      return {
+        ...candidateData,
+        skills: enrichedSkills,
+      };
+    } catch (err) {
+      console.error("💥 Error enriching skills with names:", err);
+      const fallbackSkills = candidateData.skills.map((skill: any) => {
+        if (!skill.skillName && skill.skillId) {
+          const readableName = skill.skillId
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str: string) => str.toUpperCase())
+            .trim();
+          return {
+            ...skill,
+            skillName: readableName,
+          };
+        }
+        return skill;
+      });
+
+      console.log("🔄 Using fallback skills:", fallbackSkills);
+
+      return {
+        ...candidateData,
+        skills: fallbackSkills,
+      };
+    }
+  };
+
   const fetchCandidateData = async () => {
     if (!id) {
-      setError('No candidate ID provided');
+      setError("No candidate ID provided");
       setIsLoading(false);
       return;
     }
@@ -41,123 +151,99 @@ const Profile: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      // Fetch candidate data
       const candidateResponse = await candidatesApi.getCandidateById(id);
-      console.log('🔍 Candidate API Response:', candidateResponse);
-      
+      console.log("🔍 Candidate API Response:", candidateResponse);
+
       if (candidateResponse.success) {
         let candidateData = candidateResponse.data;
-        console.log('📊 Raw Candidate Data:', candidateData);
-        console.log('🎯 Candidate Skills (before enrichment):', candidateData.skills);
-        
-        // Enrich skills with proper names from SkillMaster database
+        console.log("📊 Raw Candidate Data:", candidateData);
+        console.log("🎯 Candidate Skills (before enrichment):", candidateData.skills);
+
         if (candidateData.skills && candidateData.skills.length > 0) {
           candidateData = await enrichSkillsWithNames(candidateData);
-          console.log('✨ Candidate Skills (after enrichment):', candidateData.skills);
+          console.log("✨ Candidate Skills (after enrichment):", candidateData.skills);
         }
-        
+
         setCandidate(candidateData);
-        setEditedStatus(candidateData.status); // Initialize edited status
+        setEditedData({
+          name: candidateData.name,
+          email: candidateData.email,
+          birthdate: candidateData.birthdate,
+          roleApplied: candidateData.roleApplied || "",
+          status: candidateData.status,
+          socialLinks: candidateData.socialLinks || []
+        });
+        setEditedResumeData({
+          skills: candidateData.skills?.map((s: any) => ({
+            candidateSkillId: s.skillId,
+            skillId: s.skillId,
+            skillName: s.skillName,
+            score: s.score || SKILL_SCORE.DEFAULT,
+            evidence: s.evidence || '',
+            source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai',
+            isAccepted: s.isAccepted
+          })) || [],
+          experience: candidateData.experience?.map((e: any) => ({
+            experienceId: e.experienceId,
+            description: e.description,
+            title: e.title,
+            role: e.role,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
+          })) || [],
+          education: candidateData.education?.map((e: any) => ({
+            educationId: e.educationId,
+            description: e.description,
+            institution: e.institution,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
+          })) || [],
+          certification: candidateData.certification?.map((c: any) => ({
+            certificationId: c.certificationId,
+            description: c.description,
+            certificationName: c.name || c.certificationName,
+            issuingOrganization: c.issuingOrganization,
+            issueDate: c.issueDate,
+            source: c.addedBy === 'AI' ? 'ai' : c.addedBy === 'HUMAN' ? 'manual' : c.source || 'ai'
+          })) || [],
+          strengths: candidateData.strengths?.map((s: any) => ({
+            strengthWeaknessId: s.strengthWeaknessId,
+            name: s.name,
+            description: s.description,
+            type: 'strength' as const,
+            source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai'
+          })) || [],
+          weaknesses: candidateData.weaknesses?.map((w: any) => ({
+            strengthWeaknessId: w.strengthWeaknessId,
+            name: w.name,
+            description: w.description,
+            type: 'weakness' as const,
+            source: w.addedBy === 'AI' ? 'ai' : w.addedBy === 'HUMAN' ? 'manual' : w.source || 'ai'
+          })) || []
+        });
       } else {
-        console.error('❌ Failed to fetch candidate data:', candidateResponse);
-        throw new Error('Failed to fetch candidate data');
+        console.error("❌ Failed to fetch candidate data:", candidateResponse);
+        throw new Error("Failed to fetch candidate data");
       }
 
-      // Fetch personality data (optional)
       try {
         const personalityResponse = await candidatesApi.getCandidatePersonality(id);
-        console.log('🧠 Personality API Response:', personalityResponse);
-        
+        console.log("🧠 Personality API Response:", personalityResponse);
+
         if (personalityResponse.success) {
-          console.log('🎭 Personality Data:', personalityResponse.data);
+          console.log("🎭 Personality Data:", personalityResponse.data);
           setPersonality(personalityResponse.data);
         }
       } catch (personalityError) {
-        console.log('⚠️ Personality data not available:', personalityError);
-        // Don't fail the whole component if personality data is missing
+        console.log("⚠️ Personality data not available:", personalityError);
       }
-
     } catch (err) {
-      console.error('Error fetching candidate data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load candidate profile');
+      console.error("Error fetching candidate data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load candidate profile");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Enrich skills with proper names from SkillMaster database
-  const enrichSkillsWithNames = async (candidateData: CandidateProfile): Promise<CandidateProfile> => {
-    try {
-      // Get all master skills to use for name resolution
-      const skillResponse = await skillsApi.getAllMasterSkills();
-      console.log('🎨 SkillMaster API Response:', skillResponse);
-      
-      let masterSkills: any[] = [];
-      
-      if (skillResponse.success && skillResponse.data) {
-        masterSkills = skillResponse.data;
-        console.log('🎯 Master Skills Data:', masterSkills);
-        console.log('🔢 Total Master Skills Found:', masterSkills.length);
-      }
-
-      // Enrich each skill with the proper name from SkillMaster
-      const enrichedSkills = candidateData.skills.map((skill: any, index: number) => {
-        console.log(`🔍 Processing skill ${index + 1}:`, skill);
-        
-        if (skill.skillId && (!skill.skillName || skill.skillName === skill.skillId)) {
-          // Try to find the skill in master skills
-          const masterSkill = masterSkills.find((ms: any) => 
-            ms.skillId === skill.skillId || ms._id === skill.skillId
-          );
-          
-          if (masterSkill) {
-            console.log(`✅ Found master skill for ${skill.skillId}:`, masterSkill);
-            return {
-              ...skill,
-              skillName: masterSkill.skillName,
-              isAccepted: masterSkill.isAccepted
-            };
-          } else {
-            // Fallback: create a readable name from skillId
-            const readableName = skill.skillId.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase()).trim();
-            console.warn(`⚠️ Could not find skill name for ID: ${skill.skillId}, using fallback: ${readableName}`);
-            return {
-              ...skill,
-              skillName: readableName
-            };
-          }
-        }
-        console.log(`✨ Skill already has name, keeping as-is:`, skill);
-        return skill; // Return as-is if skillName already exists and is different from skillId
-      });
-
-      console.log('🎉 Final enriched skills:', enrichedSkills);
-
-      return {
-        ...candidateData,
-        skills: enrichedSkills
-      };
-
-    } catch (err) {
-      console.error('💥 Error enriching skills with names:', err);
-      // Fallback: ensure all skills have at least a readable name
-      const fallbackSkills = candidateData.skills.map((skill: any) => {
-        if (!skill.skillName && skill.skillId) {
-          const readableName = skill.skillId.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase()).trim();
-          return {
-            ...skill,
-            skillName: readableName
-          };
-        }
-        return skill;
-      });
-
-      console.log('🔄 Using fallback skills:', fallbackSkills);
-
-      return {
-        ...candidateData,
-        skills: fallbackSkills
-      };
     }
   };
 
@@ -165,187 +251,43 @@ const Profile: React.FC = () => {
     fetchCandidateData();
   }, [id]);
 
-  // Data transformation functions
-  const transformToProfileItems = (items: any[], textField: string = 'description'): ProfileItem[] => {
-    if (!items || !Array.isArray(items)) {
-      return [];
-    }
-    
-    return items
-      .filter(item => item) // Filter out null/undefined items
-      .map(item => ({
-        text: item[textField] || item.skillName || item.evidence || item.certificationName || item.description || 'No description available',
-        score: item.score || undefined,
-        skillName: item.skillName || item.name || item.certificationName || item.institution || item.company || item.title || undefined,
-        evidence: item.evidence || item.description || undefined
-      }));
-  };
-
-  const createRadarData = (personalityData: any): PersonalityTrait[] => {
-    if (!personalityData) {
-      // Return mock data as fallback
-      return [
-        {
-          trait: 'Cognitive & Problem-Solving',
-          value: 7.5,
-          breakdown: [
-            { sub: 'Analytical Thinking', score: 7.5 },
-            { sub: 'Problem Solving', score: 8.0 },
-            { sub: 'Critical Thinking', score: 7.0 },
-          ],
-        },
-        {
-          trait: 'Communication & Teamwork',
-          value: 8.0,
-          breakdown: [
-            { sub: 'Communication', score: 8.2 },
-            { sub: 'Teamwork', score: 7.8 },
-            { sub: 'Leadership', score: 8.0 },
-          ],
-        },
-      ];
-    }
-
-    // Transform backend personality data structure to radar chart format
-    const radarData: PersonalityTrait[] = [];
-    
-    if (personalityData.cognitiveAndProblemSolving) {
-      const category = personalityData.cognitiveAndProblemSolving;
-      const breakdown = Object.keys(category).map(key => ({
-        sub: category[key].traitName || key,
-        score: category[key].score || 0
-      }));
-      const avgScore = breakdown.reduce((sum, item) => sum + item.score, 0) / breakdown.length;
-      
-      radarData.push({
-        trait: 'Cognitive & Problem-Solving',
-        value: avgScore,
-        breakdown
-      });
-    }
-
-    if (personalityData.communicationAndTeamwork) {
-      const category = personalityData.communicationAndTeamwork;
-      const breakdown = Object.keys(category).map(key => ({
-        sub: category[key].traitName || key,
-        score: category[key].score || 0
-      }));
-      const avgScore = breakdown.reduce((sum, item) => sum + item.score, 0) / breakdown.length;
-      
-      radarData.push({
-        trait: 'Communication & Teamwork',
-        value: avgScore,
-        breakdown
-      });
-    }
-
-    if (personalityData.workEthicAndReliability) {
-      const category = personalityData.workEthicAndReliability;
-      const breakdown = Object.keys(category).map(key => ({
-        sub: category[key].traitName || key,
-        score: category[key].score || 0
-      }));
-      const avgScore = breakdown.reduce((sum, item) => sum + item.score, 0) / breakdown.length;
-      
-      radarData.push({
-        trait: 'Work Ethic & Reliability',
-        value: avgScore,
-        breakdown
-      });
-    }
-
-    if (personalityData.growthAndLeadership) {
-      const category = personalityData.growthAndLeadership;
-      const breakdown = Object.keys(category).map(key => ({
-        sub: category[key].traitName || key,
-        score: category[key].score || 0
-      }));
-      const avgScore = breakdown.reduce((sum, item) => sum + item.score, 0) / breakdown.length;
-      
-      radarData.push({
-        trait: 'Growth & Leadership',
-        value: avgScore,
-        breakdown
-      });
-    }
-
-    if (personalityData.cultureAndPersonalityFit) {
-      const category = personalityData.cultureAndPersonalityFit;
-      const breakdown = Object.keys(category).map(key => ({
-        sub: category[key].traitName || key,
-        score: category[key].score || 0
-      }));
-      const avgScore = breakdown.reduce((sum, item) => sum + item.score, 0) / breakdown.length;
-      
-      radarData.push({
-        trait: 'Culture & Personality Fit',
-        value: avgScore,
-        breakdown
-      });
-    }
-
-    if (personalityData.bonusTraits) {
-      const category = personalityData.bonusTraits;
-      const breakdown = Object.keys(category).map(key => ({
-        sub: category[key].traitName || key,
-        score: category[key].score || 0
-      }));
-      const avgScore = breakdown.reduce((sum, item) => sum + item.score, 0) / breakdown.length;
-      
-      radarData.push({
-        trait: 'Bonus Traits',
-        value: avgScore,
-        breakdown
-      });
-    }
-
-    return radarData.length > 0 ? radarData : [
-      {
-        trait: 'No Data Available',
-        value: 0,
-        breakdown: [{ sub: 'No traits found', score: 0 }]
-      }
-    ];
-  };
-
-  // Helper functions
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getFileDownloadUrl = (fileId: string) => {
-    return candidatesApi.getFileDownloadUrl(fileId);
-  };
-
-  const getTranscriptDownloadUrl = (fileId: string) => {
-    return candidatesApi.getTranscriptDownloadUrl(fileId);
-  };
-
-  const handleDownload = (filename: string, type: 'resume' | 'transcript') => {
+  const handleDownload = (
+    filename: string,
+    type: "resume" | "transcript" | "interview-video" | "introduction-video"
+  ) => {
     console.log(`Downloading ${type}: ${filename}`);
     setToastMessage(`Downloading ${filename}...`);
-    
-    // Hide toast after 3 seconds
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    if (!id) return;
-    
+  const handleSaveChanges = async () => {
+    if (!id || !candidate) return;
+
     try {
-      await candidatesApi.updateCandidate(id, { status: newStatus });
-      setCandidate((prev: CandidateProfile | null) => prev ? { ...prev, status: newStatus } : null);
-      setToastMessage(`Status updated to ${newStatus}`);
+      const updateData: any = {};
+      
+      if (editedData.name !== candidate.name) updateData.name = editedData.name;
+      if (JSON.stringify(editedData.email) !== JSON.stringify(candidate.email)) updateData.email = editedData.email;
+      if (editedData.birthdate !== candidate.birthdate) updateData.birthdate = editedData.birthdate;
+      if (editedData.roleApplied !== (candidate.roleApplied || "")) updateData.roleApplied = editedData.roleApplied;
+      if (editedData.status !== candidate.status) updateData.status = editedData.status;
+      if (JSON.stringify(editedData.socialLinks) !== JSON.stringify(candidate.socialLinks || [])) {
+        updateData.socialLinks = editedData.socialLinks;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        setToastMessage("No changes to save");
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+
+      await candidatesApi.updateCandidate(id, updateData);
+      setToastMessage("Candidate information updated successfully");
+      await fetchCandidateData();
       setTimeout(() => setToastMessage(null), 3000);
     } catch (error) {
-      console.error('Error updating status:', error);
-      setToastMessage('Failed to update status');
+      console.error("Error updating candidate:", error);
+      setToastMessage("Failed to update candidate information");
       setTimeout(() => setToastMessage(null), 3000);
     }
   };
@@ -355,106 +297,362 @@ const Profile: React.FC = () => {
     if (!file || !id) return;
 
     setUploadingTranscript(true);
-    
+
     try {
       const formData = new FormData();
-      formData.append('transcript', file);
-      
+      formData.append("transcript", file);
+
       await candidatesApi.uploadTranscript(id, formData);
-      setToastMessage('Transcript uploaded successfully');
-      
-      // Refresh candidate data to show new transcript
+      setToastMessage("Transcript uploaded successfully");
       await fetchCandidateData();
-      
       setTimeout(() => setToastMessage(null), 3000);
     } catch (error) {
-      console.error('Error uploading transcript:', error);
-      setToastMessage('Failed to upload transcript');
+      console.error("Error uploading transcript:", error);
+      setToastMessage("Failed to upload transcript");
       setTimeout(() => setToastMessage(null), 3000);
     } finally {
       setUploadingTranscript(false);
-      // Reset file input
-      event.target.value = '';
+      event.target.value = "";
+    }
+  };
+
+  const handleInterviewVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    setUploadingInterviewVideo(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+
+      await candidatesApi.uploadInterviewVideo(id, formData);
+      setToastMessage("Interview video uploaded successfully");
+      await fetchCandidateData();
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (error) {
+      console.error("Error uploading interview video:", error);
+      setToastMessage("Failed to upload interview video");
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setUploadingInterviewVideo(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleIntroductionVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    setUploadingIntroductionVideo(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+
+      await candidatesApi.uploadIntroductionVideo(id, formData);
+      setToastMessage("Introduction video uploaded successfully");
+      await fetchCandidateData();
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (error) {
+      console.error("Error uploading introduction video:", error);
+      setToastMessage("Failed to upload introduction video");
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setUploadingIntroductionVideo(false);
+      event.target.value = "";
     }
   };
 
   const handleEditToggle = async () => {
-    if (isEditing && editedStatus && editedStatus !== candidate?.status) {
-      // Save the status change
-      await handleStatusUpdate(editedStatus);
+    if (isEditing) {
+      await handleSaveChanges();
+      setIsEditing(false);
+    } else {
+      if (candidate) {
+        setEditedData({
+          name: candidate.name,
+          email: candidate.email,
+          birthdate: candidate.birthdate,
+          roleApplied: candidate.roleApplied || "",
+          status: candidate.status,
+          socialLinks: candidate.socialLinks || []
+        });
+      }
+      setIsEditing(true);
     }
-    setIsEditing(!isEditing);
-    if (!isEditing && candidate) {
-      setEditedStatus(candidate.status);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (candidate) {
+      setEditedData({
+        name: candidate.name,
+        email: candidate.email,
+        birthdate: candidate.birthdate,
+        roleApplied: candidate.roleApplied || "",
+        status: candidate.status,
+        socialLinks: candidate.socialLinks || []
+      });
+    }
+  };
+
+  const handleResumeEditToggle = async () => {
+    if (isEditingResume) {
+      await handleSaveResumeChanges();
+      setIsEditingResume(false);
+    } else {
+      setIsEditingResume(true);
+    }
+  };
+
+  const handleCancelResumeEdit = () => {
+    setIsEditingResume(false);
+    if (candidate) {
+      setEditedResumeData({
+        skills: candidate.skills?.map(s => ({
+          candidateSkillId: s.skillId,
+          skillId: s.skillId,
+          skillName: s.skillName,
+          score: s.score || SKILL_SCORE.DEFAULT,
+          evidence: s.evidence || '',
+          source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai',
+          isAccepted: s.isAccepted
+        })) || [],
+        experience: candidate.experience?.map(e => ({
+          experienceId: e.experienceId,
+          description: e.description,
+          title: e.title,
+          role: e.role,
+          startDate: e.startDate,
+          endDate: e.endDate,
+          source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
+        })) || [],
+        education: candidate.education?.map(e => ({
+          educationId: e.educationId,
+          description: e.description,
+          institution: e.institution,
+          startDate: e.startDate,
+          endDate: e.endDate,
+          source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
+        })) || [],
+        certification: candidate.certification?.map(c => ({
+          certificationId: c.certificationId,
+          description: c.description,
+          certificationName: c.name || c.certificationName,
+          issuingOrganization: c.issuingOrganization,
+          issueDate: c.issueDate,
+          source: c.addedBy === 'AI' ? 'ai' : c.addedBy === 'HUMAN' ? 'manual' : c.source || 'ai'
+        })) || [],
+        strengths: candidate.strengths?.map(s => ({
+          strengthWeaknessId: s.strengthWeaknessId,
+          name: s.name,
+          description: s.description,
+          type: 'strength' as const,
+          source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai'
+        })) || [],
+        weaknesses: candidate.weaknesses?.map(w => ({
+          strengthWeaknessId: w.strengthWeaknessId,
+          name: w.name,
+          description: w.description,
+          type: 'weakness' as const,
+          source: w.addedBy === 'AI' ? 'ai' : w.addedBy === 'HUMAN' ? 'manual' : w.source || 'ai'
+        })) || []
+      });
+    }
+  };
+
+  const handleSaveResumeChanges = async () => {
+    if (!id || !candidate) return;
+
+    try {
+      const promises: Promise<void>[] = [];
+
+      // Process skills
+      editedResumeData.skills.forEach(skill => {
+        if (skill.candidateSkillId) {
+          const original = candidate.skills?.find(s => s.skillId === skill.candidateSkillId);
+          if (original && (
+            original.skillName !== skill.skillName ||
+            original.score !== skill.score ||
+            original.evidence !== skill.evidence
+          )) {
+            promises.push(resumeEditApi.updateSkill(id, skill));
+          }
+        } else if (skill.skillName.trim()) {
+          promises.push(resumeEditApi.createSkill(id, skill));
+        }
+      });
+
+      candidate.skills?.forEach(original => {
+        const exists = editedResumeData.skills.find(s => s.candidateSkillId === original.skillId);
+        if (!exists && original.skillId) {
+          promises.push(resumeEditApi.deleteSkill(id, original.skillId));
+        }
+      });
+
+      // Process experience
+      editedResumeData.experience.forEach(exp => {
+        if (exp.experienceId) {
+          const original = candidate.experience?.find(e => e.experienceId === exp.experienceId);
+          if (original) {
+            promises.push(resumeEditApi.updateExperience(id, exp));
+          }
+        } else if (exp.description.trim()) {
+          promises.push(resumeEditApi.createExperience(id, exp));
+        }
+      });
+
+      candidate.experience?.forEach(original => {
+        const exists = editedResumeData.experience.find(e => e.experienceId === original.experienceId);
+        if (!exists && original.experienceId) {
+          promises.push(resumeEditApi.deleteExperience(id, original.experienceId));
+        }
+      });
+
+      // Process education
+      editedResumeData.education.forEach(edu => {
+        if (edu.educationId) {
+          const original = candidate.education?.find(e => e.educationId === edu.educationId);
+          if (original) {
+            promises.push(resumeEditApi.updateEducation(id, edu));
+          }
+        } else if (edu.description.trim()) {
+          promises.push(resumeEditApi.createEducation(id, edu));
+        }
+      });
+
+      candidate.education?.forEach(original => {
+        const exists = editedResumeData.education.find(e => e.educationId === original.educationId);
+        if (!exists && original.educationId) {
+          promises.push(resumeEditApi.deleteEducation(id, original.educationId));
+        }
+      });
+
+      // Process certifications
+      editedResumeData.certification.forEach(cert => {
+        if (cert.certificationId) {
+          const original = candidate.certification?.find(c => c.certificationId === cert.certificationId);
+          if (original) {
+            promises.push(resumeEditApi.updateCertification(id, cert));
+          }
+        } else if (cert.description.trim()) {
+          promises.push(resumeEditApi.createCertification(id, cert));
+        }
+      });
+
+      candidate.certification?.forEach(original => {
+        const exists = editedResumeData.certification.find(c => c.certificationId === original.certificationId);
+        if (!exists && original.certificationId) {
+          promises.push(resumeEditApi.deleteCertification(id, original.certificationId));
+        }
+      });
+
+      // Process strengths
+      editedResumeData.strengths.forEach(item => {
+        if (item.strengthWeaknessId) {
+          const original = candidate.strengths?.find(s => s.strengthWeaknessId === item.strengthWeaknessId);
+          if (original) {
+            promises.push(resumeEditApi.updateStrengthWeakness(id, item));
+          }
+        } else if (item.description.trim()) {
+          promises.push(resumeEditApi.createStrengthWeakness(id, item));
+        }
+      });
+
+      candidate.strengths?.forEach(original => {
+        const exists = editedResumeData.strengths.find(s => s.strengthWeaknessId === original.strengthWeaknessId);
+        if (!exists && original.strengthWeaknessId) {
+          promises.push(resumeEditApi.deleteStrengthWeakness(id, original.strengthWeaknessId, 'strength'));
+        }
+      });
+
+      // Process weaknesses
+      editedResumeData.weaknesses.forEach(item => {
+        if (item.strengthWeaknessId) {
+          const original = candidate.weaknesses?.find(w => w.strengthWeaknessId === item.strengthWeaknessId);
+          if (original) {
+            promises.push(resumeEditApi.updateStrengthWeakness(id, item));
+          }
+        } else if (item.description.trim()) {
+          promises.push(resumeEditApi.createStrengthWeakness(id, item));
+        }
+      });
+
+      candidate.weaknesses?.forEach(original => {
+        const exists = editedResumeData.weaknesses.find(w => w.strengthWeaknessId === original.strengthWeaknessId);
+        if (!exists && original.strengthWeaknessId) {
+          promises.push(resumeEditApi.deleteStrengthWeakness(id, original.strengthWeaknessId, 'weakness'));
+        }
+      });
+
+      await Promise.all(promises);
+      
+      setToastMessage("Resume information updated successfully");
+      setTimeout(() => setToastMessage(null), 3000);
+      
+      await fetchCandidateData();
+    } catch (error) {
+      console.error("Error saving resume changes:", error);
+      setToastMessage("Failed to save resume changes");
+      setTimeout(() => setToastMessage(null), 3000);
     }
   };
 
   const handleGoBack = () => {
     navigate(-1);
-  };  
-
-  const CustomRadarTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="tooltip-box">
-          <strong>{data.trait}: {data.value.toFixed(1)}</strong>
-          <ul>
-            {data.breakdown.map((b: any, idx: number) => (
-              <li key={idx}>
-                {b.sub}: {b.score.toFixed(1)}
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
-    }
-
-    return null;
   };
 
-  // Loading state
+  const handleCompareWithOthers = () => {
+    navigate("/compare-candidates");
+  };
+
   if (isLoading) {
     return (
       <main className="profile">
-        <div className="loading-container" style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '400px',
-          fontSize: '18px',
-          color: '#6b7280'
-        }}>
+        <div
+          className="loading-container"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "400px",
+            fontSize: "18px",
+            color: "#6b7280",
+          }}
+        >
           Loading candidate profile...
         </div>
       </main>
     );
   }
 
-  // Error state
   if (error || !candidate) {
     return (
       <main className="profile">
-        <div className="error-container" style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '400px',
-          fontSize: '18px',
-          color: '#ef4444'
-        }}>
-          <p>{error || 'Candidate not found'}</p>
-          <button 
+        <div
+          className="error-container"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "400px",
+            fontSize: "18px",
+            color: "#ef4444",
+          }}
+        >
+          <p>{error || "Candidate not found"}</p>
+          <button
             onClick={handleGoBack}
             style={{
-              marginTop: '16px',
-              padding: '8px 16px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
+              marginTop: "16px",
+              padding: "8px 16px",
+              backgroundColor: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
             }}
           >
             Go Back
@@ -464,608 +662,92 @@ const Profile: React.FC = () => {
     );
   }
 
-  // Prepare data for display
   const radarData = createRadarData(personality);
   const resumeParsed = {
-    skills: transformToProfileItems(candidate.skills || [], 'skillName'),
-    experience: transformToProfileItems(candidate.experience || [], 'description'),
-    education: transformToProfileItems(candidate.education || [], 'description'),
-    certification: transformToProfileItems(candidate.certification || [], 'description'),
-    strength: transformToProfileItems(candidate.strengths || [], 'description'),
-    weaknesses: transformToProfileItems(candidate.weaknesses || [], 'description'),
-    assessment: candidate.resumeAssessment ? [{ text: candidate.resumeAssessment }] : []
+    skills: transformToProfileItems(candidate.skills || [], "skillName", "skill"),
+    experience: transformToProfileItems(candidate.experience || [], "description", "experience"),
+    education: transformToProfileItems(candidate.education || [], "description", "education"),
+    certification: transformToProfileItems(candidate.certification || [], "description", "certification"),
+    strength: transformToProfileItems(candidate.strengths || [], "description", "strength"),
+    weaknesses: transformToProfileItems(candidate.weaknesses || [], "description", "weakness"),
   };
 
   return (
     <main className="profile">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="toast-notification">
-          {toastMessage}
-        </div>
-      )}
+      {toastMessage && <div className="toast-notification">{toastMessage}</div>}
 
-      <div className='back-label'>
-        <img 
-          src="/images/back.png" 
-          alt="Back" 
-          onClick={handleGoBack}
-          style={{ cursor: 'pointer' }}
-        />
-        <h2>{candidate.name}</h2>
-      </div>
-
-      <div className="info-box">
-        <div className="box-header">
-          <h3>Candidate Information</h3>
-          <button className="edit-btn" onClick={handleEditToggle}>
-            {isEditing ? 'Save' : 'Edit'}
+      <div className="profile-header">
+        <div
+          className="back-label"
+          data-text={`Comprehensive profile analysis powered by AI • Last updated ${formatDate(
+            candidate.dateUpdated
+          )}`}
+        >
+          <div className="left-section">
+            <img src="/images/back.png" alt="Back" onClick={handleGoBack} />
+            <h2>{candidate.name}</h2>
+          </div>
+          <button
+            onClick={handleCompareWithOthers}
+            className="compare-btn"
+            title="Compare with other candidates"
+          >
+            <img src="/images/compare.png" alt="Compare" />
+            Compare
           </button>
         </div>
-        <div className="box-content">
-          <p><strong>Name:</strong> {candidate.name}</p>
-          <p><strong>Email:</strong> {candidate.email.join(', ')}</p>
-          <p><strong>Birthdate:</strong> {formatDate(candidate.birthdate)}</p>
-          <p><strong>Date Created:</strong> {formatDate(candidate.dateCreated)}</p>
-          <p><strong>Date Updated:</strong> {formatDate(candidate.dateUpdated)}</p>
-          <p><strong>Role Applied:</strong> {candidate.roleApplied || 'Not specified'}</p>
-          {candidate.resumeMetadata ? (
-            <p>
-              <strong>Resume:</strong>{' '}
-              <a 
-                href={getFileDownloadUrl(candidate.resumeMetadata.fileId)} 
-                target="_blank"
-                rel="noreferrer"
-                className="download-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.open(getFileDownloadUrl(candidate.resumeMetadata!.fileId), '_blank');
-                  handleDownload(candidate.resumeMetadata!.filename, 'resume');
-                }}
-              >
-                📄 {candidate.resumeMetadata.filename} ↓
-              </a>
-            </p>
-          ) : (
-            <p>
-              <strong>Resume:</strong>{' '}
-              <span style={{ color: '#6b7280', fontStyle: 'italic' }}>No resume uploaded</span>
-            </p>
-          )}
-          {candidate.transcripts && candidate.transcripts.length > 0 ? (
-            <p>
-              <strong>Transcripts:</strong>{' '}
-              {candidate.transcripts.map((transcript: any, idx: number) => (
-                <span key={idx}>
-                  <a 
-                    href={getTranscriptDownloadUrl(transcript.fileId)} 
-                    target="_blank"
-                    rel="noreferrer"
-                    className="download-link"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.open(getTranscriptDownloadUrl(transcript.fileId), '_blank');
-                      handleDownload(transcript.filename, 'transcript');
-                    }}
-                  >
-                    📄 {transcript.filename} ↓
-                  </a>
-                  {idx < candidate.transcripts!.length - 1 && ', '}
-                </span>
-              ))}
-              {isEditing && (
-                <div style={{ marginTop: '8px' }}>
-                  <label 
-                    htmlFor="transcript-upload" 
-                    style={{
-                      display: 'inline-block',
-                      padding: '6px 12px',
-                      backgroundColor: '#007bff',
-                      color: 'white',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {uploadingTranscript ? 'Uploading...' : 'Upload New Transcript'}
-                  </label>
-                  <input
-                    id="transcript-upload"
-                    type="file"
-                    accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
-                    onChange={handleTranscriptUpload}
-                    disabled={uploadingTranscript}
-                    style={{ display: 'none' }}
-                  />
-                </div>
-              )}
-            </p>
-          ) : (
-            <p>
-              <strong>Transcripts:</strong>{' '}
-              <span style={{ color: '#6b7280', fontStyle: 'italic' }}>No transcripts uploaded</span>
-              {isEditing && (
-                <div style={{ marginTop: '8px' }}>
-                  <label 
-                    htmlFor="transcript-upload" 
-                    style={{
-                      display: 'inline-block',
-                      padding: '6px 12px',
-                      backgroundColor: '#007bff',
-                      color: 'white',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {uploadingTranscript ? 'Uploading...' : 'Upload Transcript'}
-                  </label>
-                  <input
-                    id="transcript-upload"
-                    type="file"
-                    accept=".txt,.pdf,.mp3,.wav,.m4a,.ogg,.docx"
-                    onChange={handleTranscriptUpload}
-                    disabled={uploadingTranscript}
-                    style={{ display: 'none' }}
-                  />
-                </div>
-              )}
-            </p>
-          )}
-          <p><strong>Status:</strong> 
-            {isEditing ? (
-              <select 
-                value={editedStatus || candidate.status} 
-                onChange={(e) => setEditedStatus(e.target.value)}
-                style={{ 
-                  marginLeft: '8px',
-                  padding: '4px 8px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-              >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-                <option value="In Review">In Review</option>
-              </select>
-            ) : (
-              <span style={{ 
-                color: candidate.status === 'Approved' ? '#10b981' : 
-                       candidate.status === 'Rejected' ? '#ef4444' : '#f59e0b',
-                fontWeight: 'bold',
-                marginLeft: '8px'
-              }}>
-                {candidate.status}
-              </span>
-            )}
-          </p>
-          <p><strong>Active:</strong> {candidate.isDeleted ? 'No' : 'Yes'}</p>
-        </div>
       </div>
 
-      {/* Two-column layout for parsed sections */}
+      <div className="profile-content">
+        <CandidateInfoSection
+          candidate={candidate}
+          isEditing={isEditing}
+          editedData={editedData}
+          uploadingTranscript={uploadingTranscript}
+          uploadingInterviewVideo={uploadingInterviewVideo}
+          uploadingIntroductionVideo={uploadingIntroductionVideo}
+          onEditToggle={handleEditToggle}
+          onCancelEdit={handleCancelEdit}
+          onEditedDataChange={setEditedData}
+          onTranscriptUpload={handleTranscriptUpload}
+          onInterviewVideoUpload={handleInterviewVideoUpload}
+          onIntroductionVideoUpload={handleIntroductionVideoUpload}
+          onDownload={handleDownload}
+        />
+      </div>
+
       <div className="parsed-sections-container">
-        {/* Resume Parsed Information */}
-        <div className="parsed-section">
-          <div className="box-header">
-            <h3>Resume Parsed Information</h3>
-            <button className="edit-btn" onClick={handleEditToggle}>
-              {isEditing ? 'Save' : 'Edit'}
-            </button>
-          </div>
-          <div className="box-content">
-            <div className="section">
-              <strong>Skills:</strong>
-              {resumeParsed.skills.length > 0 ? (
-                <div className="skills-grid">
-                  {resumeParsed.skills.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || item.text}
-                          </span>
-                          {item.evidence && item.evidence !== item.skillName && (
-                            <p className="skill-evidence">
-                              {item.evidence}
-                            </p>
-                          )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Score:</span>
-                              <span className="score-value">{item.score}/10</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No skills data available</p>
-              )}
-            </div>
-            <div className="section">
-              <strong>Experience:</strong>
-              {resumeParsed.experience.length > 0 ? (
-                <div className="skills-grid">
-                  {resumeParsed.experience.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || 'Experience'}
-                          </span>
-                          {item.evidence && (
-                            <p className="skill-evidence">
-                              {item.evidence}
-                            </p>
-                          )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Rating:</span>
-                              <span className="score-value">{item.score}/10</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No experience data available</p>
-              )}
-            </div>
-            <div className="section">
-              <strong>Education:</strong>
-              {resumeParsed.education.length > 0 ? (
-                <div className="skills-grid">
-                  {resumeParsed.education.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || 'Education'}
-                          </span>
-                          {item.evidence && (
-                            <p className="skill-evidence">
-                              {item.evidence}
-                            </p>
-                          )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Rating:</span>
-                              <span className="score-value">{item.score}/10</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No education data available</p>
-              )}
-            </div>
-            <div className="section">
-              <strong>Certification:</strong>
-              {resumeParsed.certification.length > 0 ? (
-                <div className="skills-grid">
-                  {resumeParsed.certification.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || 'Certification'}
-                          </span>
-                          {item.evidence && (
-                            <p className="skill-evidence">
-                              {item.evidence}
-                            </p>
-                          )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Rating:</span>
-                              <span className="score-value">{item.score}/10</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No certification data available</p>
-              )}
-            </div>
-            <div className="section">
-              <strong>Strength:</strong>
-              {resumeParsed.strength.length > 0 ? (
-                <div className="skills-grid">
-                  {resumeParsed.strength.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || 'Strength'}
-                          </span>
-                          {item.evidence && (
-                            <p className="skill-evidence">
-                              {item.evidence}
-                            </p>
-                          )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Rating:</span>
-                              <span className="score-value">{item.score}/10</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No strengths data available</p>
-              )}
-            </div>
-            <div className="section">
-              <strong>Weaknesses:</strong>
-              {resumeParsed.weaknesses.length > 0 ? (
-                <div className="skills-grid">
-                  {resumeParsed.weaknesses.map((item: ProfileItem, idx: number) => (
-                    <div key={idx} className="skill-card">
-                      <div className="skill-content">
-                        <div className="skill-info">
-                          <span className="skill-name">
-                            {item.skillName || 'Weakness'}
-                          </span>
-                          {item.evidence && (
-                            <p className="skill-evidence">
-                              {item.evidence}
-                            </p>
-                          )}
-                          {item.score && (
-                            <div className="skill-score">
-                              <span className="score-label">Rating:</span>
-                              <span className="score-value">{item.score}/10</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No weaknesses data available</p>
-              )}
-            </div>
-            {/* <div className="section">
-              <strong>Resume Assessment:</strong>
-              {resumeParsed.assessment.length > 0 ? (
-                <div className="assessment-content">
-                  {resumeParsed.assessment.map((item: ProfileItem, idx: number) => (
-                    <p key={idx} style={{ marginBottom: '8px', lineHeight: '1.5' }}>
-                      {item.text}
-                    </p>
-                  ))}
-                </div>
-              ) : (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No resume assessment available</p>
-              )}
-            </div> */}
-          </div>
-        </div>
+        <ResumeParsedSection
+          skills={resumeParsed.skills}
+          experience={resumeParsed.experience}
+          education={resumeParsed.education}
+          certification={resumeParsed.certification}
+          strength={resumeParsed.strength}
+          weaknesses={resumeParsed.weaknesses}
+          isEditing={isEditingResume}
+          editedResumeData={editedResumeData}
+          onEditToggle={handleResumeEditToggle}
+          onCancelEdit={handleCancelResumeEdit}
+          onResumeDataChange={setEditedResumeData}
+          onItemClick={openDetailModal}
+        />
 
-        {/* Interview Transcript Information */}
-        <div className="parsed-section">
-          <div className="box-header">
-              <h3>Interview Transcript Information</h3>
-              <button className="edit-btn" onClick={handleEditToggle}>
-                {isEditing ? 'Save' : 'Edit'}
-              </button>
-          </div>
-          <div className="box-content">
-              <div className="section radar-chart">
-                  <strong>Personality Traits Radar:</strong>
-                  <ResponsiveContainer width="100%" height={400}>
-                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                          <PolarGrid />
-                          <PolarAngleAxis dataKey="trait" />
-                          <PolarRadiusAxis angle={30} domain={[0, 10]} tickFormatter={(tick) => tick.toFixed(1)} />
-                          <Radar name="Score" dataKey="value" stroke="#E30022" fill="#E30022" fillOpacity={0.6} />
-                          <Tooltip content={<CustomRadarTooltip />} />
-                      </RadarChart>
-                  </ResponsiveContainer>
-              </div>
-              
-              {/* Personality Trait Evidences - Categorized */}
-              <div className="section">
-                  <strong>Personality Trait Evidence:</strong>
-                  {personality ? (
-                    <div className="personality-categories">
-                      {/* Cognitive and Problem Solving Category */}
-                      {personality.cognitiveAndProblemSolving && Object.keys(personality.cognitiveAndProblemSolving).some(key => personality.cognitiveAndProblemSolving?.[key]?.evidence) && (
-                        <div className="personality-category">
-                          <h4 className="category-title" onClick={() => toggleCategory('cognitive')} style={{ cursor: 'pointer' }}>
-                            <span className="toggle-icon">{collapsedCategories['cognitive'] ? '▶' : '▼'}</span>
-                            Cognitive & Problem-Solving
-                          </h4>
-                          {!collapsedCategories['cognitive'] && (
-                            <div className="subcategories">
-                              {Object.entries(personality.cognitiveAndProblemSolving).map(([key, trait]: [string, any]) => (
-                                trait.evidence && (
-                                  <div key={key} className="subcategory">
-                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
-                                    <div className="trait-evidence-card">
-                                      <p className="evidence-text">{trait.evidence}</p>
-                                      {trait.score > 0 && (
-                                        <div className="evidence-score">
-                                          <span className="score-badge">{trait.score}/10</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Communication and Teamwork Category */}
-                      {personality.communicationAndTeamwork && Object.keys(personality.communicationAndTeamwork).some(key => personality.communicationAndTeamwork?.[key]?.evidence) && (
-                        <div className="personality-category">
-                          <h4 className="category-title" onClick={() => toggleCategory('communication')} style={{ cursor: 'pointer' }}>
-                            <span className="toggle-icon">{collapsedCategories['communication'] ? '▶' : '▼'}</span>
-                            Communication & Teamwork
-                          </h4>
-                          {!collapsedCategories['communication'] && (
-                            <div className="subcategories">
-                              {Object.entries(personality.communicationAndTeamwork).map(([key, trait]: [string, any]) => (
-                                trait.evidence && (
-                                  <div key={key} className="subcategory">
-                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
-                                    <div className="trait-evidence-card">
-                                      <p className="evidence-text">{trait.evidence}</p>
-                                      {trait.score > 0 && (
-                                        <div className="evidence-score">
-                                          <span className="score-badge">{trait.score}/10</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Work Ethic and Reliability Category */}
-                      {personality.workEthicAndReliability && Object.keys(personality.workEthicAndReliability).some(key => personality.workEthicAndReliability?.[key]?.evidence) && (
-                        <div className="personality-category">
-                          <h4 className="category-title" onClick={() => toggleCategory('workEthic')} style={{ cursor: 'pointer' }}>
-                            <span className="toggle-icon">{collapsedCategories['workEthic'] ? '▶' : '▼'}</span>
-                            Work Ethic & Reliability
-                          </h4>
-                          {!collapsedCategories['workEthic'] && (
-                            <div className="subcategories">
-                              {Object.entries(personality.workEthicAndReliability).map(([key, trait]: [string, any]) => (
-                                trait.evidence && (
-                                  <div key={key} className="subcategory">
-                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
-                                    <div className="trait-evidence-card">
-                                      <p className="evidence-text">{trait.evidence}</p>
-                                      {trait.score > 0 && (
-                                        <div className="evidence-score">
-                                          <span className="score-badge">{trait.score}/10</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Growth and Leadership Category */}
-                      {personality.growthAndLeadership && Object.keys(personality.growthAndLeadership).some(key => personality.growthAndLeadership?.[key]?.evidence) && (
-                        <div className="personality-category">
-                          <h4 className="category-title" onClick={() => toggleCategory('growth')} style={{ cursor: 'pointer' }}>
-                            <span className="toggle-icon">{collapsedCategories['growth'] ? '▶' : '▼'}</span>
-                            Growth & Leadership
-                          </h4>
-                          {!collapsedCategories['growth'] && (
-                            <div className="subcategories">
-                              {Object.entries(personality.growthAndLeadership).map(([key, trait]: [string, any]) => (
-                                trait.evidence && (
-                                  <div key={key} className="subcategory">
-                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
-                                    <div className="trait-evidence-card">
-                                      <p className="evidence-text">{trait.evidence}</p>
-                                      {trait.score > 0 && (
-                                        <div className="evidence-score">
-                                          <span className="score-badge">{trait.score}/10</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Culture and Personality Fit Category */}
-                      {personality.cultureAndPersonalityFit && Object.keys(personality.cultureAndPersonalityFit).some(key => personality.cultureAndPersonalityFit?.[key]?.evidence) && (
-                        <div className="personality-category">
-                          <h4 className="category-title" onClick={() => toggleCategory('culture')} style={{ cursor: 'pointer' }}>
-                            <span className="toggle-icon">{collapsedCategories['culture'] ? '▶' : '▼'}</span>
-                            Culture & Personality Fit
-                          </h4>
-                          {!collapsedCategories['culture'] && (
-                            <div className="subcategories">
-                              {Object.entries(personality.cultureAndPersonalityFit).map(([key, trait]: [string, any]) => (
-                                trait.evidence && (
-                                  <div key={key} className="subcategory">
-                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
-                                    <div className="trait-evidence-card">
-                                      <p className="evidence-text">{trait.evidence}</p>
-                                      {trait.score > 0 && (
-                                        <div className="evidence-score">
-                                          <span className="score-badge">{trait.score}/10</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Bonus Traits Category */}
-                      {personality.bonusTraits && Object.keys(personality.bonusTraits).some(key => personality.bonusTraits?.[key]?.evidence) && (
-                        <div className="personality-category">
-                          <h4 className="category-title" onClick={() => toggleCategory('bonus')} style={{ cursor: 'pointer' }}>
-                            <span className="toggle-icon">{collapsedCategories['bonus'] ? '▶' : '▼'}</span>
-                            Bonus Traits
-                          </h4>
-                          {!collapsedCategories['bonus'] && (
-                            <div className="subcategories">
-                              {Object.entries(personality.bonusTraits).map(([key, trait]: [string, any]) => (
-                                trait.evidence && (
-                                  <div key={key} className="subcategory">
-                                    <h5 className="subcategory-title">{trait.traitName || key}</h5>
-                                    <div className="trait-evidence-card">
-                                      <p className="evidence-text">{trait.evidence}</p>
-                                      {trait.score > 0 && (
-                                        <div className="evidence-score">
-                                          <span className="score-badge">{trait.score}/10</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No personality trait evidence available</p>
-                  )}
-              </div>
-          </div>
-        </div>
+        <PersonalitySection
+          personality={personality}
+          radarData={radarData}
+          isEditing={isEditing}
+          onEditToggle={handleEditToggle}
+        />
+
+        <Comments entityType={CommentEntityType.CANDIDATE} entityId={id!} />
       </div>
+
+      {showDetailModal && (
+        <ProfileDetailModal
+          selectedItem={selectedItem}
+          onClose={closeDetailModal}
+        />
+      )}
     </main>
   );
 };

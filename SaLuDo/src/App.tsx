@@ -1,73 +1,117 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import UserForm from './components/UserForm'
-import ApiData from './components/ApiData'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import UserForm from "./components/UserForm";
+import ApiData from "./components/ApiData";
 // import UserDashboard from './components/UserDashboard'
 // import JobDashboard from './components/JobDashboard'
-import JobForm from './components/JobForm'
-import { useEffect, useState } from 'react'
-import { fetchApiData } from './utils/api'
-import { Data } from './types/data'
-import './App.css'
+import JobForm from "./components/JobForm";
+import { useEffect, useState } from "react";
+import { fetchApiData } from "./utils/api";
+import { Data } from "./types/data";
+import "./App.css";
+import { useAuth } from "./context/AuthContext";
+import { NotificationToast } from "./components/NotificationToast";
 
 // 🗂️ Your Dashboard and sub-components:
-import Sidebar from './components/Sidebar.tsx'
-import Header from './components/Header.tsx'
-import CandidateList from './components/CandidateList.tsx'
-import AddCandidate from './components/AddCandidate.tsx'
-import JobList from './components/JobList.tsx'
-import CandidateForm from './components/CandidateForm.tsx'
-import SkillsManagement from './components/SkillsManagement.tsx'
-import Profile from './components/Profile.tsx'
-import JobDetails from './components/JobDetails.tsx'
+import Sidebar from "./components/Sidebar.tsx";
+import Header from "./components/Header.tsx";
+import CandidateList from "./components/CandidateList.tsx";
+import AddCandidate from "./components/AddCandidate.tsx";
+import JobList from "./components/JobList.tsx";
+import CandidateForm from "./components/CandidateForm.tsx";
+import SkillsManagement from "./components/SkillsManagement.tsx";
+import Profile from "./components/Profile.tsx";
+import JobDetails from "./components/JobDetails.tsx";
+import CandidateSelector from "./components/CandidateSelector.tsx";
+import CandidateComparison from "./components/CandidateComparison.tsx";
+import UserManagement from "./components/UserManagement.tsx";
+import AssignCandidate from "./components/AssignCandidate.tsx";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import AuditLogs from "./components/AuditLogs.tsx";
+import Dashboard from "./components/Dashboard.tsx";
+import UserProfile from "./components/UserProfile.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
-  const [isRightPanelActive, setIsRightPanelActive] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
 
-  const handleLogin = () => {
-    // ✅ Here you can add real validation later.
-    navigate('/'); // This changes the URL to your dashboard page.
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Always redirect to candidate list page
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      // Always redirect to candidate list page after login
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please check your credentials."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className={`container ${isRightPanelActive ? 'right-panel-active' : ''}`} id="container">
-      {/* Sign Up Form */}
-      <div className="form-container sign-up-container">
-        <form className='app-form'>
-          <h2>Create Account</h2>
-          <div className="social-icons">
-            <button type="button">f</button>
-            <button type="button">G</button>
-            <button type="button">in</button>
-          </div>
-          <span>or use your email:</span>
-          <input type="text" placeholder="Name" />
-          <input type="email" placeholder="Email" />
-          <input type="password" placeholder="Password" />
-          <button type="button" className="submitbtn">Sign Up</button>
-        </form>
-      </div>
-
+    <div
+      className="container"
+      id="container"
+    >
       {/* Sign In Form */}
       <div className="form-container sign-in-container">
         <img src="/images/logo 1.png" className="logo" alt="Alliance Logo" />
-        <form className='app-form' style={{ height: '80%' }}>
+        <form
+          className="app-form"
+          style={{ height: "60%" }}
+          onSubmit={handleLogin}
+        >
           <h2>Login</h2>
-          <div className="social-icons">
-            <button type="button">f</button>
-            <button type="button">G</button>
-            <button type="button">in</button>
-          </div>
-          <span>or use your account:</span>
-          <input type="email" placeholder="Email" />
-          <input type="password" placeholder="Password" />
-          <button
-            type="button"
-            className="submitbtn"
-            onClick={handleLogin}
-          >
-            LOG IN
+          {error && (
+            <div
+              style={{ color: "red", marginBottom: "10px", fontSize: "0.9rem" }}
+            >
+              {error}
+            </div>
+          )}
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+          />
+          <button type="submit" className="submitbtn" disabled={loading}>
+            {loading ? "LOGGING IN..." : "LOG IN"}
           </button>
         </form>
       </div>
@@ -79,32 +123,22 @@ function AuthPage() {
           {/* Overlay for Sign In */}
           <div className="overlay-panel overlay-left">
             <h2>Welcome Back!</h2>
-            <p>To keep connected with us please login with your personal info</p>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setIsRightPanelActive(false)}
-            >
-              LOG IN
-            </button>
+            <p>
+              To keep connected with us please login with your personal info
+            </p>
           </div>
 
           {/* Overlay for Sign Up */}
           <div className="overlay-panel overlay-right">
-            <h2>New Here?</h2>
-            <p>Enter your personal details and start your journey with us</p>
-            <button
-              type="button"
-              className="ghost"
-              onClick={() => setIsRightPanelActive(true)}
-            >
-              SIGN UP
-            </button>
+            <h2>Welcome Back!</h2>
+            <p>
+              To keep connected with us please login with your personal info
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 type Props = {
@@ -123,71 +157,172 @@ function DashboardLayout({ children }: Props) {
   );
 }
 
-function Dashboard() {
+function CandidateListPage() {
   return (
-    <DashboardLayout>
-      <CandidateList />
-    </DashboardLayout>
-  )
+    <ProtectedRoute>
+      <DashboardLayout>
+        <CandidateList />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
 }
 
 function AddCandidatePage() {
   return (
-    <DashboardLayout>
-      <AddCandidate />
-    </DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <AddCandidate />
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }
 
 function JobListPage() {
   return (
-    <DashboardLayout>
-      <JobList />
-    </DashboardLayout>
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <JobList />
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }
 
 function SkillsManagementPage() {
   return (
-    <DashboardLayout>
-      <SkillsManagement />
-    </DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <SkillsManagement />
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }
 
 function ProfilePage() {
   return (
-    <DashboardLayout>
-      <Profile />
-    </DashboardLayout>
+    <ProtectedRoute>
+      <DashboardLayout>
+        <Profile />
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }
 
 function JobDetailsPage() {
   return (
-    <DashboardLayout>
-      <JobDetails />
-    </DashboardLayout>
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <JobDetails />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function JobFormPage() {
+  return (
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <JobForm />
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }
 
 function CandidateFormPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const jobId = searchParams.get('jobId') || '';
+  const jobId = searchParams.get("jobId") || "";
 
-  return <CandidateForm jobId={jobId} />;
+  return (
+    <CandidateForm jobId={jobId} />
+  );
+}
+
+function CandidateSelectorPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <CandidateSelector />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function CandidateComparisonPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <CandidateComparison />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function UserManagementPage() {
+  // For now, we'll use a mock token. In production, this should come from auth context
+  const accessToken = localStorage.getItem("accessToken") || "";
+
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout>
+        <UserManagement accessToken={accessToken} />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function AssignCandidatePage() {
+  return (
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <AssignCandidate />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function AuditLogsPage() {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout>
+        <AuditLogs />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function DashboardPage() {
+  // For now, we'll use a mock token. In production, this should come from auth context
+  const accessToken = localStorage.getItem("accessToken") || "";
+
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout>
+        <Dashboard accessToken={accessToken} />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function UserProfilePage() {
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <UserProfile />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
 }
 
 function App() {
-  const [data, setData] = useState<Data | null>(null)
+  const [data, setData] = useState<Data | null>(null);
 
   useEffect(() => {
-    fetchApiData().then(setData)
-  }, [])
+    fetchApiData().then(setData);
+  }, []);
 
   return (
     <Router>
+      <NotificationToast />
       <Routes>
         {/* <Route path="/" element={
           <div>
@@ -195,10 +330,10 @@ function App() {
             <ApiData data={data} />
           </div>
         } /> */}
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<CandidateListPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/userform" element={<UserForm />} />
-        <Route path="/jobform" element={<JobForm />} />
+        <Route path="/jobform" element={<JobFormPage />} />
         <Route path="/add-candidate" element={<AddCandidatePage />} />
         <Route path="/job-list" element={<JobListPage />} />
         <Route path="/job/:jobId" element={<JobDetailsPage />} />
@@ -206,9 +341,19 @@ function App() {
         <Route path="/candidate-form" element={<CandidateFormPage />} />
         <Route path="/skills-management" element={<SkillsManagementPage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
+        <Route path="/compare-candidates" element={<CandidateSelectorPage />} />
+        <Route
+          path="/compare/:candidateId1/:candidateId2"
+          element={<CandidateComparisonPage />}
+        />
+        <Route path="/user-management" element={<UserManagementPage />} />
+        <Route path="/assign-candidates" element={<AssignCandidatePage />} />
+        <Route path="/audit-logs" element={<AuditLogsPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/user-profile/:userId" element={<UserProfilePage />} />
       </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

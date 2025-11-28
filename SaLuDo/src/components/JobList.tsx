@@ -7,6 +7,9 @@ import { Job } from '../types/job';
 const JobList: React.FC = () => {
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isAdmin = user.role === "admin";
+
   const [searchTerm, setSearchTerm] = useState('');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [candidates, setCandidates] = useState<any[]>([]);
@@ -57,12 +60,12 @@ const JobList: React.FC = () => {
   const calculateApplicantStats = () => {
     const jobApplicantCounts = new Map<string, number>();
     
-    // Count applicants per job
-    candidates.forEach(candidate => {
-      if (candidate.roleApplied) {
-        const currentCount = jobApplicantCounts.get(candidate.roleApplied) || 0;
-        jobApplicantCounts.set(candidate.roleApplied, currentCount + 1);
-      }
+    // Count applicants per job (only those with roleApplied)
+    const candidatesWithRoles = candidates.filter(candidate => candidate.roleApplied);
+    
+    candidatesWithRoles.forEach(candidate => {
+      const currentCount = jobApplicantCounts.get(candidate.roleApplied) || 0;
+      jobApplicantCounts.set(candidate.roleApplied, currentCount + 1);
     });
     
     // Find job with most applicants
@@ -83,11 +86,16 @@ const JobList: React.FC = () => {
     return {
       jobWithMostApplicants: jobNameWithMostApplicants,
       maxApplicants,
-      totalApplicants: candidates.length
+      totalApplicants: candidatesWithRoles.length
     };
   };
   
   const applicantStats = calculateApplicantStats();
+
+  // Get applicant count for a specific job
+  const getApplicantCount = (jobId: string): number => {
+    return candidates.filter(candidate => candidate.roleApplied === jobId).length;
+  };
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -103,9 +111,14 @@ const JobList: React.FC = () => {
     navigate(`/job/${jobId}`);
   };
 
+  // Handle add new job button click
+  const handleAddNewJob = () => {
+    navigate('/jobform');
+  };
+
   return (
     <main className="candidate-list">
-      <div className="candidate-list-header">
+      <div className="candidate-list-header" data-text="Add and show a list of available job openings with descriptions">
         <h2>Job List</h2>
         <div className="search-candidate">
           <input
@@ -116,24 +129,39 @@ const JobList: React.FC = () => {
           />
           <img src="/images/search.png" alt="Search" />
         </div>
-        <img src="/images/filter.png" alt="Filter" />
-        <button className="add-job">Add New Job</button>
+        {/* <img src="/images/filter.png" alt="Filter" /> */}
+        {isAdmin && (
+          <button className="compare-candidates-btn" onClick={handleAddNewJob}>
+            + Add New Job
+          </button>
+        )}
       </div>
       <div className="summary-cards">
         <div className="card">
           <h4>Total Jobs</h4>
           <div className="number">{jobs.length}</div>
           <div className="detail">{filteredJobs.length} Shown</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Job with Most Applicants</h4>
           <div className="number">{applicantStats.maxApplicants}</div>
           <div className="detail">{applicantStats.jobWithMostApplicants || 'No applicants yet'}</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
-          <h4>Total Skills</h4>
-          <div className="number">{jobs.reduce((total, job) => total + job.skills.filter(skill => !skill.isDeleted).length, 0)}</div>
+          <h4>Total Unique Skills</h4>
+          <div className="number">{(() => {
+            const uniqueSkills = new Set<string>();
+            jobs.forEach(job => {
+              job.skills.filter(skill => !skill.isDeleted).forEach(skill => {
+                uniqueSkills.add(skill.skillId);
+              });
+            });
+            return uniqueSkills.size;
+          })()}</div>
           <div className="detail">Across All Jobs</div>
+          <a className="view-more" href="/dashboard">View more →</a>
         </div>
       </div>
 
@@ -141,9 +169,10 @@ const JobList: React.FC = () => {
         <table>
           <thead>
             <tr>
-              <th><img src="/images/sort.png" alt="Sort" /></th>
+              <th></th>
               <th>Job Name</th>
               <th>Amount of Skills</th>
+              <th>Applicants</th>
               <th>Created At</th>
               <th>Action</th>
             </tr>
@@ -151,19 +180,19 @@ const JobList: React.FC = () => {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '20px' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>
                   Loading jobs...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
                   {error}
                 </td>
               </tr>
             ) : filteredJobs.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
                   No jobs found
                 </td>
               </tr>
@@ -177,6 +206,14 @@ const JobList: React.FC = () => {
                     </a>
                   </td>
                   <td>{job.skills.filter(skill => !skill.isDeleted).length}</td>
+                  <td>
+                    <span style={{ 
+                      fontWeight: 'bold',
+                      color: getApplicantCount(job._id) > 0 ? '#10b981' : '#6b7280'
+                    }}>
+                      {getApplicantCount(job._id)}
+                    </span>
+                  </td>
                   <td>{formatDate(job.createdAt)}</td>
                   <td>
                     <button

@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import './css/CandidateForm.css';
-import { apiUrl } from '../utils/api';
+import React, { useState, useEffect } from "react";
+import "./css/CandidateForm.css";
+import { apiUrl, candidatesApi } from "../utils/api";
 
 interface Job {
   _id: string;
   jobName: string;
   jobDescription: string;
+}
+
+interface SocialLink {
+  url: string;
 }
 
 interface FormData {
@@ -17,6 +21,8 @@ interface FormData {
   // phone: string;
   email: string;
   resume: File | null;
+  introductionVideo?: File | null;
+  socialLinks: SocialLink[];
 }
 
 const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
@@ -26,24 +32,50 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
   const [job, setJob] = useState<Job | null>(null);
   const [isLoadingJob, setIsLoadingJob] = useState(true);
   const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    birthdate: '',
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    birthdate: "",
     // address: '',
     // phone: '',
-    email: '',
-    resume: null
+    email: "",
+    resume: null,
+    introductionVideo: null,
+    socialLinks: [],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
-    
-    if (name === 'resume' && files) {
-      setFormData(prev => ({ ...prev, resume: files[0] }));
+
+    if ((name === "resume" || name === "introductionVideo") && files) {
+      const file = files[0];
+      setFormData((prev) => ({ ...prev, [name]: file } as any));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const addSocialLink = () => {
+    setFormData((prev) => ({
+      ...prev,
+      socialLinks: [...prev.socialLinks, { url: "" }],
+    }));
+  };
+
+  const removeSocialLink = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateSocialLink = (index: number, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.map((link, i) =>
+        i === index ? { url: value } : link
+      ),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,40 +86,72 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
     try {
       // Create FormData for multipart/form-data
       const submitData = new FormData();
-      
+
       // Combine names into full name
-      const fullName = `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
-      submitData.append('name', fullName);
-      submitData.append('email', formData.email);
-      submitData.append('birthdate', formData.birthdate);
-      
+      const fullName =
+        `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim();
+      submitData.append("name", fullName);
+      submitData.append("email", formData.email);
+      submitData.append("birthdate", formData.birthdate);
+
       // Only include roleApplied if we have a jobId, otherwise leave it empty/null
       if (jobId) {
-        submitData.append('roleApplied', jobId);
+        submitData.append("roleApplied", jobId);
       } else {
-        submitData.append('roleApplied', ''); // or you could omit this entirely
+        submitData.append("roleApplied", ""); // or you could omit this entirely
       }
-      
+
       if (formData.resume) {
-        submitData.append('resume', formData.resume);
+        submitData.append("resume", formData.resume);
+      }
+
+      // Add social links if any
+      if (formData.socialLinks.length > 0) {
+        submitData.append("socialLinks", JSON.stringify(formData.socialLinks));
       }
 
       const response = await fetch(`${apiUrl}candidates`, {
-        method: 'POST',
+        method: "POST",
         body: submitData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit application');
+        throw new Error(errorData.message || "Failed to submit application");
       }
 
       const result = await response.json();
-      console.log('Application submitted successfully:', result);
+      console.log("Application submitted successfully:", result);
+
+      // If an introduction video was provided, upload it to the candidate's video endpoint
+      try {
+        const candidateId = result?.data?.candidateId;
+        if (formData.introductionVideo && candidateId) {
+          const introForm = new FormData();
+          introForm.append("video", formData.introductionVideo);
+          // Use the existing API helper so headers/urls remain consistent
+          await candidatesApi.uploadIntroductionVideo(candidateId, introForm);
+          console.log(
+            "Introduction video uploaded successfully for candidate",
+            candidateId
+          );
+        }
+      } catch (videoErr) {
+        // Non-fatal: log and show a non-blocking error message
+        console.error("Failed to upload introduction video:", videoErr);
+        setError(
+          "Application submitted but failed to upload introduction video."
+        );
+      }
+
       setShowModal(true);
     } catch (err) {
-      console.error('Error submitting application:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred while submitting your application');
+      console.error("Error submitting application:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred while submitting your application"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -98,14 +162,15 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
     setError(null);
     // Reset form data
     setFormData({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      birthdate: '',
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      birthdate: "",
       // address: '',
       // phone: '',
-      email: '',
-      resume: null
+      email: "",
+      resume: null,
+      introductionVideo: null,
     });
     // Refresh the page to fully reset everything
     window.location.reload();
@@ -123,20 +188,22 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
       try {
         setIsLoadingJob(true);
         const response = await fetch(`${apiUrl}jobs/${jobId}`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch job details');
+          throw new Error("Failed to fetch job details");
         }
 
         const result = await response.json();
         if (result.success && result.data) {
           setJob(result.data);
         } else {
-          throw new Error('Job not found');
+          throw new Error("Job not found");
         }
       } catch (err) {
-        console.error('Error fetching job details:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load job details');
+        console.error("Error fetching job details:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load job details"
+        );
       } finally {
         setIsLoadingJob(false);
       }
@@ -146,80 +213,93 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
   }, [jobId]);
 
   return (
-    <div className='candidateform-bg'>
+    <div className="candidateform-bg">
       {isLoadingJob ? (
         <div className="form-container">
           <h2 className="form-title">Loading...</h2>
-          <p style={{ textAlign: 'center', padding: '20px' }}>Loading job details...</p>
+          <p style={{ textAlign: "center", padding: "20px" }}>
+            Loading job details...
+          </p>
         </div>
       ) : jobId && !job ? (
         <div className="form-container">
           <h2 className="form-title">Job Not Found</h2>
-          <p style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
-            {error || 'The requested job could not be found.'}
+          <p style={{ textAlign: "center", padding: "20px", color: "red" }}>
+            {error || "The requested job could not be found."}
           </p>
         </div>
       ) : (
         <form className="form-container" onSubmit={handleSubmit}>
           <h2 className="form-title">Candidate Information Form</h2>
           {job ? (
-            <p style={{ textAlign: 'center', marginBottom: '20px', color: '#666' }}>
+            <p
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#666",
+              }}
+            >
               Applying for: <strong>{job.jobName}</strong>
             </p>
           ) : (
-            <p style={{ textAlign: 'center', marginBottom: '20px', color: '#666' }}>
+            <p
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#666",
+              }}
+            >
               General Application Form
             </p>
           )}
           <hr />
-        <div className="form-body">
-          {/* Full Name */}
-          <div className="form-group">
-            <label className="field-label">Full Name</label>
-            <div className="form-row">
-              <input 
-                type="text" 
-                name="firstName" 
-                placeholder="First Name" 
-                value={formData.firstName}
-                onChange={handleInputChange}
-                required 
-              />
-              <input 
-                type="text" 
-                name="middleName" 
-                placeholder="Middle Name" 
-                value={formData.middleName}
-                onChange={handleInputChange}
-                required 
-              />
-              <input 
-                type="text" 
-                name="lastName" 
-                placeholder="Last Name" 
-                value={formData.lastName}
-                onChange={handleInputChange}
-                required 
-              />
+          <div className="form-body">
+            {/* Full Name */}
+            <div className="form-group">
+              <label className="field-label">Full Name</label>
+              <div className="form-row">
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                />
+                <input
+                  type="text"
+                  name="middleName"
+                  placeholder="Middle Name"
+                  value={formData.middleName}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type="text"
+                  name="lastName"
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Birthdate */}
-          <div className="form-group">
-            <label className="field-label">Birthdate</label>
-            <div className="form-row">
-              <input 
-                type="date" 
-                name="birthdate" 
-                value={formData.birthdate}
-                onChange={handleInputChange}
-                required 
-              />
+            {/* Birthdate */}
+            <div className="form-group">
+              <label className="field-label">Birthdate</label>
+              <div className="form-row">
+                <input
+                  type="date"
+                  name="birthdate"
+                  value={formData.birthdate}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Address */}
-          {/* <div className="form-group">
+            {/* Address */}
+            {/* <div className="form-group">
             <label className="field-label">Address</label>
             <div className="form-row">
               <input 
@@ -232,27 +312,11 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
             </div>
           </div> */}
 
-          {/* Role - Only show if we have a specific job */}
-          {job && (
+            {/* Contact */}
             <div className="form-group">
-              <label className="field-label">Applying For</label>
+              <label className="field-label">Email Address</label>
               <div className="form-row">
-                <input 
-                  type="text" 
-                  name="role" 
-                  value={job.jobName} 
-                  readOnly 
-                  placeholder="Job Title" 
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Contact */}
-          <div className="form-group">
-            <label className="field-label">Email Address</label>
-            <div className="form-row">
-              {/* <input 
+                {/* <input 
                 type="tel" 
                 name="phone" 
                 placeholder="Phone Number" 
@@ -260,53 +324,126 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
                 onChange={handleInputChange}
                 required 
               /> */}
-              <input 
-                type="email" 
-                name="email" 
-                placeholder="Email Address" 
-                value={formData.email}
-                onChange={handleInputChange}
-                required 
-              />
-            </div>
-          </div>
-
-          {/* Resume */}
-          <div className="form-group">
-            <label className="field-label">Resume Upload (PDF only)</label>
-            <div className="form-row">
-              <input 
-                type="file" 
-                name="resume" 
-                accept="application/pdf" 
-                onChange={handleInputChange}
-                required 
-              />
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="form-group">
-              <div className="error-message" style={{ color: 'red', textAlign: 'center' }}>
-                {error}
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
             </div>
-          )}
 
-          {/* Submit */}
-          <div className="form-group">
-            <div className="form-row">
-              <button 
-                type="submit" 
-                className="submit-button"
-                disabled={isSubmitting}
+            {/* Social Links */}
+            <div className="form-group">
+              <label className="field-label">Social Links (Optional)</label>
+              <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "10px" }}>
+                Add links to your LinkedIn, GitHub, Portfolio, or any other professional profiles
+              </p>
+              {formData.socialLinks.map((link, index) => (
+                <div key={index} className="form-row" style={{ marginBottom: "10px", display: "flex", gap: "10px" }}>
+                  <input
+                    type="url"
+                    placeholder="https://linkedin.com/in/yourname or https://github.com/yourname"
+                    value={link.url}
+                    onChange={(e) => updateSocialLink(index, e.target.value)}
+                    style={{ flex: "1" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSocialLink(index)}
+                    style={{
+                      padding: "8px 15px",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSocialLink}
+                style={{
+                  marginTop: "10px",
+                  padding: "8px 15px",
+                  backgroundColor: "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
               >
-                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+                + Add Social Link
               </button>
             </div>
-          </div>
-        </div>        </form>
+
+            {/* Resume Upload */}
+            <div className="form-group">
+              <label className="field-label">Resume Upload (PDF only)</label>
+              <div className="form-row">
+                <input
+                  type="file"
+                  name="resume"
+                  accept="application/pdf"
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Introduction Video */}
+            <div className="form-group">
+              <label className="field-label">
+                Introduction Video (optional)
+              </label>
+              <div className="form-row">
+                <input
+                  type="file"
+                  name="introductionVideo"
+                  accept="video/*"
+                  onChange={handleInputChange}
+                />
+              </div>
+              <p
+                style={{ color: "#6b7280", fontSize: "12px", marginTop: "6px" }}
+              >
+                Optional — upload a short introduction video to help recruiters
+                get to know you.
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="form-group">
+                <div
+                  className="error-message"
+                  style={{ color: "red", textAlign: "center" }}
+                >
+                  {error}
+                </div>
+              </div>
+            )}
+
+            {/* Submit */}
+            <div className="form-group">
+              <div className="form-row">
+                <button
+                  type="submit"
+                  className="submit-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
+                </button>
+              </div>
+            </div>
+          </div>{" "}
+        </form>
       )}
 
       {/* ✅ Modal on submission */}
@@ -315,8 +452,13 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
           <div className="modal-box">
             <h3>Application Submitted</h3>
             <p>Your application was submitted successfully.</p>
-            <p>Please look out for further notices sent to your provided contact information.</p>
-            <button onClick={handleModalClose} className="modal-button">Understood</button>
+            <p>
+              Please look out for further notices sent to your provided contact
+              information.
+            </p>
+            <button onClick={handleModalClose} className="modal-button">
+              Understood
+            </button>
           </div>
         </div>
       )}
