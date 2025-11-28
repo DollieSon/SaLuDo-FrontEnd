@@ -180,7 +180,7 @@ const Profile: React.FC = () => {
             skillName: s.skillName,
             score: s.score || SKILL_SCORE.DEFAULT,
             evidence: s.evidence || '',
-            source: s.source,
+            source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai',
             isAccepted: s.isAccepted
           })) || [],
           experience: candidateData.experience?.map((e: any) => ({
@@ -190,7 +190,7 @@ const Profile: React.FC = () => {
             position: e.position,
             startDate: e.startDate,
             endDate: e.endDate,
-            source: e.source
+            source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
           })) || [],
           education: candidateData.education?.map((e: any) => ({
             educationId: e.educationId,
@@ -199,7 +199,7 @@ const Profile: React.FC = () => {
             degree: e.degree,
             fieldOfStudy: e.fieldOfStudy,
             graduationDate: e.graduationDate,
-            source: e.source
+            source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
           })) || [],
           certification: candidateData.certification?.map((c: any) => ({
             certificationId: c.certificationId,
@@ -208,19 +208,21 @@ const Profile: React.FC = () => {
             issuingOrganization: c.issuingOrganization,
             issueDate: c.issueDate,
             expirationDate: c.expirationDate,
-            source: c.source
+            source: c.addedBy === 'AI' ? 'ai' : c.addedBy === 'HUMAN' ? 'manual' : c.source || 'ai'
           })) || [],
           strengths: candidateData.strengths?.map((s: any) => ({
             strengthWeaknessId: s.strengthWeaknessId,
+            name: s.name,
             description: s.description,
             type: 'strength' as const,
-            source: s.source
+            source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai'
           })) || [],
           weaknesses: candidateData.weaknesses?.map((w: any) => ({
             strengthWeaknessId: w.strengthWeaknessId,
+            name: w.name,
             description: w.description,
             type: 'weakness' as const,
-            source: w.source
+            source: w.addedBy === 'AI' ? 'ai' : w.addedBy === 'HUMAN' ? 'manual' : w.source || 'ai'
           })) || []
         });
       } else {
@@ -416,7 +418,7 @@ const Profile: React.FC = () => {
           skillName: s.skillName,
           score: s.score || SKILL_SCORE.DEFAULT,
           evidence: s.evidence || '',
-          source: s.source,
+          source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai',
           isAccepted: s.isAccepted
         })) || [],
         experience: candidate.experience?.map(e => ({
@@ -426,7 +428,7 @@ const Profile: React.FC = () => {
           position: e.position,
           startDate: e.startDate,
           endDate: e.endDate,
-          source: e.source
+          source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
         })) || [],
         education: candidate.education?.map(e => ({
           educationId: e.educationId,
@@ -435,7 +437,7 @@ const Profile: React.FC = () => {
           degree: e.degree,
           fieldOfStudy: e.fieldOfStudy,
           graduationDate: e.graduationDate,
-          source: e.source
+          source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
         })) || [],
         certification: candidate.certification?.map(c => ({
           certificationId: c.certificationId,
@@ -444,19 +446,21 @@ const Profile: React.FC = () => {
           issuingOrganization: c.issuingOrganization,
           issueDate: c.issueDate,
           expirationDate: c.expirationDate,
-          source: c.source
+          source: c.addedBy === 'AI' ? 'ai' : c.addedBy === 'HUMAN' ? 'manual' : c.source || 'ai'
         })) || [],
         strengths: candidate.strengths?.map(s => ({
           strengthWeaknessId: s.strengthWeaknessId,
+          name: s.name,
           description: s.description,
           type: 'strength' as const,
-          source: s.source
+          source: s.addedBy === 'AI' ? 'ai' : s.addedBy === 'HUMAN' ? 'manual' : s.source || 'ai'
         })) || [],
         weaknesses: candidate.weaknesses?.map(w => ({
           strengthWeaknessId: w.strengthWeaknessId,
+          name: w.name,
           description: w.description,
           type: 'weakness' as const,
-          source: w.source
+          source: w.addedBy === 'AI' ? 'ai' : w.addedBy === 'HUMAN' ? 'manual' : w.source || 'ai'
         })) || []
       });
     }

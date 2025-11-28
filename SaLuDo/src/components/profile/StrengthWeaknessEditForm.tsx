@@ -16,6 +16,17 @@ export const StrengthWeaknessEditForm: React.FC<StrengthWeaknessEditFormProps> =
   return (
     <>
       <div className="resume-edit-modal__field">
+        <label className="resume-edit-modal__label">Name *</label>
+        <input
+          type="text"
+          className="resume-edit-modal__input"
+          value={item.name || ''}
+          onChange={(e) => onChange(index, 'name', e.target.value)}
+          placeholder={`e.g., Leadership, Time Management`}
+        />
+      </div>
+
+      <div className="resume-edit-modal__field">
         <label className="resume-edit-modal__label">Description *</label>
         <textarea
           className="resume-edit-modal__textarea"

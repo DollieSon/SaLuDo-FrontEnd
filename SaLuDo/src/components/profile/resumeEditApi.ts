@@ -22,7 +22,8 @@ export const resumeEditApi = {
     await axios.put(`http://localhost:3001${endpoint}`, {
       skillName: skill.skillName,
       score: skill.score,
-      evidence: skill.evidence
+      evidence: skill.evidence,
+      addedBy: skill.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -32,7 +33,7 @@ export const resumeEditApi = {
       skillName: skill.skillName,
       score: skill.score,
       evidence: skill.evidence,
-      addedBy: skill.source
+      addedBy: skill.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -49,7 +50,8 @@ export const resumeEditApi = {
       company: exp.company,
       position: exp.position,
       startDate: exp.startDate,
-      endDate: exp.endDate
+      endDate: exp.endDate,
+      addedBy: exp.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -60,7 +62,8 @@ export const resumeEditApi = {
       company: exp.company,
       position: exp.position,
       startDate: exp.startDate,
-      endDate: exp.endDate
+      endDate: exp.endDate,
+      addedBy: exp.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -77,7 +80,8 @@ export const resumeEditApi = {
       institution: edu.institution,
       degree: edu.degree,
       fieldOfStudy: edu.fieldOfStudy,
-      graduationDate: edu.graduationDate
+      graduationDate: edu.graduationDate,
+      addedBy: edu.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -88,7 +92,8 @@ export const resumeEditApi = {
       institution: edu.institution,
       degree: edu.degree,
       fieldOfStudy: edu.fieldOfStudy,
-      graduationDate: edu.graduationDate
+      graduationDate: edu.graduationDate,
+      addedBy: edu.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -105,7 +110,8 @@ export const resumeEditApi = {
       certificationName: cert.certificationName,
       issuingOrganization: cert.issuingOrganization,
       issueDate: cert.issueDate,
-      expirationDate: cert.expirationDate
+      expirationDate: cert.expirationDate,
+      addedBy: cert.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -116,7 +122,8 @@ export const resumeEditApi = {
       certificationName: cert.certificationName,
       issuingOrganization: cert.issuingOrganization,
       issueDate: cert.issueDate,
-      expirationDate: cert.expirationDate
+      expirationDate: cert.expirationDate,
+      addedBy: cert.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
@@ -129,16 +136,20 @@ export const resumeEditApi = {
   async updateStrengthWeakness(candidateId: string, item: EditableStrengthWeakness) {
     const endpoint = API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId, item.strengthWeaknessId);
     await axios.put(`http://localhost:3001${endpoint}`, {
+      name: item.name,
       description: item.description,
-      type: item.type
+      type: item.type,
+      addedBy: item.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 
   async createStrengthWeakness(candidateId: string, item: EditableStrengthWeakness) {
     const endpoint = API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId);
     await axios.post(`http://localhost:3001${endpoint}`, {
+      name: item.name,
       description: item.description,
-      type: item.type
+      type: item.type,
+      addedBy: item.source === 'ai' ? 'AI' : 'HUMAN'
     }, { headers: getAuthHeaders() });
   },
 

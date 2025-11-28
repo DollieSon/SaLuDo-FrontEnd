@@ -29,7 +29,7 @@ export const transformToProfileItems = (
         item.title ||
         undefined,
       evidence: item.evidence || item.description || undefined,
-      addedBy: item.source === 'ai' ? 'AI' : item.source === 'manual' ? 'Human' : (item.addedBy || 'AI'),
+      addedBy: item.addedBy === 'AI' ? 'AI' : item.addedBy === 'HUMAN' ? 'Human' : item.source === 'ai' ? 'AI' : item.source === 'manual' ? 'Human' : 'AI',
       title: item.title || undefined,
       role: item.role || undefined,
       institution: item.institution || undefined,

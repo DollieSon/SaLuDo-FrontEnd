@@ -42,6 +42,7 @@ export interface EditableCertification {
 
 export interface EditableStrengthWeakness {
   strengthWeaknessId?: string;
+  name?: string;
   description: string;
   type: 'strength' | 'weakness';
   source: 'ai' | 'manual';

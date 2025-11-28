@@ -60,40 +60,37 @@ export const ResumeParsedSection: React.FC<ResumeParsedSectionProps> = ({
     score: skill.score,
     skillName: skill.skillName,
     evidence: skill.evidence,
-    addedBy: skill.source === 'ai' ? 'AI' : 'Human'
+    addedBy: skill.addedBy === 'AI' ? 'AI' : skill.addedBy === 'HUMAN' ? 'Human' : skill.source === 'ai' ? 'AI' : 'Human'
   });
 
   const convertExperienceToProfileItem = (exp: any): ProfileItem => ({
     text: exp.description || '',
-    skillName: exp.position || exp.company || 'Experience',
-    title: exp.position,
-    role: exp.company,
+    title: exp.position || exp.title || '',
+    role: exp.company || exp.role || '',
     startDate: exp.startDate,
     endDate: exp.endDate,
-    addedBy: exp.source === 'ai' ? 'AI' : 'Human'
+    addedBy: exp.addedBy === 'AI' ? 'AI' : exp.addedBy === 'HUMAN' ? 'Human' : exp.source === 'ai' ? 'AI' : 'Human'
   });
 
   const convertEducationToProfileItem = (edu: any): ProfileItem => ({
     text: edu.description || '',
-    skillName: edu.institution || edu.degree || 'Education',
-    institution: edu.institution,
-    title: edu.degree,
-    addedBy: edu.source === 'ai' ? 'AI' : 'Human'
+    institution: edu.institution || '',
+    title: edu.degree || '',
+    addedBy: edu.addedBy === 'AI' ? 'AI' : edu.addedBy === 'HUMAN' ? 'Human' : edu.source === 'ai' ? 'AI' : 'Human'
   });
 
   const convertCertificationToProfileItem = (cert: any): ProfileItem => ({
     text: cert.description || '',
-    skillName: cert.certificationName || 'Certification',
-    name: cert.certificationName,
-    issuingOrganization: cert.issuingOrganization,
+    name: cert.certificationName || cert.name || '',
+    issuingOrganization: cert.issuingOrganization || '',
     issueDate: cert.issueDate,
-    addedBy: cert.source === 'ai' ? 'AI' : 'Human'
+    addedBy: cert.addedBy === 'AI' ? 'AI' : cert.addedBy === 'HUMAN' ? 'Human' : cert.source === 'ai' ? 'AI' : 'Human'
   });
 
   const convertStrengthWeaknessToProfileItem = (item: any): ProfileItem => ({
     text: item.description || '',
-    skillName: item.description || (item.type === 'strength' ? 'Strength' : 'Weakness'),
-    addedBy: item.source === 'ai' ? 'AI' : 'Human'
+    skillName: item.name || item.description || '',
+    addedBy: item.addedBy === 'AI' ? 'AI' : item.addedBy === 'HUMAN' ? 'Human' : item.source === 'ai' ? 'AI' : 'Human'
   });
 
   // Get display data based on edit mode
@@ -158,6 +155,7 @@ export const ResumeParsedSection: React.FC<ResumeParsedSectionProps> = ({
         break;
       case 'strength':
         updated.strengths = [...updated.strengths, {
+          name: '',
           description: '',
           type: 'strength' as const,
           source: 'manual'
@@ -166,6 +164,7 @@ export const ResumeParsedSection: React.FC<ResumeParsedSectionProps> = ({
         break;
       case 'weakness':
         updated.weaknesses = [...updated.weaknesses, {
+          name: '',
           description: '',
           type: 'weakness' as const,
           source: 'manual'
