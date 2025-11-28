@@ -51,6 +51,11 @@ export interface VideoMetadata {
   interviewRound?: string;
 }
 
+export interface SocialLink {
+  platform: string;
+  url: string;
+}
+
 export interface CandidateProfile {
   candidateId: string;
   name: string;
@@ -61,6 +66,7 @@ export interface CandidateProfile {
   roleApplied: string | null;
   status: string;
   isDeleted: boolean;
+  socialLinks?: SocialLink[];
   resume?: ResumeMetadata;
   resumeMetadata?: ResumeMetadata;
   transcripts?: TranscriptMetadata[];

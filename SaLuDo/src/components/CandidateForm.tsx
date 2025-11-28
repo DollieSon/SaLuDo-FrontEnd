@@ -8,6 +8,11 @@ interface Job {
   jobDescription: string;
 }
 
+interface SocialLink {
+  platform: string;
+  url: string;
+}
+
 interface FormData {
   firstName: string;
   middleName: string;
@@ -18,6 +23,7 @@ interface FormData {
   email: string;
   resume: File | null;
   introductionVideo?: File | null;
+  socialLinks: SocialLink[];
 }
 
 const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
@@ -36,6 +42,7 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
     email: "",
     resume: null,
     introductionVideo: null,
+    socialLinks: [],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,6 +54,33 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const addSocialLink = () => {
+    setFormData((prev) => ({
+      ...prev,
+      socialLinks: [...prev.socialLinks, { platform: "LinkedIn", url: "" }],
+    }));
+  };
+
+  const removeSocialLink = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateSocialLink = (
+    index: number,
+    field: "platform" | "url",
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.map((link, i) =>
+        i === index ? { ...link, [field]: value } : link
+      ),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -74,6 +108,11 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
 
       if (formData.resume) {
         submitData.append("resume", formData.resume);
+      }
+
+      // Add social links if any
+      if (formData.socialLinks.length > 0) {
+        submitData.append("socialLinks", JSON.stringify(formData.socialLinks));
       }
 
       const response = await fetch(`${apiUrl}candidates`, {
@@ -238,7 +277,6 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
                   placeholder="Middle Name"
                   value={formData.middleName}
                   onChange={handleInputChange}
-                  required
                 />
                 <input
                   type="text"
@@ -279,22 +317,6 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
             </div>
           </div> */}
 
-            {/* Role - Only show if we have a specific job */}
-            {job && (
-              <div className="form-group">
-                <label className="field-label">Applying For</label>
-                <div className="form-row">
-                  <input
-                    type="text"
-                    name="role"
-                    value={job.jobName}
-                    readOnly
-                    placeholder="Job Title"
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Contact */}
             <div className="form-group">
               <label className="field-label">Email Address</label>
@@ -318,7 +340,73 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
               </div>
             </div>
 
-            {/* Resume */}
+            {/* Social Links */}
+            <div className="form-group">
+              <label className="field-label">Social Links (Optional)</label>
+              {formData.socialLinks.map((link, index) => (
+                <div key={index} className="form-row" style={{ marginBottom: "10px" }}>
+                  <select
+                    value={link.platform}
+                    onChange={(e) =>
+                      updateSocialLink(index, "platform", e.target.value)
+                    }
+                    style={{ flex: "0 0 150px", marginRight: "10px" }}
+                  >
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="GitHub">GitHub</option>
+                    <option value="Portfolio">Portfolio</option>
+                    <option value="Behance">Behance</option>
+                    <option value="Dribbble">Dribbble</option>
+                    <option value="Twitter">Twitter</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={link.url}
+                    onChange={(e) =>
+                      updateSocialLink(index, "url", e.target.value)
+                    }
+                    style={{ flex: "1" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSocialLink(index)}
+                    style={{
+                      marginLeft: "10px",
+                      padding: "8px 15px",
+                      backgroundColor: "#ef4444",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSocialLink}
+                style={{
+                  marginTop: "10px",
+                  padding: "8px 15px",
+                  backgroundColor: "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                + Add Social Link
+              </button>
+            </div>
+
+            {/* Resume Upload */}
             <div className="form-group">
               <label className="field-label">Resume Upload (PDF only)</label>
               <div className="form-row">

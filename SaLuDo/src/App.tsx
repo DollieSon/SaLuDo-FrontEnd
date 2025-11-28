@@ -233,9 +233,7 @@ function CandidateFormPage() {
   const jobId = searchParams.get("jobId") || "";
 
   return (
-    <ProtectedRoute>
-      <CandidateForm jobId={jobId} />
-    </ProtectedRoute>
+    <CandidateForm jobId={jobId} />
   );
 }
 
