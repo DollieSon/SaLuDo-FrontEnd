@@ -10,6 +10,9 @@ import { CandidateInfoSection } from "./profile/CandidateInfoSection";
 import { ResumeParsedSection } from "./profile/ResumeParsedSection";
 import { PersonalitySection } from "./profile/PersonalitySection";
 import { ProfileDetailModal } from "./profile/ProfileDetailModal";
+import { ResumeEditData } from "./profile/resumeEditTypes";
+import { SKILL_SCORE } from "./profile/resumeEditConstants";
+import { resumeEditApi } from "./profile/resumeEditApi";
 
 const Profile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,8 +23,24 @@ const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingResume, setIsEditingResume] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [editedStatus, setEditedStatus] = useState<string>("");
+  const [editedData, setEditedData] = useState({
+    name: "",
+    email: [] as string[],
+    birthdate: "",
+    roleApplied: "",
+    status: "",
+    socialLinks: [] as { url: string }[]
+  });
+  const [editedResumeData, setEditedResumeData] = useState<ResumeEditData>({
+    skills: [],
+    experience: [],
+    education: [],
+    certification: [],
+    strengths: [],
+    weaknesses: []
+  });
   const [uploadingTranscript, setUploadingTranscript] = useState(false);
   const [uploadingInterviewVideo, setUploadingInterviewVideo] = useState(false);
   const [uploadingIntroductionVideo, setUploadingIntroductionVideo] = useState(false);
@@ -146,7 +165,64 @@ const Profile: React.FC = () => {
         }
 
         setCandidate(candidateData);
-        setEditedStatus(candidateData.status);
+        setEditedData({
+          name: candidateData.name,
+          email: candidateData.email,
+          birthdate: candidateData.birthdate,
+          roleApplied: candidateData.roleApplied || "",
+          status: candidateData.status,
+          socialLinks: candidateData.socialLinks || []
+        });
+        setEditedResumeData({
+          skills: candidateData.skills?.map((s: any) => ({
+            candidateSkillId: s.skillId,
+            skillId: s.skillId,
+            skillName: s.skillName,
+            score: s.score || SKILL_SCORE.DEFAULT,
+            evidence: s.evidence || '',
+            source: s.source,
+            isAccepted: s.isAccepted
+          })) || [],
+          experience: candidateData.experience?.map((e: any) => ({
+            experienceId: e.experienceId,
+            description: e.description,
+            company: e.company,
+            position: e.position,
+            startDate: e.startDate,
+            endDate: e.endDate,
+            source: e.source
+          })) || [],
+          education: candidateData.education?.map((e: any) => ({
+            educationId: e.educationId,
+            description: e.description,
+            institution: e.institution,
+            degree: e.degree,
+            fieldOfStudy: e.fieldOfStudy,
+            graduationDate: e.graduationDate,
+            source: e.source
+          })) || [],
+          certification: candidateData.certification?.map((c: any) => ({
+            certificationId: c.certificationId,
+            description: c.description,
+            certificationName: c.certificationName,
+            issuingOrganization: c.issuingOrganization,
+            issueDate: c.issueDate,
+            expirationDate: c.expirationDate,
+            source: c.source
+          })) || [],
+          strengths: candidateData.strengths?.map((s: any) => ({
+            strengthWeaknessId: s.strengthWeaknessId,
+            description: s.description,
+            type: 'strength' as const,
+            source: s.source
+          })) || [],
+          weaknesses: candidateData.weaknesses?.map((w: any) => ({
+            strengthWeaknessId: w.strengthWeaknessId,
+            description: w.description,
+            type: 'weakness' as const,
+            source: w.source
+          })) || []
+        });
       } else {
         console.error("❌ Failed to fetch candidate data:", candidateResponse);
         throw new Error("Failed to fetch candidate data");
@@ -184,19 +260,34 @@ const Profile: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleStatusUpdate = async (newStatus: string) => {
-    if (!id) return;
+  const handleSaveChanges = async () => {
+    if (!id || !candidate) return;
 
     try {
-      await candidatesApi.updateCandidate(id, { status: newStatus });
-      setCandidate((prev: CandidateProfile | null) =>
-        prev ? { ...prev, status: newStatus } : null
-      );
-      setToastMessage(`Status updated to ${newStatus}`);
+      const updateData: any = {};
+      
+      if (editedData.name !== candidate.name) updateData.name = editedData.name;
+      if (JSON.stringify(editedData.email) !== JSON.stringify(candidate.email)) updateData.email = editedData.email;
+      if (editedData.birthdate !== candidate.birthdate) updateData.birthdate = editedData.birthdate;
+      if (editedData.roleApplied !== (candidate.roleApplied || "")) updateData.roleApplied = editedData.roleApplied;
+      if (editedData.status !== candidate.status) updateData.status = editedData.status;
+      if (JSON.stringify(editedData.socialLinks) !== JSON.stringify(candidate.socialLinks || [])) {
+        updateData.socialLinks = editedData.socialLinks;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        setToastMessage("No changes to save");
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+
+      await candidatesApi.updateCandidate(id, updateData);
+      setToastMessage("Candidate information updated successfully");
+      await fetchCandidateData();
       setTimeout(() => setToastMessage(null), 3000);
     } catch (error) {
-      console.error("Error updating status:", error);
-      setToastMessage("Failed to update status");
+      console.error("Error updating candidate:", error);
+      setToastMessage("Failed to update candidate information");
       setTimeout(() => setToastMessage(null), 3000);
     }
   };
@@ -274,12 +365,237 @@ const Profile: React.FC = () => {
   };
 
   const handleEditToggle = async () => {
-    if (isEditing && editedStatus && editedStatus !== candidate?.status) {
-      await handleStatusUpdate(editedStatus);
+    if (isEditing) {
+      await handleSaveChanges();
+      setIsEditing(false);
+    } else {
+      if (candidate) {
+        setEditedData({
+          name: candidate.name,
+          email: candidate.email,
+          birthdate: candidate.birthdate,
+          roleApplied: candidate.roleApplied || "",
+          status: candidate.status,
+          socialLinks: candidate.socialLinks || []
+        });
+      }
+      setIsEditing(true);
     }
-    setIsEditing(!isEditing);
-    if (!isEditing && candidate) {
-      setEditedStatus(candidate.status);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (candidate) {
+      setEditedData({
+        name: candidate.name,
+        email: candidate.email,
+        birthdate: candidate.birthdate,
+        roleApplied: candidate.roleApplied || "",
+        status: candidate.status,
+        socialLinks: candidate.socialLinks || []
+      });
+    }
+  };
+
+  const handleResumeEditToggle = async () => {
+    if (isEditingResume) {
+      await handleSaveResumeChanges();
+      setIsEditingResume(false);
+    } else {
+      setIsEditingResume(true);
+    }
+  };
+
+  const handleCancelResumeEdit = () => {
+    setIsEditingResume(false);
+    if (candidate) {
+      setEditedResumeData({
+        skills: candidate.skills?.map(s => ({
+          candidateSkillId: s.skillId,
+          skillId: s.skillId,
+          skillName: s.skillName,
+          score: s.score || SKILL_SCORE.DEFAULT,
+          evidence: s.evidence || '',
+          source: s.source,
+          isAccepted: s.isAccepted
+        })) || [],
+        experience: candidate.experience?.map(e => ({
+          experienceId: e.experienceId,
+          description: e.description,
+          company: e.company,
+          position: e.position,
+          startDate: e.startDate,
+          endDate: e.endDate,
+          source: e.source
+        })) || [],
+        education: candidate.education?.map(e => ({
+          educationId: e.educationId,
+          description: e.description,
+          institution: e.institution,
+          degree: e.degree,
+          fieldOfStudy: e.fieldOfStudy,
+          graduationDate: e.graduationDate,
+          source: e.source
+        })) || [],
+        certification: candidate.certification?.map(c => ({
+          certificationId: c.certificationId,
+          description: c.description,
+          certificationName: c.certificationName,
+          issuingOrganization: c.issuingOrganization,
+          issueDate: c.issueDate,
+          expirationDate: c.expirationDate,
+          source: c.source
+        })) || [],
+        strengths: candidate.strengths?.map(s => ({
+          strengthWeaknessId: s.strengthWeaknessId,
+          description: s.description,
+          type: 'strength' as const,
+          source: s.source
+        })) || [],
+        weaknesses: candidate.weaknesses?.map(w => ({
+          strengthWeaknessId: w.strengthWeaknessId,
+          description: w.description,
+          type: 'weakness' as const,
+          source: w.source
+        })) || []
+      });
+    }
+  };
+
+  const handleSaveResumeChanges = async () => {
+    if (!id || !candidate) return;
+
+    try {
+      const promises: Promise<void>[] = [];
+
+      // Process skills
+      editedResumeData.skills.forEach(skill => {
+        if (skill.candidateSkillId) {
+          const original = candidate.skills?.find(s => s.skillId === skill.candidateSkillId);
+          if (original && (
+            original.skillName !== skill.skillName ||
+            original.score !== skill.score ||
+            original.evidence !== skill.evidence
+          )) {
+            promises.push(resumeEditApi.updateSkill(id, skill));
+          }
+        } else if (skill.skillName.trim()) {
+          promises.push(resumeEditApi.createSkill(id, skill));
+        }
+      });
+
+      candidate.skills?.forEach(original => {
+        const exists = editedResumeData.skills.find(s => s.candidateSkillId === original.skillId);
+        if (!exists && original.skillId) {
+          promises.push(resumeEditApi.deleteSkill(id, original.skillId));
+        }
+      });
+
+      // Process experience
+      editedResumeData.experience.forEach(exp => {
+        if (exp.experienceId) {
+          const original = candidate.experience?.find(e => e.experienceId === exp.experienceId);
+          if (original) {
+            promises.push(resumeEditApi.updateExperience(id, exp));
+          }
+        } else if (exp.description.trim()) {
+          promises.push(resumeEditApi.createExperience(id, exp));
+        }
+      });
+
+      candidate.experience?.forEach(original => {
+        const exists = editedResumeData.experience.find(e => e.experienceId === original.experienceId);
+        if (!exists && original.experienceId) {
+          promises.push(resumeEditApi.deleteExperience(id, original.experienceId));
+        }
+      });
+
+      // Process education
+      editedResumeData.education.forEach(edu => {
+        if (edu.educationId) {
+          const original = candidate.education?.find(e => e.educationId === edu.educationId);
+          if (original) {
+            promises.push(resumeEditApi.updateEducation(id, edu));
+          }
+        } else if (edu.description.trim()) {
+          promises.push(resumeEditApi.createEducation(id, edu));
+        }
+      });
+
+      candidate.education?.forEach(original => {
+        const exists = editedResumeData.education.find(e => e.educationId === original.educationId);
+        if (!exists && original.educationId) {
+          promises.push(resumeEditApi.deleteEducation(id, original.educationId));
+        }
+      });
+
+      // Process certifications
+      editedResumeData.certification.forEach(cert => {
+        if (cert.certificationId) {
+          const original = candidate.certification?.find(c => c.certificationId === cert.certificationId);
+          if (original) {
+            promises.push(resumeEditApi.updateCertification(id, cert));
+          }
+        } else if (cert.description.trim()) {
+          promises.push(resumeEditApi.createCertification(id, cert));
+        }
+      });
+
+      candidate.certification?.forEach(original => {
+        const exists = editedResumeData.certification.find(c => c.certificationId === original.certificationId);
+        if (!exists && original.certificationId) {
+          promises.push(resumeEditApi.deleteCertification(id, original.certificationId));
+        }
+      });
+
+      // Process strengths
+      editedResumeData.strengths.forEach(item => {
+        if (item.strengthWeaknessId) {
+          const original = candidate.strengths?.find(s => s.strengthWeaknessId === item.strengthWeaknessId);
+          if (original) {
+            promises.push(resumeEditApi.updateStrengthWeakness(id, item));
+          }
+        } else if (item.description.trim()) {
+          promises.push(resumeEditApi.createStrengthWeakness(id, item));
+        }
+      });
+
+      candidate.strengths?.forEach(original => {
+        const exists = editedResumeData.strengths.find(s => s.strengthWeaknessId === original.strengthWeaknessId);
+        if (!exists && original.strengthWeaknessId) {
+          promises.push(resumeEditApi.deleteStrengthWeakness(id, original.strengthWeaknessId, 'strength'));
+        }
+      });
+
+      // Process weaknesses
+      editedResumeData.weaknesses.forEach(item => {
+        if (item.strengthWeaknessId) {
+          const original = candidate.weaknesses?.find(w => w.strengthWeaknessId === item.strengthWeaknessId);
+          if (original) {
+            promises.push(resumeEditApi.updateStrengthWeakness(id, item));
+          }
+        } else if (item.description.trim()) {
+          promises.push(resumeEditApi.createStrengthWeakness(id, item));
+        }
+      });
+
+      candidate.weaknesses?.forEach(original => {
+        const exists = editedResumeData.weaknesses.find(w => w.strengthWeaknessId === original.strengthWeaknessId);
+        if (!exists && original.strengthWeaknessId) {
+          promises.push(resumeEditApi.deleteStrengthWeakness(id, original.strengthWeaknessId, 'weakness'));
+        }
+      });
+
+      await Promise.all(promises);
+      
+      setToastMessage("Resume information updated successfully");
+      setTimeout(() => setToastMessage(null), 3000);
+      
+      await fetchCandidateData();
+    } catch (error) {
+      console.error("Error saving resume changes:", error);
+      setToastMessage("Failed to save resume changes");
+      setTimeout(() => setToastMessage(null), 3000);
     }
   };
 
@@ -386,12 +702,13 @@ const Profile: React.FC = () => {
         <CandidateInfoSection
           candidate={candidate}
           isEditing={isEditing}
-          editedStatus={editedStatus}
+          editedData={editedData}
           uploadingTranscript={uploadingTranscript}
           uploadingInterviewVideo={uploadingInterviewVideo}
           uploadingIntroductionVideo={uploadingIntroductionVideo}
           onEditToggle={handleEditToggle}
-          onStatusChange={setEditedStatus}
+          onCancelEdit={handleCancelEdit}
+          onEditedDataChange={setEditedData}
           onTranscriptUpload={handleTranscriptUpload}
           onInterviewVideoUpload={handleInterviewVideoUpload}
           onIntroductionVideoUpload={handleIntroductionVideoUpload}
@@ -407,8 +724,11 @@ const Profile: React.FC = () => {
           certification={resumeParsed.certification}
           strength={resumeParsed.strength}
           weaknesses={resumeParsed.weaknesses}
-          isEditing={isEditing}
-          onEditToggle={handleEditToggle}
+          isEditing={isEditingResume}
+          editedResumeData={editedResumeData}
+          onEditToggle={handleResumeEditToggle}
+          onCancelEdit={handleCancelResumeEdit}
+          onResumeDataChange={setEditedResumeData}
           onItemClick={openDetailModal}
         />
 

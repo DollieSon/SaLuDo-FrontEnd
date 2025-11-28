@@ -1,0 +1,122 @@
+.resume-edit-form {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: #f9fafb;
+}
+
+.resume-edit-form__field {
+  margin-bottom: 12px;
+}
+
+.resume-edit-form__label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.resume-edit-form__input,
+.resume-edit-form__textarea,
+.resume-edit-form__select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.resume-edit-form__textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.resume-edit-form__input--small {
+  width: 120px;
+}
+
+.resume-edit-form__input--date {
+  width: 150px;
+}
+
+.resume-edit-form__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.resume-edit-form__button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.resume-edit-form__button:hover {
+  opacity: 0.85;
+}
+
+.resume-edit-form__button--delete {
+  background-color: #dc2626;
+  color: white;
+}
+
+.resume-edit-form__button--cancel {
+  background-color: #6b7280;
+  color: white;
+}
+
+.resume-edit-form__button--save {
+  background-color: #007bff;
+  color: white;
+}
+
+.resume-edit-form__field-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.resume-edit-form__field-group .resume-edit-form__field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.resume-edit-section {
+  margin-top: 16px;
+}
+
+.resume-edit-section__add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 8px;
+}
+
+.resume-edit-section__add-button:hover {
+  opacity: 0.85;
+}
+
+.resume-edit-section__empty {
+  color: #6b7280;
+  font-style: italic;
+  padding: 12px 0;
+}

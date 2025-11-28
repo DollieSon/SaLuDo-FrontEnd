@@ -9,7 +9,6 @@ interface Job {
 }
 
 interface SocialLink {
-  platform: string;
   url: string;
 }
 
@@ -59,7 +58,7 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
   const addSocialLink = () => {
     setFormData((prev) => ({
       ...prev,
-      socialLinks: [...prev.socialLinks, { platform: "LinkedIn", url: "" }],
+      socialLinks: [...prev.socialLinks, { url: "" }],
     }));
   };
 
@@ -70,15 +69,11 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
     }));
   };
 
-  const updateSocialLink = (
-    index: number,
-    field: "platform" | "url",
-    value: string
-  ) => {
+  const updateSocialLink = (index: number, value: string) => {
     setFormData((prev) => ({
       ...prev,
       socialLinks: prev.socialLinks.map((link, i) =>
-        i === index ? { ...link, [field]: value } : link
+        i === index ? { url: value } : link
       ),
     }));
   };
@@ -343,40 +338,22 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
             {/* Social Links */}
             <div className="form-group">
               <label className="field-label">Social Links (Optional)</label>
+              <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "10px" }}>
+                Add links to your LinkedIn, GitHub, Portfolio, or any other professional profiles
+              </p>
               {formData.socialLinks.map((link, index) => (
-                <div key={index} className="form-row" style={{ marginBottom: "10px" }}>
-                  <select
-                    value={link.platform}
-                    onChange={(e) =>
-                      updateSocialLink(index, "platform", e.target.value)
-                    }
-                    style={{ flex: "0 0 150px", marginRight: "10px" }}
-                  >
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="GitHub">GitHub</option>
-                    <option value="Portfolio">Portfolio</option>
-                    <option value="Behance">Behance</option>
-                    <option value="Dribbble">Dribbble</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="YouTube">YouTube</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Other">Other</option>
-                  </select>
+                <div key={index} className="form-row" style={{ marginBottom: "10px", display: "flex", gap: "10px" }}>
                   <input
                     type="url"
-                    placeholder="https://..."
+                    placeholder="https://linkedin.com/in/yourname or https://github.com/yourname"
                     value={link.url}
-                    onChange={(e) =>
-                      updateSocialLink(index, "url", e.target.value)
-                    }
+                    onChange={(e) => updateSocialLink(index, e.target.value)}
                     style={{ flex: "1" }}
                   />
                   <button
                     type="button"
                     onClick={() => removeSocialLink(index)}
                     style={{
-                      marginLeft: "10px",
                       padding: "8px 15px",
                       backgroundColor: "#ef4444",
                       color: "white",

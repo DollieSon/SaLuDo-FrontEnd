@@ -67,8 +67,8 @@ export interface CandidateProfile {
   status: string;
   isDeleted: boolean;
   socialLinks?: SocialLink[];
-  resume?: ResumeMetadata;
-  resumeMetadata?: ResumeMetadata;
+  resume?: ResumeMetadata; // Backend returns this as 'resume'
+  resumeMetadata?: ResumeMetadata; // For backward compatibility
   transcripts?: TranscriptMetadata[];
   interviewVideos?: VideoMetadata[];
   introductionVideos?: VideoMetadata[];

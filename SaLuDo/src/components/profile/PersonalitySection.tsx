@@ -30,9 +30,6 @@ export const PersonalitySection: React.FC<PersonalitySectionProps> = ({
     <div className="parsed-section">
       <div className="box-header">
         <h3>Interview Transcript Information</h3>
-        <button className="edit-btn" onClick={onEditToggle}>
-          {isEditing ? "Save" : "Edit"}
-        </button>
       </div>
       <div className="radar-content">
         <PersonalityRadarChart data={radarData} />
