@@ -38,25 +38,14 @@ export const CertificationEditForm: React.FC<CertificationEditFormProps> = ({
         </div>
       </div>
 
-      <div className="resume-edit-modal__field-group">
-        <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Issue Date</label>
-          <input
-            type="date"
-            className="resume-edit-modal__input resume-edit-modal__input--date"
-            value={certification.issueDate ? certification.issueDate.split('T')[0] : ''}
-            onChange={(e) => onChange(index, 'issueDate', e.target.value)}
-          />
-        </div>
-        <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Expiration Date</label>
-          <input
-            type="date"
-            className="resume-edit-modal__input resume-edit-modal__input--date"
-            value={certification.expirationDate ? certification.expirationDate.split('T')[0] : ''}
-            onChange={(e) => onChange(index, 'expirationDate', e.target.value)}
-          />
-        </div>
+      <div className="resume-edit-modal__field">
+        <label className="resume-edit-modal__label">Issue Date</label>
+        <input
+          type="date"
+          className="resume-edit-modal__input resume-edit-modal__input--date"
+          value={certification.issueDate ? certification.issueDate.split('T')[0] : ''}
+          onChange={(e) => onChange(index, 'issueDate', e.target.value)}
+        />
       </div>
 
       <div className="resume-edit-modal__field">

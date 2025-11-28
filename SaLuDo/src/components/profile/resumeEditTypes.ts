@@ -13,8 +13,8 @@ export interface EditableSkill {
 export interface EditableExperience {
   experienceId?: string;
   description: string;
-  company?: string;
-  position?: string;
+  title?: string;
+  role?: string;
   startDate?: string;
   endDate?: string;
   source: 'ai' | 'manual';
@@ -24,9 +24,8 @@ export interface EditableEducation {
   educationId?: string;
   description: string;
   institution?: string;
-  degree?: string;
-  fieldOfStudy?: string;
-  graduationDate?: string;
+  startDate?: string;
+  endDate?: string;
   source: 'ai' | 'manual';
 }
 
@@ -36,7 +35,6 @@ export interface EditableCertification {
   certificationName?: string;
   issuingOrganization?: string;
   issueDate?: string;
-  expirationDate?: string;
   source: 'ai' | 'manual';
 }
 

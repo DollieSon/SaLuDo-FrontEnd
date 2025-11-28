@@ -15,47 +15,34 @@ export const EducationEditForm: React.FC<EducationEditFormProps> = ({
 }) => {
   return (
     <>
-      <div className="resume-edit-modal__field-group">
-        <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Institution</label>
-          <input
-            type="text"
-            className="resume-edit-modal__input"
-            value={education.institution || ''}
-            onChange={(e) => onChange(index, 'institution', e.target.value)}
-            placeholder="e.g., Harvard University"
-          />
-        </div>
-        <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Degree</label>
-          <input
-            type="text"
-            className="resume-edit-modal__input"
-            value={education.degree || ''}
-            onChange={(e) => onChange(index, 'degree', e.target.value)}
-            placeholder="e.g., Bachelor of Science"
-          />
-        </div>
+      <div className="resume-edit-modal__field">
+        <label className="resume-edit-modal__label">Institution</label>
+        <input
+          type="text"
+          className="resume-edit-modal__input"
+          value={education.institution || ''}
+          onChange={(e) => onChange(index, 'institution', e.target.value)}
+          placeholder="e.g., Harvard University"
+        />
       </div>
 
       <div className="resume-edit-modal__field-group">
         <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Field of Study</label>
-          <input
-            type="text"
-            className="resume-edit-modal__input"
-            value={education.fieldOfStudy || ''}
-            onChange={(e) => onChange(index, 'fieldOfStudy', e.target.value)}
-            placeholder="e.g., Computer Science"
-          />
-        </div>
-        <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Graduation Date</label>
+          <label className="resume-edit-modal__label">Start Date</label>
           <input
             type="date"
             className="resume-edit-modal__input resume-edit-modal__input--date"
-            value={education.graduationDate ? education.graduationDate.split('T')[0] : ''}
-            onChange={(e) => onChange(index, 'graduationDate', e.target.value)}
+            value={education.startDate ? education.startDate.split('T')[0] : ''}
+            onChange={(e) => onChange(index, 'startDate', e.target.value)}
+          />
+        </div>
+        <div className="resume-edit-modal__field">
+          <label className="resume-edit-modal__label">End Date</label>
+          <input
+            type="date"
+            className="resume-edit-modal__input resume-edit-modal__input--date"
+            value={education.endDate ? education.endDate.split('T')[0] : ''}
+            onChange={(e) => onChange(index, 'endDate', e.target.value)}
           />
         </div>
       </div>

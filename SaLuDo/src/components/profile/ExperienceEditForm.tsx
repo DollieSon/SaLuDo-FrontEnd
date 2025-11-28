@@ -17,23 +17,23 @@ export const ExperienceEditForm: React.FC<ExperienceEditFormProps> = ({
     <>
       <div className="resume-edit-modal__field-group">
         <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Company</label>
+          <label className="resume-edit-modal__label">Title</label>
           <input
             type="text"
             className="resume-edit-modal__input"
-            value={experience.company || ''}
-            onChange={(e) => onChange(index, 'company', e.target.value)}
-            placeholder="e.g., Google, Microsoft"
+            value={experience.title || ''}
+            onChange={(e) => onChange(index, 'title', e.target.value)}
+            placeholder="e.g., Senior Software Engineer"
           />
         </div>
         <div className="resume-edit-modal__field">
-          <label className="resume-edit-modal__label">Position</label>
+          <label className="resume-edit-modal__label">Role</label>
           <input
             type="text"
             className="resume-edit-modal__input"
-            value={experience.position || ''}
-            onChange={(e) => onChange(index, 'position', e.target.value)}
-            placeholder="e.g., Senior Developer"
+            value={experience.role || ''}
+            onChange={(e) => onChange(index, 'role', e.target.value)}
+            placeholder="e.g., Google, Full Stack Developer"
           />
         </div>
       </div>

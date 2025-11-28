@@ -186,8 +186,8 @@ const Profile: React.FC = () => {
           experience: candidateData.experience?.map((e: any) => ({
             experienceId: e.experienceId,
             description: e.description,
-            company: e.company,
-            position: e.position,
+            title: e.title,
+            role: e.role,
             startDate: e.startDate,
             endDate: e.endDate,
             source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
@@ -196,18 +196,16 @@ const Profile: React.FC = () => {
             educationId: e.educationId,
             description: e.description,
             institution: e.institution,
-            degree: e.degree,
-            fieldOfStudy: e.fieldOfStudy,
-            graduationDate: e.graduationDate,
+            startDate: e.startDate,
+            endDate: e.endDate,
             source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
           })) || [],
           certification: candidateData.certification?.map((c: any) => ({
             certificationId: c.certificationId,
             description: c.description,
-            certificationName: c.certificationName,
+            certificationName: c.name || c.certificationName,
             issuingOrganization: c.issuingOrganization,
             issueDate: c.issueDate,
-            expirationDate: c.expirationDate,
             source: c.addedBy === 'AI' ? 'ai' : c.addedBy === 'HUMAN' ? 'manual' : c.source || 'ai'
           })) || [],
           strengths: candidateData.strengths?.map((s: any) => ({
@@ -424,8 +422,8 @@ const Profile: React.FC = () => {
         experience: candidate.experience?.map(e => ({
           experienceId: e.experienceId,
           description: e.description,
-          company: e.company,
-          position: e.position,
+          title: e.title,
+          role: e.role,
           startDate: e.startDate,
           endDate: e.endDate,
           source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
@@ -434,18 +432,16 @@ const Profile: React.FC = () => {
           educationId: e.educationId,
           description: e.description,
           institution: e.institution,
-          degree: e.degree,
-          fieldOfStudy: e.fieldOfStudy,
-          graduationDate: e.graduationDate,
+          startDate: e.startDate,
+          endDate: e.endDate,
           source: e.addedBy === 'AI' ? 'ai' : e.addedBy === 'HUMAN' ? 'manual' : e.source || 'ai'
         })) || [],
         certification: candidate.certification?.map(c => ({
           certificationId: c.certificationId,
           description: c.description,
-          certificationName: c.certificationName,
+          certificationName: c.name || c.certificationName,
           issuingOrganization: c.issuingOrganization,
           issueDate: c.issueDate,
-          expirationDate: c.expirationDate,
           source: c.addedBy === 'AI' ? 'ai' : c.addedBy === 'HUMAN' ? 'manual' : c.source || 'ai'
         })) || [],
         strengths: candidate.strengths?.map(s => ({

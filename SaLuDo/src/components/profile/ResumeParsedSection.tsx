@@ -65,8 +65,8 @@ export const ResumeParsedSection: React.FC<ResumeParsedSectionProps> = ({
 
   const convertExperienceToProfileItem = (exp: any): ProfileItem => ({
     text: exp.description || '',
-    title: exp.position || exp.title || '',
-    role: exp.company || exp.role || '',
+    title: exp.title || '',
+    role: exp.role || '',
     startDate: exp.startDate,
     endDate: exp.endDate,
     addedBy: exp.addedBy === 'AI' ? 'AI' : exp.addedBy === 'HUMAN' ? 'Human' : exp.source === 'ai' ? 'AI' : 'Human'
@@ -75,7 +75,7 @@ export const ResumeParsedSection: React.FC<ResumeParsedSectionProps> = ({
   const convertEducationToProfileItem = (edu: any): ProfileItem => ({
     text: edu.description || '',
     institution: edu.institution || '',
-    title: edu.degree || '',
+    title: edu.institution || '',
     addedBy: edu.addedBy === 'AI' ? 'AI' : edu.addedBy === 'HUMAN' ? 'Human' : edu.source === 'ai' ? 'AI' : 'Human'
   });
 
