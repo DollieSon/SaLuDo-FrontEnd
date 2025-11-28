@@ -35,14 +35,21 @@ const Profile: React.FC = () => {
   const [uploadingInterviewVideo, setUploadingInterviewVideo] = useState(false);
   const [uploadingIntroductionVideo, setUploadingIntroductionVideo] =
     useState(false);
-  const [expandedIndex, setExpandedIndex] = useState<{ section: string; index: number } | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{
+    data: ProfileItem;
+    section: string;
+    type: 'skill' | 'experience' | 'education' | 'certification' | 'strength' | 'weakness';
+  } | null>(null);
 
-  const toggleExpand = (section: string, index: number) => {
-    if (expandedIndex && expandedIndex.section === section && expandedIndex.index === index) {
-      setExpandedIndex(null);
-    } else {
-      setExpandedIndex({ section, index });
-    }
+  const openDetailModal = (item: ProfileItem, section: string, type: 'skill' | 'experience' | 'education' | 'certification' | 'strength' | 'weakness') => {
+    setSelectedItem({ data: item, section, type });
+    setShowDetailModal(true);
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedItem(null);
   };
 
   // State for collapsible personality categories
@@ -224,7 +231,8 @@ const Profile: React.FC = () => {
   // Data transformation functions
   const transformToProfileItems = (
     items: any[],
-    textField: string = "description"
+    textField: string = "description",
+    itemType: string = "other"
   ): ProfileItem[] => {
     if (!items || !Array.isArray(items)) {
       return [];
@@ -250,6 +258,15 @@ const Profile: React.FC = () => {
           item.title ||
           undefined,
         evidence: item.evidence || item.description || undefined,
+        addedBy: item.addedBy || (itemType === 'skill' ? 'HUMAN' : 'AI'), // Preserve addedBy or default based on type
+        title: item.title || undefined,
+        role: item.role || undefined,
+        institution: item.institution || undefined,
+        name: item.name || undefined,
+        issuingOrganization: item.issuingOrganization || undefined,
+        issueDate: item.issueDate || undefined,
+        startDate: item.startDate || undefined,
+        endDate: item.endDate || undefined,
       }));
   };
 
@@ -647,23 +664,27 @@ const Profile: React.FC = () => {
   // Prepare data for display
   const radarData = createRadarData(personality);
   const resumeParsed = {
-    skills: transformToProfileItems(candidate.skills || [], "skillName"),
+    skills: transformToProfileItems(candidate.skills || [], "skillName", "skill"),
     experience: transformToProfileItems(
       candidate.experience || [],
-      "description"
+      "description",
+      "experience"
     ),
     education: transformToProfileItems(
       candidate.education || [],
-      "description"
+      "description",
+      "education"
     ),
     certification: transformToProfileItems(
       candidate.certification || [],
-      "description"
+      "description",
+      "certification"
     ),
-    strength: transformToProfileItems(candidate.strengths || [], "description"),
+    strength: transformToProfileItems(candidate.strengths || [], "description", "strength"),
     weaknesses: transformToProfileItems(
       candidate.weaknesses || [],
-      "description"
+      "description",
+      "weakness"
     ),
     assessment: candidate.resumeAssessment
       ? [{ text: candidate.resumeAssessment }]
@@ -1129,30 +1150,36 @@ const Profile: React.FC = () => {
               {resumeParsed.skills.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.skills.map((item: ProfileItem, idx: number) => {
-                    const isExpanded =
-                      expandedIndex?.section === "skills" &&
-                      expandedIndex.index === idx;
+                    const isAICreated = item.addedBy === 'AI';
 
                     return (
                       <div
                         key={idx}
-                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
-                        onClick={() => toggleExpand("skills", idx)}
+                        className="skill-card"
+                        style={{
+                          backgroundColor: isAICreated ? '#eff6ff' : '#f0fdf4',
+                          border: isAICreated ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openDetailModal(item, 'Skills', 'skill')}
                       >
                         <div className="skill-content">
                           <div className="skill-info">
-                            <span className="skill-name">
-                              {item.skillName || item.text}
-                            </span>
-
-                            {/* Preview evidence ONLY when NOT expanded */}
-                            {!isExpanded &&
-                              item.evidence &&
-                              item.evidence !== item.skillName && (
-                                <p className="skill-evidence">
-                                  {item.evidence.substring(0, 60)}...
-                                </p>
-                              )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span className="skill-name">
+                                {item.skillName || item.text}
+                              </span>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: isAICreated ? '#3b82f6' : '#10b981',
+                                color: 'white'
+                              }}>
+                                {isAICreated ? 'AI' : 'Human'}
+                              </span>
+                            </div>
 
                             {item.score && (
                               <div className="skill-score">
@@ -1162,14 +1189,6 @@ const Profile: React.FC = () => {
                             )}
                           </div>
                         </div>
-
-                        {/* Full AI analysis ONLY when expanded */}
-                        {isExpanded && (
-                          <div className="skill-expanded">
-                            <strong>AI Analysis:</strong>
-                            <p>{item.evidence}</p>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -1185,45 +1204,44 @@ const Profile: React.FC = () => {
               {resumeParsed.experience.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.experience.map((item: ProfileItem, idx: number) => {
-                    const isExpanded =
-                      expandedIndex?.section === "experience" &&
-                      expandedIndex.index === idx;
+                    const isAICreated = item.addedBy === 'AI';
 
                     return (
                       <div
                         key={idx}
-                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
-                        onClick={() => toggleExpand("experience", idx)}
+                        className="skill-card"
+                        style={{
+                          backgroundColor: isAICreated ? '#eff6ff' : '#f0fdf4',
+                          border: isAICreated ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openDetailModal(item, 'Experience', 'experience')}
                       >
                         <div className="skill-content">
                           <div className="skill-info">
-                            <span className="skill-name">
-                              {item.skillName || "Experience"}
-                            </span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span className="skill-name">
+                                {item.title || item.skillName || "Experience"}
+                              </span>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: isAICreated ? '#3b82f6' : '#10b981',
+                                color: 'white'
+                              }}>
+                                {isAICreated ? 'AI' : 'Human'}
+                              </span>
+                            </div>
 
-                            {/* Preview only when collapsed */}
-                            {!isExpanded && item.evidence && (
-                              <p className="skill-evidence">
-                                {item.evidence.substring(0, 60)}...
+                            {item.role && (
+                              <p style={{ margin: '4px 0', fontSize: '13px', color: '#6b7280' }}>
+                                {item.role}
                               </p>
-                            )}
-
-                            {item.score && (
-                              <div className="skill-score">
-                                <span className="score-label">Rating:</span>
-                                <span className="score-value">{item.score}/10</span>
-                              </div>
                             )}
                           </div>
                         </div>
-
-                        {/* Full AI analysis */}
-                        {isExpanded && (
-                          <div className="skill-expanded">
-                            <strong>AI Analysis:</strong>
-                            <p>{item.evidence}</p>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -1239,43 +1257,38 @@ const Profile: React.FC = () => {
               {resumeParsed.education.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.education.map((item: ProfileItem, idx: number) => {
-                    const isExpanded =
-                      expandedIndex?.section === "education" &&
-                      expandedIndex.index === idx;
+                    const isAICreated = item.addedBy === 'AI';
 
                     return (
                       <div
                         key={idx}
-                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
-                        onClick={() => toggleExpand("education", idx)}
+                        className="skill-card"
+                        style={{
+                          backgroundColor: isAICreated ? '#eff6ff' : '#f0fdf4',
+                          border: isAICreated ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openDetailModal(item, 'Education', 'education')}
                       >
                         <div className="skill-content">
                           <div className="skill-info">
-                            <span className="skill-name">
-                              {item.skillName || "Education"}
-                            </span>
-
-                            {!isExpanded && item.evidence && (
-                              <p className="skill-evidence">
-                                {item.evidence.substring(0, 60)}...
-                              </p>
-                            )}
-
-                            {item.score && (
-                              <div className="skill-score">
-                                <span className="score-label">Rating:</span>
-                                <span className="score-value">{item.score}/10</span>
-                              </div>
-                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span className="skill-name">
+                                {item.institution || item.skillName || "Education"}
+                              </span>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: isAICreated ? '#3b82f6' : '#10b981',
+                                color: 'white'
+                              }}>
+                                {isAICreated ? 'AI' : 'Human'}
+                              </span>
+                            </div>
                           </div>
                         </div>
-
-                        {isExpanded && (
-                          <div className="skill-expanded">
-                            <strong>AI Analysis:</strong>
-                            <p>{item.evidence}</p>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -1291,43 +1304,44 @@ const Profile: React.FC = () => {
               {resumeParsed.certification.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.certification.map((item: ProfileItem, idx: number) => {
-                    const isExpanded =
-                      expandedIndex?.section === "certification" &&
-                      expandedIndex.index === idx;
+                    const isAICreated = item.addedBy === 'AI';
 
                     return (
                       <div
                         key={idx}
-                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
-                        onClick={() => toggleExpand("certification", idx)}
+                        className="skill-card"
+                        style={{
+                          backgroundColor: isAICreated ? '#eff6ff' : '#f0fdf4',
+                          border: isAICreated ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openDetailModal(item, 'Certification', 'certification')}
                       >
                         <div className="skill-content">
                           <div className="skill-info">
-                            <span className="skill-name">
-                              {item.skillName || "Certification"}
-                            </span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span className="skill-name">
+                                {item.name || item.skillName || "Certification"}
+                              </span>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: isAICreated ? '#3b82f6' : '#10b981',
+                                color: 'white'
+                              }}>
+                                {isAICreated ? 'AI' : 'Human'}
+                              </span>
+                            </div>
 
-                            {!isExpanded && item.evidence && (
-                              <p className="skill-evidence">
-                                {item.evidence.substring(0, 60)}...
+                            {item.issuingOrganization && (
+                              <p style={{ margin: '4px 0', fontSize: '13px', color: '#6b7280' }}>
+                                {item.issuingOrganization}
                               </p>
-                            )}
-
-                            {item.score && (
-                              <div className="skill-score">
-                                <span className="score-label">Rating:</span>
-                                <span className="score-value">{item.score}/10</span>
-                              </div>
                             )}
                           </div>
                         </div>
-
-                        {isExpanded && (
-                          <div className="skill-expanded">
-                            <strong>AI Analysis:</strong>
-                            <p>{item.evidence}</p>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -1343,27 +1357,36 @@ const Profile: React.FC = () => {
               {resumeParsed.strength.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.strength.map((item: ProfileItem, idx: number) => {
-                    const isExpanded =
-                      expandedIndex?.section === "strength" &&
-                      expandedIndex.index === idx;
+                    const isAICreated = item.addedBy === 'AI';
 
                     return (
                       <div
                         key={idx}
-                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
-                        onClick={() => toggleExpand("strength", idx)}
+                        className="skill-card"
+                        style={{
+                          backgroundColor: isAICreated ? '#eff6ff' : '#f0fdf4',
+                          border: isAICreated ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openDetailModal(item, 'Strength', 'strength')}
                       >
                         <div className="skill-content">
                           <div className="skill-info">
-                            <span className="skill-name">
-                              {item.skillName || "Strength"}
-                            </span>
-
-                            {!isExpanded && item.evidence && (
-                              <p className="skill-evidence">
-                                {item.evidence.substring(0, 60)}...
-                              </p>
-                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span className="skill-name">
+                                {item.skillName || "Strength"}
+                              </span>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: isAICreated ? '#3b82f6' : '#10b981',
+                                color: 'white'
+                              }}>
+                                {isAICreated ? 'AI' : 'Human'}
+                              </span>
+                            </div>
 
                             {item.score && (
                               <div className="skill-score">
@@ -1373,13 +1396,6 @@ const Profile: React.FC = () => {
                             )}
                           </div>
                         </div>
-
-                        {isExpanded && (
-                          <div className="skill-expanded">
-                            <strong>AI Analysis:</strong>
-                            <p>{item.evidence}</p>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -1395,27 +1411,36 @@ const Profile: React.FC = () => {
               {resumeParsed.weaknesses.length > 0 ? (
                 <div className="skills-grid">
                   {resumeParsed.weaknesses.map((item: ProfileItem, idx: number) => {
-                    const isExpanded =
-                      expandedIndex?.section === "weaknesses" &&
-                      expandedIndex.index === idx;
+                    const isAICreated = item.addedBy === 'AI';
 
                     return (
                       <div
                         key={idx}
-                        className={`skill-card ${isExpanded ? "expanded" : ""}`}
-                        onClick={() => toggleExpand("weaknesses", idx)}
+                        className="skill-card"
+                        style={{
+                          backgroundColor: isAICreated ? '#eff6ff' : '#f0fdf4',
+                          border: isAICreated ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => openDetailModal(item, 'Weakness', 'weakness')}
                       >
                         <div className="skill-content">
                           <div className="skill-info">
-                            <span className="skill-name">
-                              {item.skillName || "Weakness"}
-                            </span>
-
-                            {!isExpanded && item.evidence && (
-                              <p className="skill-evidence">
-                                {item.evidence.substring(0, 60)}...
-                              </p>
-                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span className="skill-name">
+                                {item.skillName || "Weakness"}
+                              </span>
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: isAICreated ? '#3b82f6' : '#10b981',
+                                color: 'white'
+                              }}>
+                                {isAICreated ? 'AI' : 'Human'}
+                              </span>
+                            </div>
 
                             {item.score && (
                               <div className="skill-score">
@@ -1425,13 +1450,6 @@ const Profile: React.FC = () => {
                             )}
                           </div>
                         </div>
-
-                        {isExpanded && (
-                          <div className="skill-expanded">
-                            <strong>AI Analysis:</strong>
-                            <p>{item.evidence}</p>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -1839,6 +1857,162 @@ const Profile: React.FC = () => {
         {/* Comments Section */}
         <Comments entityType={CommentEntityType.CANDIDATE} entityId={id!} />
       </div>
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedItem && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}
+        onClick={closeDetailModal}
+        >
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '24px',
+            width: '90%',
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ margin: '0', fontSize: '24px', color: '#1f2937' }}>
+                {selectedItem.section} Details
+              </h2>
+              <button
+                onClick={closeDetailModal}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#6b7280'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <h3 style={{ margin: '0', fontSize: '20px', color: '#1f2937' }}>
+                  {selectedItem.data.skillName || selectedItem.data.title || selectedItem.data.institution || selectedItem.data.name || 'Item'}
+                </h3>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  backgroundColor: selectedItem.data.addedBy === 'AI' ? '#3b82f6' : '#10b981',
+                  color: 'white'
+                }}>
+                  {selectedItem.data.addedBy === 'AI' ? 'AI Generated' : 'Human Added'}
+                </span>
+              </div>
+
+              {selectedItem.type === 'skill' && selectedItem.data.score && (
+                <div style={{ marginBottom: '12px' }}>
+                  <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: '500' }}>
+                    Proficiency Score:{' '}
+                  </span>
+                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#007bff' }}>
+                    {selectedItem.data.score}/10
+                  </span>
+                </div>
+              )}
+
+              {selectedItem.type === 'experience' && (
+                <>
+                  {selectedItem.data.role && (
+                    <p style={{ margin: '8px 0', fontSize: '16px', color: '#4b5563' }}>
+                      <strong>Role:</strong> {selectedItem.data.role}
+                    </p>
+                  )}
+                  {selectedItem.data.title && (
+                    <p style={{ margin: '8px 0', fontSize: '16px', color: '#4b5563' }}>
+                      <strong>Company:</strong> {selectedItem.data.title}
+                    </p>
+                  )}
+                </>
+              )}
+
+              {selectedItem.type === 'education' && selectedItem.data.institution && (
+                <p style={{ margin: '8px 0', fontSize: '16px', color: '#4b5563' }}>
+                  <strong>Institution:</strong> {selectedItem.data.institution}
+                </p>
+              )}
+
+              {selectedItem.type === 'certification' && (
+                <>
+                  {selectedItem.data.issuingOrganization && (
+                    <p style={{ margin: '8px 0', fontSize: '16px', color: '#4b5563' }}>
+                      <strong>Issued by:</strong> {selectedItem.data.issuingOrganization}
+                    </p>
+                  )}
+                  {selectedItem.data.issueDate && (
+                    <p style={{ margin: '8px 0', fontSize: '16px', color: '#4b5563' }}>
+                      <strong>Issue Date:</strong> {new Date(selectedItem.data.issueDate).toLocaleDateString()}
+                    </p>
+                  )}
+                </>
+              )}
+
+              {(selectedItem.data.startDate || selectedItem.data.endDate) && (
+                <p style={{ margin: '8px 0', fontSize: '16px', color: '#4b5563' }}>
+                  <strong>Duration:</strong>{' '}
+                  {selectedItem.data.startDate && new Date(selectedItem.data.startDate).toLocaleDateString()}
+                  {' - '}
+                  {selectedItem.data.endDate ? new Date(selectedItem.data.endDate).toLocaleDateString() : 'Present'}
+                </p>
+              )}
+            </div>
+
+            {selectedItem.data.evidence && (
+              <div style={{
+                backgroundColor: '#f9fafb',
+                padding: '16px',
+                borderRadius: '6px',
+                border: '1px solid #e5e7eb',
+                marginTop: '16px'
+              }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#374151', fontWeight: '600' }}>
+                  {selectedItem.data.addedBy === 'AI' ? 'AI Analysis' : 'Description'}
+                </h4>
+                <p style={{ margin: '0', color: '#4b5563', lineHeight: '1.6', fontSize: '14px' }}>
+                  {selectedItem.data.evidence}
+                </p>
+              </div>
+            )}
+
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={closeDetailModal}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

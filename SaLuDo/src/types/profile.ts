@@ -5,6 +5,15 @@ export interface ProfileItem {
   score?: number;
   skillName?: string;
   evidence?: string;
+  addedBy?: string;
+  title?: string;
+  role?: string;
+  institution?: string;
+  name?: string;
+  issuingOrganization?: string;
+  issueDate?: Date | string;
+  startDate?: Date | string;
+  endDate?: Date | string;
 }
 
 export interface ResumeMetadata {
