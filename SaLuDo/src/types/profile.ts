@@ -72,6 +72,7 @@ export interface CandidateProfile {
   transcripts?: TranscriptMetadata[];
   interviewVideos?: VideoMetadata[];
   introductionVideos?: VideoMetadata[];
+  
   skills: Array<{
     skillId: string;
     skillName: string;
@@ -79,46 +80,59 @@ export interface CandidateProfile {
     score?: number;
     evidence?: string;
     isAccepted?: boolean;
+    addedBy?: 'AI' | 'HUMAN';
   }>;
+  
   experience: Array<{
     experienceId: string;
     source: "ai" | "manual";
     description: string;
-    company?: string;
-    position?: string;
+    title?: string;
+    role?: string;
     startDate?: string;
     endDate?: string;
+    addedBy?: 'AI' | 'HUMAN';
   }>;
+  
   education: Array<{
     educationId: string;
     source: "ai" | "manual";
     description: string;
     institution?: string;
-    degree?: string;
-    fieldOfStudy?: string;
-    graduationDate?: string;
+    startDate?: string;
+    endDate?: string;
+    addedBy?: 'AI' | 'HUMAN';
   }>;
+  
   certification: Array<{
     certificationId: string;
     source: "ai" | "manual";
     description: string;
+    name?: string;
     certificationName?: string;
     issuingOrganization?: string;
     issueDate?: string;
-    expirationDate?: string;
+    addedBy?: 'AI' | 'HUMAN';
   }>;
+  
   strengths: Array<{
     strengthWeaknessId: string;
     source: "ai" | "manual";
     description: string;
     type: "strength";
+    name?: string;
+    addedBy?: 'AI' | 'HUMAN';
   }>;
+  
   weaknesses: Array<{
     strengthWeaknessId: string;
     source: "ai" | "manual";
     description: string;
     type: "weakness";
+    name?: string;
+    addedBy?: 'AI' | 'HUMAN';
   }>;
+  
   resumeAssessment?: string;
   interviewAssessment?: string;
   // Add these optional job matching properties
