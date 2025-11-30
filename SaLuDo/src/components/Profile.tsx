@@ -13,6 +13,7 @@ import { ProfileDetailModal } from "./profile/ProfileDetailModal";
 import { ResumeEditData } from "./profile/resumeEditTypes";
 import { SKILL_SCORE } from "./profile/resumeEditConstants";
 import { resumeEditApi } from "./profile/resumeEditApi";
+import { CandidateScoreSection } from "./scoring/CandidateScoreSection";
 
 const Profile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -715,6 +716,12 @@ const Profile: React.FC = () => {
           onDownload={handleDownload}
         />
       </div>
+
+      {/* Predictive Success Score Section */}
+      <CandidateScoreSection
+        candidateId={id!}
+        candidateName={candidate.name}
+      />
 
       <div className="parsed-sections-container">
         <ResumeParsedSection

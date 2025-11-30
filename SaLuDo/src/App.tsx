@@ -35,6 +35,7 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import AuditLogs from "./components/AuditLogs.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import UserProfile from "./components/UserProfile.tsx";
+import { ScoringSettings } from "./components/scoring/ScoringSettings.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -313,6 +314,18 @@ function UserProfilePage() {
   );
 }
 
+function ScoringSettingsPage() {
+  return (
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <div style={{ padding: '2rem' }}>
+          <ScoringSettings />
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   const [data, setData] = useState<Data | null>(null);
 
@@ -351,6 +364,7 @@ function App() {
         <Route path="/audit-logs" element={<AuditLogsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/user-profile/:userId" element={<UserProfilePage />} />
+        <Route path="/scoring-settings" element={<ScoringSettingsPage />} />
       </Routes>
     </Router>
   );

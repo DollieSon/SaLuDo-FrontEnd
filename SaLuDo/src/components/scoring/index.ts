@@ -7,6 +7,7 @@ export { PredictiveScoreCard } from './PredictiveScoreCard';
 export { ScoreHistoryChart } from './ScoreHistoryChart';
 export { AIInsightsCard } from './AIInsightsCard';
 export { ScoringSettings } from './ScoringSettings';
+export { CandidateScoreSection } from './CandidateScoreSection';
 
 // Re-export types for convenience
 export type {

@@ -129,6 +129,19 @@ const Sidebar = () => {
             </div>
           </NavLink>
         )}
+
+        {/* Show Scoring Settings for admins and hr_manager */}
+        {(user?.role === "admin" || user?.role === "hr_manager") && (
+          <NavLink
+            to="/scoring-settings"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="Scoring Settings" />
+              Scoring Settings
+            </div>
+          </NavLink>
+        )}
       </div>
 
       {/* User Profile Section */}
