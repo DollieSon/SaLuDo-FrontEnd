@@ -9,7 +9,7 @@ import {
   getScoreColor,
   getScoreLabel,
 } from '../../types/scoring';
-import './css/PredictiveScore.css';
+import '../css/PredictiveScore.css';
 
 interface PredictiveScoreCardProps {
   score: PredictiveScoreResult | null;

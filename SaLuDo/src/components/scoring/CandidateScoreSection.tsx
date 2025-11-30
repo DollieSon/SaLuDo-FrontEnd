@@ -71,8 +71,10 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
 
   // Fetch existing insights on mount
   useEffect(() => {
-    fetchInsights();
-  }, [candidateId]);
+    if (candidateId) {
+      fetchInsights();
+    }
+  }, [candidateId, fetchInsights]);
 
   // Handle job selection change
   const handleJobChange = (jobId: string) => {
@@ -114,8 +116,20 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
       </div>
 
       <div className="score-section-content">
-        {/* Main Score Card */}
+        {/* Left side - AI Insights */}
         <div className="score-section-primary">
+          <AIInsightsCard
+            insights={insights}
+            isLoading={isGeneratingInsights}
+            error={insightsError}
+            onGenerate={handleGenerateInsights}
+            candidateName={candidateName}
+          />
+        </div>
+
+        {/* Right side - Score Card and History */}
+        <div className="score-section-secondary">
+          {/* Main Score Card */}
           <PredictiveScoreCard
             score={score}
             isLoading={isCalculating}
@@ -125,10 +139,7 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
             onCalculate={handleCalculateScore}
             onRefresh={handleCalculateScore}
           />
-        </div>
 
-        {/* Side panels */}
-        <div className="score-section-secondary">
           {/* Score History */}
           <ScoreHistoryChart
             history={history}
@@ -136,15 +147,6 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
             showList={true}
             maxListItems={3}
             onRefresh={fetchHistory}
-          />
-
-          {/* AI Insights */}
-          <AIInsightsCard
-            insights={insights}
-            isLoading={isGeneratingInsights}
-            error={insightsError}
-            onGenerate={handleGenerateInsights}
-            candidateName={candidateName}
           />
         </div>
       </div>

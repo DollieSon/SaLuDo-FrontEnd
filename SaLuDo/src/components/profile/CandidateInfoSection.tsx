@@ -339,7 +339,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                 )}
               </p>
             ) : (
-              <p>
+              <div>
                 <span style={{ color: "#6b7280", fontStyle: "italic" }}>
                   No transcripts uploaded
                 </span>
@@ -369,7 +369,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                     style={{ display: "none" }}
                   />
                 </div>
-              </p>
+              </div>
             )}
           </div>
         </div>
@@ -405,7 +405,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                 )}
               </p>
             ) : (
-              <p>
+              <div>
                 <span style={{ color: "#6b7280", fontStyle: "italic" }}>
                   No interview videos uploaded
                 </span>
@@ -435,7 +435,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                     style={{ display: "none" }}
                   />
                 </div>
-              </p>
+              </div>
             )}
           </div>
         </div>
@@ -475,7 +475,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                 )}
               </p>
             ) : (
-              <p>
+              <div>
                 <span style={{ color: "#6b7280", fontStyle: "italic" }}>
                   No introduction videos uploaded
                 </span>
@@ -505,7 +505,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                     style={{ display: "none" }}
                   />
                 </div>
-              </p>
+              </div>
             )}
           </div>
         </div>

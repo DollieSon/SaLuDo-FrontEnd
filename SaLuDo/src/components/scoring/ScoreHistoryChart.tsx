@@ -3,7 +3,7 @@
  * Displays score history over time using a line chart
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { ScoreHistoryEntry, getScoreColor } from '../../types/scoring';
+import { ScoreHistoryEntry, getScoreColor, getScoreLabel } from '../../types/scoring';
 import '../css/PredictiveScore.css';
 
 interface ScoreHistoryChartProps {
@@ -31,7 +31,148 @@ interface ChartDataPoint {
   score: number;
   jobTitle?: string;
   color: string;
+  originalEntry: ScoreHistoryEntry; // Reference to original entry for modal
 }
+
+// Score Detail Modal Component
+const ScoreDetailModal: React.FC<{
+  entry: ScoreHistoryEntry;
+  onClose: () => void;
+}> = ({ entry, onClose }) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <div className="score-modal-overlay" onClick={onClose}>
+      <div className="score-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="score-modal-header">
+          <h3>Score Details</h3>
+          <button className="score-modal-close" onClick={onClose}>
+            &times;
+          </button>
+        </div>
+
+        <div className="score-modal-body">
+          {/* Main Score */}
+          <div className="score-modal-main-score">
+            <div
+              className="score-modal-score-value"
+              style={{ color: getScoreColor(entry.score ?? 0) }}
+            >
+              {(entry.score ?? 0).toFixed(1)}
+            </div>
+            <div className="score-modal-score-label">
+              {getScoreLabel(entry.score ?? 0)}
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="score-modal-meta">
+            <div className="score-modal-meta-item">
+              <span className="meta-label">Date:</span>
+              <span className="meta-value">{formatDate(entry.calculatedAt)}</span>
+            </div>
+            {entry.mode && (
+              <div className="score-modal-meta-item">
+                <span className="meta-label">Mode:</span>
+                <span className="meta-value" style={{ textTransform: 'capitalize' }}>
+                  {entry.mode.replace('-', ' ')}
+                </span>
+              </div>
+            )}
+            {entry.jobTitle && (
+              <div className="score-modal-meta-item">
+                <span className="meta-label">Job:</span>
+                <span className="meta-value">{entry.jobTitle}</span>
+              </div>
+            )}
+            {entry.confidence != null && (
+              <div className="score-modal-meta-item">
+                <span className="meta-label">Confidence:</span>
+                <span className="meta-value">{entry.confidence}%</span>
+              </div>
+            )}
+          </div>
+
+          {/* Breakdown */}
+          {entry.breakdown && (
+            <div className="score-modal-breakdown">
+              <h4>Score Breakdown</h4>
+              <div className="breakdown-grid">
+                <div className="breakdown-item-modal">
+                  <span className="breakdown-label-modal">Skill Match</span>
+                  <span className="breakdown-value-modal">
+                    {entry.breakdown.skillMatch?.toFixed(1) ?? 'N/A'}
+                  </span>
+                </div>
+                <div className="breakdown-item-modal">
+                  <span className="breakdown-label-modal">Personality Fit</span>
+                  <span className="breakdown-value-modal">
+                    {entry.breakdown.personalityFit?.toFixed(1) ?? 'N/A'}
+                  </span>
+                </div>
+                <div className="breakdown-item-modal">
+                  <span className="breakdown-label-modal">Experience</span>
+                  <span className="breakdown-value-modal">
+                    {entry.breakdown.experience?.toFixed(1) ?? 'N/A'}
+                  </span>
+                </div>
+                <div className="breakdown-item-modal">
+                  <span className="breakdown-label-modal">Education</span>
+                  <span className="breakdown-value-modal">
+                    {entry.breakdown.education?.toFixed(1) ?? 'N/A'}
+                  </span>
+                </div>
+                <div className="breakdown-item-modal">
+                  <span className="breakdown-label-modal">Profile Quality</span>
+                  <span className="breakdown-value-modal">
+                    {entry.breakdown.profileQuality?.toFixed(1) ?? 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Weights Used */}
+          {entry.weightsUsed && (
+            <div className="score-modal-weights">
+              <h4>Weights Used</h4>
+              <div className="weights-grid">
+                <div className="weight-item-modal">
+                  <span className="weight-label-modal">Skills</span>
+                  <span className="weight-value-modal">{entry.weightsUsed.skillMatch}%</span>
+                </div>
+                <div className="weight-item-modal">
+                  <span className="weight-label-modal">Personality</span>
+                  <span className="weight-value-modal">{entry.weightsUsed.personalityFit}%</span>
+                </div>
+                <div className="weight-item-modal">
+                  <span className="weight-label-modal">Experience</span>
+                  <span className="weight-value-modal">{entry.weightsUsed.experience}%</span>
+                </div>
+                <div className="weight-item-modal">
+                  <span className="weight-label-modal">Education</span>
+                  <span className="weight-value-modal">{entry.weightsUsed.education}%</span>
+                </div>
+                <div className="weight-item-modal">
+                  <span className="weight-label-modal">Profile</span>
+                  <span className="weight-value-modal">{entry.weightsUsed.profileQuality}%</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Custom tooltip component
 const CustomTooltip: React.FC<any> = ({ active, payload }) => {
@@ -57,11 +198,15 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   maxListItems = 5,
   onRefresh,
 }) => {
+  const [selectedEntry, setSelectedEntry] = useState<ScoreHistoryEntry | null>(null);
+
   // Transform history data for the chart
   const chartData = useMemo((): ChartDataPoint[] => {
+    if (!history || history.length === 0) return [];
     return history
       .slice()
       .sort((a, b) => new Date(a.calculatedAt).getTime() - new Date(b.calculatedAt).getTime())
+      .filter((entry) => entry.score != null && !isNaN(entry.score))
       .map((entry) => ({
         date: new Date(entry.calculatedAt).toLocaleDateString('en-US', {
           month: 'short',
@@ -74,28 +219,45 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
           hour: '2-digit',
           minute: '2-digit',
         }),
-        score: entry.score,
+        score: entry.score ?? 0,
         jobTitle: entry.jobTitle,
-        color: getScoreColor(entry.score),
+        color: getScoreColor(entry.score ?? 0),
+        originalEntry: entry,
       }));
   }, [history]);
 
+  // Handle chart data point click
+  const handleChartClick = (data: any) => {
+    if (data && data.activePayload && data.activePayload.length > 0) {
+      const clickedData = data.activePayload[0].payload as ChartDataPoint;
+      if (clickedData.originalEntry) {
+        setSelectedEntry(clickedData.originalEntry);
+      }
+    }
+  };
+
   // Calculate average score
   const averageScore = useMemo(() => {
-    if (history.length === 0) return 0;
-    return history.reduce((sum, entry) => sum + entry.score, 0) / history.length;
+    if (!history || history.length === 0) return 0;
+    const validScores = history.filter(entry => entry.score != null && !isNaN(entry.score));
+    if (validScores.length === 0) return 0;
+    return validScores.reduce((sum, entry) => sum + (entry.score ?? 0), 0) / validScores.length;
   }, [history]);
 
   // Get score trend
   const trend = useMemo(() => {
-    if (history.length < 2) return null;
+    if (!history || history.length < 2) return null;
     
-    const sorted = [...history].sort(
-      (a, b) => new Date(a.calculatedAt).getTime() - new Date(b.calculatedAt).getTime()
-    );
+    const sorted = [...history]
+      .filter(entry => entry.score != null && !isNaN(entry.score))
+      .sort(
+        (a, b) => new Date(a.calculatedAt).getTime() - new Date(b.calculatedAt).getTime()
+      );
     
-    const first = sorted[0].score;
-    const last = sorted[sorted.length - 1].score;
+    if (sorted.length < 2) return null;
+    
+    const first = sorted[0].score ?? 0;
+    const last = sorted[sorted.length - 1].score ?? 0;
     const diff = last - first;
     
     if (Math.abs(diff) < 2) return { direction: 'stable', value: diff };
@@ -112,7 +274,7 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   };
 
   // Empty state
-  if (history.length === 0 && !isLoading) {
+  if ((!history || history.length === 0) && !isLoading) {
     return (
       <div className="score-history-container">
         <div className="score-history-header">
@@ -133,6 +295,14 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
 
   return (
     <div className="score-history-container">
+      {/* Modal */}
+      {selectedEntry && (
+        <ScoreDetailModal
+          entry={selectedEntry}
+          onClose={() => setSelectedEntry(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="score-history-header">
         <h3 className="score-history-title">
@@ -166,6 +336,8 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
             <LineChart
               data={chartData}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              onClick={handleChartClick}
+              style={{ cursor: 'pointer' }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -203,12 +375,19 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
                   strokeWidth: 2,
                   stroke: '#ffffff',
                   r: 4,
+                  cursor: 'pointer',
                 }}
                 activeDot={{
                   r: 6,
                   fill: '#E30022',
                   stroke: '#ffffff',
                   strokeWidth: 3,
+                  cursor: 'pointer',
+                  onClick: (_: any, payload: any) => {
+                    if (payload && payload.payload && payload.payload.originalEntry) {
+                      setSelectedEntry(payload.payload.originalEntry);
+                    }
+                  },
                 }}
               />
             </LineChart>
@@ -245,7 +424,12 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
             .sort((a, b) => new Date(b.calculatedAt).getTime() - new Date(a.calculatedAt).getTime())
             .slice(0, maxListItems)
             .map((entry, index) => (
-              <div key={index} className="history-item">
+              <div 
+                key={index} 
+                className="history-item history-item-clickable"
+                onClick={() => setSelectedEntry(entry)}
+                title="Click to view details"
+              >
                 <div className="history-item-info">
                   <span className="history-item-date">{formatListDate(entry.calculatedAt)}</span>
                   {entry.jobTitle && (
@@ -254,9 +438,9 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
                 </div>
                 <span
                   className="history-item-score"
-                  style={{ color: getScoreColor(entry.score) }}
+                  style={{ color: getScoreColor(entry.score ?? 0) }}
                 >
-                  {entry.score.toFixed(1)}
+                  {(entry.score ?? 0).toFixed(1)}
                 </span>
               </div>
             ))}

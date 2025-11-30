@@ -61,6 +61,8 @@ export interface ScoreBreakdown {
 export interface ScoreHistoryEntry {
   score: number;
   breakdown: ScoreBreakdown;
+  confidence?: number;                    // 0-100 based on profile completeness
+  mode?: 'job-specific' | 'general';      // Scoring mode used
   jobId?: string;
   jobTitle?: string;
   calculatedAt: string;

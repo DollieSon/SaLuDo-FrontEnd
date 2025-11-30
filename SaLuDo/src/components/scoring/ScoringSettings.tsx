@@ -50,11 +50,8 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
         ? await scoringSettingsApi.getJobSettings(jobId)
         : await scoringSettingsApi.getGlobalSettings();
 
-      if (result.success) {
-        const effectiveSettings = 'effectiveSettings' in result
-          ? (result as { effectiveSettings: ScoringPreferences }).effectiveSettings
-          : result.settings;
-        setSettings(effectiveSettings);
+      if (result.success && result.data) {
+        setSettings(result.data);
         setIsJobSpecific('isJobSpecific' in result ? (result as { isJobSpecific: boolean }).isJobSpecific : false);
       }
     } catch (error) {

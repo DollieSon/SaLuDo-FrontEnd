@@ -31,7 +31,7 @@ export const scoringSettingsApi = {
    */
   getGlobalSettings: async (): Promise<{
     success: boolean;
-    settings: ScoringPreferences;
+    data: ScoringPreferences;
   }> => {
     const response = await apiClient.get('/settings/scoring');
     return response.data;
@@ -47,7 +47,7 @@ export const scoringSettingsApi = {
     isActive?: boolean;
   }): Promise<{
     success: boolean;
-    settings: ScoringPreferences;
+    data: ScoringPreferences;
   }> => {
     const response = await apiClient.put('/settings/scoring', settings);
     return response.data;
@@ -58,9 +58,8 @@ export const scoringSettingsApi = {
    */
   getJobSettings: async (jobId: string): Promise<{
     success: boolean;
-    settings: ScoringPreferences;
+    data: ScoringPreferences;
     isJobSpecific: boolean;
-    effectiveSettings: ScoringPreferences;
   }> => {
     const response = await apiClient.get(`/settings/scoring/job/${jobId}`);
     return response.data;
@@ -79,7 +78,7 @@ export const scoringSettingsApi = {
     }
   ): Promise<{
     success: boolean;
-    settings: ScoringPreferences;
+    data: ScoringPreferences;
   }> => {
     const response = await apiClient.put(`/settings/scoring/job/${jobId}`, settings);
     return response.data;
@@ -157,7 +156,11 @@ export const predictiveScoreApi = {
   }> => {
     const params = jobId ? `?jobId=${jobId}` : '';
     const response = await apiClient.get(`/candidates/${candidateId}/success-score${params}`);
-    return response.data;
+    // Backend returns { success, data }, transform to { success, score }
+    return {
+      success: response.data.success,
+      score: response.data.data
+    };
   },
 
   /**
@@ -176,7 +179,26 @@ export const predictiveScoreApi = {
   }> => {
     const params = limit ? `?limit=${limit}` : '';
     const response = await apiClient.get(`/candidates/${candidateId}/success-score/history${params}`);
-    return response.data;
+    // Backend returns { success, data, count }, transform to expected format
+    // Backend uses 'overallScore' but frontend expects 'score' - map the field
+    const rawHistory = response.data.data || [];
+    const transformedHistory: ScoreHistoryEntry[] = rawHistory.map((entry: any) => ({
+      score: entry.overallScore ?? entry.score ?? 0,
+      breakdown: entry.breakdown,
+      confidence: entry.confidence,
+      mode: entry.mode,
+      jobId: entry.jobId,
+      jobTitle: entry.jobTitle,
+      calculatedAt: entry.calculatedAt,
+      calculatedBy: entry.calculatedBy,
+      weightsUsed: entry.weightsUsed,
+    }));
+    return {
+      success: response.data.success,
+      history: transformedHistory,
+      candidateId,
+      totalEntries: response.data.count || 0
+    };
   },
 
   /**
@@ -194,7 +216,12 @@ export const predictiveScoreApi = {
   }> => {
     const body = jobId ? { jobId } : {};
     const response = await apiClient.post(`/candidates/${candidateId}/success-score/insights`, body);
-    return response.data;
+    // Backend returns { success, data, message }, transform to expected format
+    return {
+      success: response.data.success,
+      insights: response.data.data,
+      candidateId
+    };
   },
 
   /**
@@ -208,8 +235,26 @@ export const predictiveScoreApi = {
     insights: CandidateAIInsights | null;
     candidateId: string;
   }> => {
-    const response = await apiClient.get(`/candidates/${candidateId}/success-score/insights`);
-    return response.data;
+    try {
+      const response = await apiClient.get(`/candidates/${candidateId}/success-score/insights`);
+      // Backend returns { success, data }, transform to expected format
+      return {
+        success: response.data.success,
+        insights: response.data.data || null,
+        candidateId
+      };
+    } catch (error: any) {
+      // 404 means no insights exist yet - this is not an error
+      if (error.response?.status === 404) {
+        return {
+          success: true,
+          insights: null,
+          candidateId
+        };
+      }
+      // Re-throw other errors
+      throw error;
+    }
   },
 
   /**
