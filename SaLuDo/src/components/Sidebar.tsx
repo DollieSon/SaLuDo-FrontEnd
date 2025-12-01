@@ -142,6 +142,19 @@ const Sidebar = () => {
             </div>
           </NavLink>
         )}
+
+        {/* Show AI Metrics for admins */}
+        {user?.role === "admin" && (
+          <NavLink
+            to="/ai-metrics"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="AI Metrics" />
+              AI Metrics
+            </div>
+          </NavLink>
+        )}
       </div>
 
       {/* User Profile Section */}
