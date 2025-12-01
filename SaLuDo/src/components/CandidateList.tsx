@@ -679,9 +679,9 @@ const CandidateList: React.FC = () => {
                     </td>
                     <td>{formatDate(c.dateCreated)}</td>
                     <td>
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <div className="action-buttons">
                         <button
-                          className="open-profile"
+                          className="action-btn edit"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleCandidateClick(c.candidateId);
