@@ -258,7 +258,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                       {user.isActive ? "Deactivate" : "Activate"}
                     </button>
                     <button
-                      className="action-btn delete"
+                      className="delete-candidate"
                       onClick={() => handleDeleteUser(user.userId, user.fullName)}
                       title="Delete"
                     >

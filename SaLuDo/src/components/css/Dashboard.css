@@ -326,11 +326,133 @@
 }
 
 @media (max-width: 768px) {
-    .stats-grid {
+    .dashboard main {
+    padding: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+  }
+
+  .dashboard-header p {
+    font-size: 13px;
+  }
+
+  .stats-grid {
     grid-template-columns: 1fr;
-    }
-    
-    .quick-actions {
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .stat-card-content .number {
+    font-size: 28px;
+  }
+
+  .content-card {
+    padding: 1.25rem;
+  }
+
+  .content-card h3 {
+    font-size: 16px;
+  }
+
+  .candidate-item {
+    padding: 0.875rem;
+  }
+
+  .candidate-info h4 {
+    font-size: 13px;
+  }
+
+  .candidate-info p {
+    font-size: 11px;
+  }
+
+  .score-badge {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+
+  .job-item {
+    padding: 0.875rem;
+  }
+
+  .job-name {
+    font-size: 13px;
+  }
+
+  .applicant-count {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .activity-item {
+    padding: 0.875rem;
+  }
+
+  .activity-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .activity-message {
+    font-size: 12px;
+  }
+
+  .quick-actions {
     grid-template-columns: 1fr;
-    }
+    gap: 0.75rem;
+  }
+
+  .action-button {
+    padding: 0.875rem;
+  }
+
+  .action-button-icon {
+    font-size: 20px;
+  }
+
+  .action-button-text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard main {
+    padding: 1.5rem 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header h1 {
+    font-size: 18px;
+  }
+
+  .stat-card-content .number {
+    font-size: 24px;
+  }
 }

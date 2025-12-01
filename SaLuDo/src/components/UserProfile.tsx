@@ -1,6 +1,6 @@
 import "./css/UserProfile.css";
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { usersApi } from "../utils/api";
 import { UserProfile as UserProfileType, ProfileStats, ProfileActivity } from "../types/user";
@@ -26,6 +26,7 @@ const UserProfile: React.FC = () => {
   const accessToken = localStorage.getItem("accessToken") || "";
   const currentUserId = currentUser?.userId || "";
   const targetUserId = userId || currentUserId;
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUserData();
@@ -106,6 +107,10 @@ const UserProfile: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   const canEdit = currentUserId === targetUserId || currentUser?.role === 'admin';
 
   if (isLoading) {
@@ -123,7 +128,7 @@ const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="user-profile-page">
+    <main className="profile">
       {toast && (
         <div className={`toast ${toast.type}`}>
           {toast.message}
@@ -131,6 +136,28 @@ const UserProfile: React.FC = () => {
       )}
 
       <div className="profile-header">
+        <div
+          className="back-label"
+        >
+          <div className="left-section">
+            <img src="/images/back.png" alt="Back" onClick={handleGoBack} />
+            <h2>{user.fullName}</h2>
+            <span className="profile-role">{user.role.replace('_', ' ')}</span>
+          </div>
+          {canEdit && (
+            <div className="profile-actions">
+              <button
+                className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`}
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                {isEditing ? 'Cancel' : 'Edit Profile'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="card">
         <ProfilePhotoUpload
           userId={targetUserId}
           fullName={user.fullName}
@@ -139,22 +166,6 @@ const UserProfile: React.FC = () => {
           onUpload={handlePhotoUpload}
           onDelete={handlePhotoDelete}
         />
-        
-        <div className="profile-header-info">
-          <h1 className="profile-name">{user.fullName}</h1>
-          <span className="profile-role">{user.role.replace('_', ' ')}</span>
-        </div>
-
-        {canEdit && (
-          <div className="profile-actions">
-            <button
-              className={`btn ${isEditing ? 'btn-secondary' : 'btn-primary'}`}
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              {isEditing ? 'Cancel' : 'Edit Profile'}
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="profile-tabs">
@@ -327,7 +338,7 @@ const UserProfile: React.FC = () => {
           <ProfileSettings userId={targetUserId} accessToken={accessToken} />
         )}
       </div>
-    </div>
+    </main>
   );
 };
 
