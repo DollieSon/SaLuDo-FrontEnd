@@ -138,11 +138,11 @@ const UserProfile: React.FC = () => {
       <div className="profile-header">
         <div
           className="back-label"
-          data-text={`User Role: ${user.role}`}
         >
           <div className="left-section">
             <img src="/images/back.png" alt="Back" onClick={handleGoBack} />
             <h2>{user.fullName}</h2>
+            <span className="profile-role">{user.role.replace('_', ' ')}</span>
           </div>
           {canEdit && (
             <div className="profile-actions">
