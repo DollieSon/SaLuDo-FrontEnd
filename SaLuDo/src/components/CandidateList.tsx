@@ -1,7 +1,7 @@
 import "./css/CandidateList.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { candidatesApi, jobsApi } from "../utils/api";
+import { candidatesApi, jobsApi, skillsApi } from "../utils/api";
 import { CandidateProfile } from "../types/profile";
 
 interface JobSkillRequirement {

@@ -427,6 +427,13 @@ const JobDetails: React.FC = () => {
             </nav>
             <div className="job-details-header-actions">
               <button 
+                onClick={() => navigate(`/jobs/${jobId}/scoring-settings`)}
+                className="btn-secondary"
+                title="Configure scoring weights for this job"
+              >
+                Scoring Settings
+              </button>
+              <button 
                 onClick={() => {
                   setEditJobData({ jobName: job.jobName, jobDescription: job.jobDescription });
                   setShowEditJobModal(true);

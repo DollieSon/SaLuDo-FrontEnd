@@ -129,6 +129,32 @@ const Sidebar = () => {
             </div>
           </NavLink>
         )}
+
+        {/* Show Scoring Settings for admins and hr_manager */}
+        {(user?.role === "admin" || user?.role === "hr_manager") && (
+          <NavLink
+            to="/scoring-settings"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="Scoring Settings" />
+              Scoring Settings
+            </div>
+          </NavLink>
+        )}
+
+        {/* Show AI Metrics for admins */}
+        {user?.role === "admin" && (
+          <NavLink
+            to="/ai-metrics"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="AI Metrics" />
+              AI Metrics
+            </div>
+          </NavLink>
+        )}
       </div>
 
       {/* User Profile Section */}

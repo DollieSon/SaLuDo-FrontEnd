@@ -4,6 +4,7 @@ import {
   Route,
   useNavigate,
   useLocation,
+  useParams,
 } from "react-router-dom";
 import UserForm from "./components/UserForm";
 import ApiData from "./components/ApiData";
@@ -35,6 +36,8 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import AuditLogs from "./components/AuditLogs.tsx";
 import Dashboard from "./components/Dashboard.tsx";
 import UserProfile from "./components/UserProfile.tsx";
+import { ScoringSettings } from "./components/scoring/ScoringSettings.tsx";
+import AIMetricsDashboard from "./components/AIMetricsDashboard.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -313,6 +316,60 @@ function UserProfilePage() {
   );
 }
 
+function ScoringSettingsPage() {
+  return (
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <div style={{ padding: '2rem' }}>
+          <ScoringSettings />
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function JobScoringSettingsPage() {
+  const { jobId } = useParams<{ jobId: string }>();
+  const navigate = useNavigate();
+  
+  return (
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <div style={{ padding: '2rem' }}>
+          <button
+            onClick={() => navigate(`/job/${jobId}`)}
+            style={{
+              marginBottom: '1rem',
+              padding: '0.5rem 1rem',
+              backgroundColor: '#6b7280',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            Back to Job Details
+          </button>
+          <ScoringSettings jobId={jobId} />
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
+function AIMetricsPage() {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout>
+        <AIMetricsDashboard />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   const [data, setData] = useState<Data | null>(null);
 
@@ -351,6 +408,9 @@ function App() {
         <Route path="/audit-logs" element={<AuditLogsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/user-profile/:userId" element={<UserProfilePage />} />
+        <Route path="/scoring-settings" element={<ScoringSettingsPage />} />
+        <Route path="/jobs/:jobId/scoring-settings" element={<JobScoringSettingsPage />} />
+        <Route path="/ai-metrics" element={<AIMetricsPage />} />
       </Routes>
     </Router>
   );
