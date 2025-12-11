@@ -3,17 +3,16 @@ import "./css/AIMetrics.css";
 import {
   CostTrendChart,
   LatencyChart,
-  TokenUsageChart,
-  ServiceComparisonChart,
   TrendsView,
   SeasonalityView,
   QualityTrendsView,
+  AICallsHistory,
+  ServiceLatencyChart,
 } from "./aiMetrics";
 import {
   fetchDashboardData,
   fetchCostAnalysis,
   fetchLatencyStats,
-  fetchTokenStats,
   fetchActiveAlerts,
   acknowledgeAlert,
   exportToCsv,
@@ -22,13 +21,12 @@ import type {
   DashboardData,
   CostAnalysisData,
   LatencyStatsData,
-  TokenStatsData,
   AIAlert,
   DateRangeOption,
 } from "../types/aiMetrics";
 import { SERVICE_DISPLAY_NAMES, ERROR_CATEGORY_NAMES } from "../types/aiMetrics";
 
-type TabType = "overview" | "costs" | "performance" | "trends" | "seasonality" | "quality";
+type TabType = "overview" | "costs" | "performance" | "trends" | "seasonality" | "quality" | "history";
 
 const AIMetricsDashboard = () => {
   // State
@@ -41,7 +39,6 @@ const AIMetricsDashboard = () => {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [costData, setCostData] = useState<CostAnalysisData | null>(null);
   const [latencyData, setLatencyData] = useState<LatencyStatsData | null>(null);
-  const [tokenData, setTokenData] = useState<TokenStatsData | null>(null);
   const [alerts, setAlerts] = useState<AIAlert[]>([]);
 
   // Auto-refresh state
@@ -54,19 +51,17 @@ const AIMetricsDashboard = () => {
     setError(null);
 
     try {
-      const [dashboardRes, costRes, latencyRes, tokenRes, alertsRes] =
+      const [dashboardRes, costRes, latencyRes, alertsRes] =
         await Promise.all([
           fetchDashboardData(dateRange),
           fetchCostAnalysis(dateRange),
           fetchLatencyStats(dateRange),
-          fetchTokenStats(dateRange),
           fetchActiveAlerts(),
         ]);
 
       setDashboard(dashboardRes);
       setCostData(costRes);
       setLatencyData(latencyRes);
-      setTokenData(tokenRes);
       setAlerts(alertsRes);
       setLastRefresh(new Date());
       setNextRefreshIn(60);
@@ -102,9 +97,11 @@ const AIMetricsDashboard = () => {
   const handleAcknowledgeAlert = async (alertId: string) => {
     try {
       await acknowledgeAlert(alertId);
-      setAlerts((prev) => prev.filter((a) => a._id !== alertId));
+      setAlerts((prev) => prev.filter((a) => a.alertId !== alertId));
     } catch (err) {
       console.error("Failed to acknowledge alert:", err);
+      setError("Failed to acknowledge alert. Please try again.");
+      setTimeout(() => setError(null), 5000);
     }
   };
 
@@ -209,7 +206,7 @@ const AIMetricsDashboard = () => {
           className={`metrics-tab ${activeTab === "costs" ? "active" : ""}`}
           onClick={() => setActiveTab("costs")}
         >
-          Costs & Tokens
+          Costs
         </button>
         <button
           className={`metrics-tab ${activeTab === "performance" ? "active" : ""}`}
@@ -234,6 +231,12 @@ const AIMetricsDashboard = () => {
           onClick={() => setActiveTab("quality")}
         >
           Quality
+        </button>
+        <button
+          className={`metrics-tab ${activeTab === "history" ? "active" : ""}`}
+          onClick={() => setActiveTab("history")}
+        >
+          Call History
         </button>
       </div>
 
@@ -345,8 +348,8 @@ const AIMetricsDashboard = () => {
         </>
       )}
 
-      {/* Costs & Tokens Tab */}
-      {activeTab === "costs" && costData && tokenData && (
+      {/* Costs Tab */}
+      {activeTab === "costs" && costData && (
         <>
           {/* Cost Summary Cards */}
           <div className="cost-breakdown">
@@ -378,43 +381,6 @@ const AIMetricsDashboard = () => {
             <div className="chart-container">
               <CostTrendChart data={costData.dailyCosts} />
             </div>
-          </div>
-
-          {/* Token Usage Chart */}
-          <div className="chart-section">
-            <h3>Token Usage</h3>
-            <div className="chart-container">
-              <TokenUsageChart data={tokenData.dailyTokens} />
-            </div>
-          </div>
-
-          {/* Token Summary */}
-          <div className="service-breakdown">
-            <h3>Tokens by Service</h3>
-            <table className="service-table">
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Total Tokens</th>
-                  <th>Input Tokens</th>
-                  <th>Output Tokens</th>
-                  <th>Avg per Call</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tokenData.byService.map((service) => (
-                  <tr key={service.service}>
-                    <td className="service-name">
-                      {SERVICE_DISPLAY_NAMES[service.service]}
-                    </td>
-                    <td>{formatNumber(service.totalTokens)}</td>
-                    <td>{formatNumber(service.inputTokens)}</td>
-                    <td>{formatNumber(service.outputTokens)}</td>
-                    <td>{formatNumber(Math.round(service.avgPerCall))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </>
       )}
@@ -456,13 +422,21 @@ const AIMetricsDashboard = () => {
 
           {/* Latency Chart */}
           <div className="chart-section">
-            <h3>Latency Over Time</h3>
+            <h3>Latency Over Time (Overall)</h3>
             <div className="chart-container">
               <LatencyChart data={latencyData.hourlyLatency} />
             </div>
           </div>
 
-          {/* Latency by Service */}
+          {/* Per-Service Latency Chart */}
+          <div className="chart-section">
+            <h3>Latency Over Time (By Service)</h3>
+            <div className="chart-container">
+              <ServiceLatencyChart perServiceTrends={latencyData.perServiceTrends} />
+            </div>
+          </div>
+
+          {/* Latency by Service Table */}
           <div className="service-breakdown">
             <h3>Latency by Service</h3>
             <table className="service-table">
@@ -479,7 +453,7 @@ const AIMetricsDashboard = () => {
                 {latencyData.byService.map((service) => (
                   <tr key={service.service}>
                     <td className="service-name">
-                      {SERVICE_DISPLAY_NAMES[service.service]}
+                      {SERVICE_DISPLAY_NAMES[service.service] || service.service || "Unknown"}
                     </td>
                     <td>{formatLatency(service.avgLatencyMs)}</td>
                     <td>{formatLatency(service.p50LatencyMs)}</td>
@@ -508,6 +482,11 @@ const AIMetricsDashboard = () => {
         <QualityTrendsView dateRange={dateRange} />
       )}
 
+      {/* Call History Tab */}
+      {activeTab === "history" && (
+        <AICallsHistory dateRange={dateRange} />
+      )}
+
       {/* Alerts Section */}
       {alerts.length > 0 && (
         <div className="alerts-section">
@@ -531,7 +510,7 @@ const AIMetricsDashboard = () => {
                   </div>
                 </div>
                 <div className="alert-actions">
-                  <button onClick={() => handleAcknowledgeAlert(alert._id)}>
+                  <button onClick={() => handleAcknowledgeAlert(alert.alertId)}>
                     Acknowledge
                   </button>
                 </div>

@@ -9,3 +9,6 @@ export { QualityScoreCard } from "./QualityScoreCard";
 export { TrendsView } from "./TrendsView";
 export { SeasonalityView } from "./SeasonalityView";
 export { QualityTrendsView } from "./QualityTrendsView";
+export { default as AICallsHistory } from "./AICallsHistory";
+export { default as AICallDetailsModal } from "./AICallDetailsModal";
+export { default as ServiceLatencyChart } from "./ServiceLatencyChart";

@@ -71,6 +71,7 @@ export interface AIFeedback {
 // Alert Entry
 export interface AIAlert {
   _id: string;
+  alertId: string;
   type: AIAlertType;
   severity: AlertSeverity;
   service: AIServiceType;
@@ -292,6 +293,7 @@ export interface LatencyStatsData {
   };
   byService: ServiceLatencyItem[];
   hourlyLatency: HourlyLatencyItem[];
+  perServiceTrends: Record<AIServiceType, Array<{ date: string; avgLatency: number }>>;
 }
 
 export interface ServiceLatencyItem {
@@ -369,3 +371,62 @@ export const ALERT_SEVERITY_COLORS: Record<AlertSeverity, string> = {
   WARNING: "#f59e0b",
   CRITICAL: "#ef4444",
 };
+
+// ============================================================================
+// AI CALL HISTORY TYPES
+// ============================================================================
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+export interface CostEstimate {
+  inputCostUsd: number;
+  outputCostUsd: number;
+  totalCostUsd: number;
+}
+
+export interface AIMetricsEntry {
+  metricsId: string;
+  timestamp: string;
+  service: AIServiceType;
+  latencyMs: number;
+  tokenUsage: TokenUsage;
+  costEstimate: CostEstimate;
+  success: boolean;
+  errorCategory?: AIErrorCategory;
+  errorMessage?: string;
+  candidateId?: string;
+  jobId?: string;
+  userId?: string;
+  parseSuccess: boolean;
+  fallbackUsed: boolean;
+  outputLength: number;
+  retryCount: number;
+  inputLength: number;
+}
+
+export interface CallHistoryFilters {
+  page?: number;
+  limit?: number;
+  service?: AIServiceType;
+  success?: boolean;
+  candidateId?: string;
+  userId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface PaginationInfo {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface CallHistoryResponse {
+  entries: AIMetricsEntry[];
+  pagination: PaginationInfo;
+}

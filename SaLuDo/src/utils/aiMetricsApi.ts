@@ -200,9 +200,12 @@ export const fetchTokenStats = async (
 // Backend Latency Response
 interface BackendLatencyResponse {
   average: number;
+  min: number;
+  max: number;
   percentiles: { p50: number; p90: number; p95: number; p99: number };
-  byService: Record<AIServiceType, { avg: number; p95: number }>;
+  byService: Record<AIServiceType, { avg: number; p50: number; p95: number; p99: number }>;
   trends: Array<{ date: string; avgLatency: number }>;
+  perServiceTrends: Record<AIServiceType, Array<{ date: string; avgLatency: number }>>;
   dateRange: { days: number; startDate: string; endDate: string };
 }
 
@@ -224,8 +227,8 @@ export const fetchLatencyStats = async (
     },
     overall: {
       avgLatencyMs: backend.average,
-      minLatencyMs: backend.percentiles.p50 * 0.5, // Estimate
-      maxLatencyMs: backend.percentiles.p99 * 1.5, // Estimate
+      minLatencyMs: backend.min || 0,
+      maxLatencyMs: backend.max || 0,
       p50LatencyMs: backend.percentiles.p50,
       p95LatencyMs: backend.percentiles.p95,
       p99LatencyMs: backend.percentiles.p99,
@@ -233,15 +236,16 @@ export const fetchLatencyStats = async (
     byService: Object.entries(backend.byService).map(([service, data]) => ({
       service: service as AIServiceType,
       avgLatencyMs: data.avg,
-      p50LatencyMs: data.avg * 0.9, // Estimate
+      p50LatencyMs: data.p50 || data.avg,
       p95LatencyMs: data.p95,
-      p99LatencyMs: data.p95 * 1.2, // Estimate
+      p99LatencyMs: data.p99 || data.p95,
     })),
     hourlyLatency: backend.trends.map((trend) => ({
       hour: trend.date,
       avgLatency: trend.avgLatency,
-      p95Latency: trend.avgLatency * 1.5, // Estimate
+      p95Latency: backend.percentiles.p95,
     })),
+    perServiceTrends: backend.perServiceTrends || {},
   };
 };
 
@@ -349,6 +353,36 @@ export const fetchQualityTrends = async (
     success: boolean;
     data: QualityTrendsData;
   }>(`/ai-metrics/trends/quality?range=${days}d${serviceParam}`);
+  return response.data.data;
+};
+
+// ============================================================================
+// AI CALL HISTORY ENDPOINTS
+// ============================================================================
+
+/**
+ * Fetch paginated AI call history with filters
+ */
+export const fetchCallHistory = async (
+  filters: import("../types/aiMetrics").CallHistoryFilters = {}
+): Promise<import("../types/aiMetrics").CallHistoryResponse> => {
+  const params = new URLSearchParams();
+  
+  if (filters.page) params.append("page", filters.page.toString());
+  if (filters.limit) params.append("limit", filters.limit.toString());
+  if (filters.service) params.append("service", filters.service);
+  if (filters.success !== undefined) params.append("success", filters.success.toString());
+  if (filters.candidateId) params.append("candidateId", filters.candidateId);
+  if (filters.userId) params.append("userId", filters.userId);
+  if (filters.startDate) params.append("startDate", filters.startDate);
+  if (filters.endDate) params.append("endDate", filters.endDate);
+  
+  const queryString = params.toString();
+  const response = await apiClient.get<{
+    success: boolean;
+    data: import("../types/aiMetrics").CallHistoryResponse;
+  }>(`/ai-metrics/calls${queryString ? `?${queryString}` : ""}`);
+  
   return response.data.data;
 };
 
