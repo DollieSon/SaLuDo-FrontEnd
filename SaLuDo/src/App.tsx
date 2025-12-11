@@ -17,7 +17,6 @@ import { Data } from "./types/data";
 import "./App.css";
 import { useAuth } from "./context/AuthContext";
 import { NotificationToast } from "./components/NotificationToast";
-import PasswordChangeRequired from "./components/PasswordChangeRequired";
 
 // 🗂️ Your Dashboard and sub-components:
 import Sidebar from "./components/Sidebar.tsx";
@@ -381,7 +380,6 @@ function App() {
   return (
     <Router>
       <NotificationToast />
-      <PasswordChangeRequired />
       <Routes>
         {/* <Route path="/" element={
           <div>

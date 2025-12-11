@@ -784,7 +784,8 @@ export const usersApi = {
   adminResetPassword: async (
     accessToken: string,
     userId: string,
-    reason?: string
+    reason?: string,
+    customPassword?: string
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
       method: "POST",
@@ -792,32 +793,11 @@ export const usersApi = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason, customPassword }),
     });
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || "Failed to reset password");
-    }
-    return response.json();
-  },
-
-  // Admin force password change (Admin only)
-  forcePasswordChange: async (
-    accessToken: string,
-    userId: string,
-    reason?: string
-  ) => {
-    const response = await fetch(`${apiUrl}users/${userId}/force-change-password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ reason }),
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to force password change");
     }
     return response.json();
   },

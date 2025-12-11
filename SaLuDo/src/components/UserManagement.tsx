@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { usersApi } from "../utils/api";
 import { UserProfile, UserRole } from "../types/user";
 import ResetPasswordModal from "./ResetPasswordModal";
-import ForceChangePasswordModal from "./ForceChangePasswordModal";
 import "../styles/UserManagement.css";
 
 interface UserManagementProps {
@@ -20,7 +19,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
-  const [showForceChangeModal, setShowForceChangeModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -130,32 +128,21 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
   };
 
   // Handle reset password
-  const handleResetPassword = async (reason?: string) => {
-    if (!selectedUser) return;
+  const handleResetPassword = async (data: { reason?: string; customPassword?: string }) => {
+    if (!selectedUser) return { password: '' };
     
     try {
-      const response = await usersApi.adminResetPassword(accessToken, selectedUser.userId, reason);
+      const response = await usersApi.adminResetPassword(
+        accessToken,
+        selectedUser.userId,
+        data.reason,
+        data.customPassword
+      );
       if (response.success) {
-        alert(`Password reset successfully for ${selectedUser.fullName}. Temporary password has been emailed to ${selectedUser.email}.`);
-        setShowResetPasswordModal(false);
-        setSelectedUser(null);
+        // Return the password so modal can display it
+        return { password: response.data.password };
       }
-    } catch (err) {
-      throw err; // Let modal handle the error
-    }
-  };
-
-  // Handle force password change
-  const handleForcePasswordChange = async (reason?: string) => {
-    if (!selectedUser) return;
-    
-    try {
-      const response = await usersApi.forcePasswordChange(accessToken, selectedUser.userId, reason);
-      if (response.success) {
-        alert(`${selectedUser.fullName} will be required to change their password on next login.`);
-        setShowForceChangeModal(false);
-        setSelectedUser(null);
-      }
+      return { password: '' };
     } catch (err) {
       throw err; // Let modal handle the error
     }
@@ -166,13 +153,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
     e.stopPropagation();
     setSelectedUser(user);
     setShowResetPasswordModal(true);
-  };
-
-  // Open force change modal
-  const openForceChangeModal = (user: UserProfile, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedUser(user);
-    setShowForceChangeModal(true);
   };
 
   // Get role display name
@@ -300,16 +280,9 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                     <button
                       className="action-btn edit btn-reset-password"
                       onClick={(e) => openResetPasswordModal(user, e)}
-                      title="Reset Password (Generates temporary password and emails user)"
+                      title="Reset user password - set custom or generate random"
                     >
                       Reset Password
-                    </button>
-                    <button
-                      className="action-btn edit btn-force-change"
-                      onClick={(e) => openForceChangeModal(user, e)}
-                      title="Force user to change password on next login"
-                    >
-                      Force Change
                     </button>
                     <button
                       className={`action-btn edit ${
@@ -497,20 +470,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
             setSelectedUser(null);
           }}
           onConfirm={handleResetPassword}
-          userName={selectedUser.fullName}
-          userEmail={selectedUser.email}
-        />
-      )}
-
-      {/* Force Change Password Modal */}
-      {selectedUser && (
-        <ForceChangePasswordModal
-          isOpen={showForceChangeModal}
-          onClose={() => {
-            setShowForceChangeModal(false);
-            setSelectedUser(null);
-          }}
-          onConfirm={handleForcePasswordChange}
           userName={selectedUser.fullName}
           userEmail={selectedUser.email}
         />

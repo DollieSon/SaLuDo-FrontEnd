@@ -6,10 +6,8 @@ interface AuthContextType {
   user: UserProfile | null;
   accessToken: string | null;
   refreshToken: string | null;
-  mustChangePassword: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  clearMustChangePassword: () => void;
   refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -23,7 +21,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<UserProfile | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [mustChangePassword, setMustChangePassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load auth state from localStorage on mount
@@ -31,13 +28,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const storedAccessToken = localStorage.getItem("accessToken");
     const storedRefreshToken = localStorage.getItem("refreshToken");
     const storedUser = localStorage.getItem("user");
-    const storedMustChange = localStorage.getItem("mustChangePassword");
 
     if (storedAccessToken && storedUser) {
       setAccessToken(storedAccessToken);
       setRefreshToken(storedRefreshToken);
       setUser(JSON.parse(storedUser));
-      setMustChangePassword(storedMustChange === "true");
     }
     setIsLoading(false);
   }, []);
@@ -80,22 +75,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await usersApi.login(email, password);
 
       if (response.success) {
-        const { user, accessToken, refreshToken, mustChangePassword } = response.data;
+        const { user, accessToken, refreshToken } = response.data;
 
         // Store in state
         setUser(user);
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
-        setMustChangePassword(mustChangePassword || false);
 
         // Store in localStorage
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("user", JSON.stringify(user));
-        
-        if (mustChangePassword) {
-          localStorage.setItem("mustChangePassword", "true");
-        }
       } else {
         throw new Error(response.message || "Login failed");
       }
@@ -117,19 +107,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
       setAccessToken(null);
       setRefreshToken(null);
-      setMustChangePassword(false);
 
       // Clear localStorage
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
-      localStorage.removeItem("mustChangePassword");
     }
-  };
-
-  const clearMustChangePassword = () => {
-    setMustChangePassword(false);
-    localStorage.removeItem("mustChangePassword");
   };
 
   const refreshUser = async () => {
@@ -152,10 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     user,
     accessToken,
     refreshToken,
-    mustChangePassword,
     login,
     logout,
-    clearMustChangePassword,
     refreshUser,
     isAuthenticated: !!user && !!accessToken,
     isLoading,
