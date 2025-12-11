@@ -12,7 +12,7 @@ import ProfileSettings from "./ProfileSettings.tsx";
 
 const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
   
   const [user, setUser] = useState<UserProfileType | null>(null);
   const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -82,6 +82,10 @@ const UserProfile: React.FC = () => {
       if (response.success) {
         showToast("Profile photo uploaded successfully", "success");
         await fetchUserData(); // Refresh data
+        // If uploading own photo, refresh user in AuthContext for sidebar update
+        if (currentUser?.userId === targetUserId) {
+          await refreshUser();
+        }
       }
     } catch (err) {
       console.error("Error uploading photo:", err);
@@ -95,6 +99,10 @@ const UserProfile: React.FC = () => {
       if (response.success) {
         showToast("Profile photo deleted successfully", "success");
         await fetchUserData(); // Refresh data
+        // If deleting own photo, refresh user in AuthContext for sidebar update
+        if (currentUser?.userId === targetUserId) {
+          await refreshUser();
+        }
       }
     } catch (err) {
       console.error("Error deleting photo:", err);
