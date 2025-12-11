@@ -139,7 +139,6 @@ export interface AuthResponse {
     refreshToken: string;
     accessTokenExpiry: Date;
     refreshTokenExpiry: Date;
-    mustChangePassword: boolean;
   };
 }
 

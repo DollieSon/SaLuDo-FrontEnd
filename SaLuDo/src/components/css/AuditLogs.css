@@ -352,6 +352,17 @@
   color: #6b7280;
 } */
 
+/* Clickable table rows */
+.table-wrapper tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table-wrapper tbody tr:hover {
+  background-color: #f0f9ff;
+  transform: scale(1.005);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 .event-label {
   font-weight: 600;
   color: #1f2937;

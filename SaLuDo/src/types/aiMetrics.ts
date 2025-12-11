@@ -1,9 +1,9 @@
-// AI Service Types - matches backend AIServiceType enum
+// AI Service Types - matches backend AIServiceType enum VALUES
 export type AIServiceType =
-  | "RESUME_PARSING"
-  | "JOB_ANALYSIS"
-  | "TRANSCRIPT_ANALYSIS"
-  | "PREDICTIVE_INSIGHTS";
+  | "resume_parsing"
+  | "job_analysis"
+  | "transcript_analysis"
+  | "predictive_insights";
 
 // Error Categories
 export type AIErrorCategory =
@@ -25,9 +25,10 @@ export type AIAlertType =
 
 // Token Usage
 export interface TokenUsage {
-  inputTokens: number;
-  outputTokens: number;
+  promptTokens: number;
+  completionTokens: number;
   totalTokens: number;
+  thoughtsTokens?: number;
 }
 
 // Cost Estimate
@@ -71,6 +72,7 @@ export interface AIFeedback {
 // Alert Entry
 export interface AIAlert {
   _id: string;
+  alertId: string;
   type: AIAlertType;
   severity: AlertSeverity;
   service: AIServiceType;
@@ -292,6 +294,7 @@ export interface LatencyStatsData {
   };
   byService: ServiceLatencyItem[];
   hourlyLatency: HourlyLatencyItem[];
+  perServiceTrends: Record<AIServiceType, Array<{ date: string; avgLatency: number }>>;
 }
 
 export interface ServiceLatencyItem {
@@ -349,10 +352,10 @@ export type DateRangeOption = "7d" | "30d" | "90d" | "1y";
 
 // Display Helpers
 export const SERVICE_DISPLAY_NAMES: Record<AIServiceType, string> = {
-  RESUME_PARSING: "Resume Parsing",
-  JOB_ANALYSIS: "Job Analysis",
-  TRANSCRIPT_ANALYSIS: "Transcript Analysis",
-  PREDICTIVE_INSIGHTS: "Predictive Insights",
+  resume_parsing: "Resume Parsing",
+  job_analysis: "Job Analysis",
+  transcript_analysis: "Transcript Analysis",
+  predictive_insights: "Predictive Insights",
 };
 
 export const ERROR_CATEGORY_NAMES: Record<AIErrorCategory, string> = {
@@ -369,3 +372,62 @@ export const ALERT_SEVERITY_COLORS: Record<AlertSeverity, string> = {
   WARNING: "#f59e0b",
   CRITICAL: "#ef4444",
 };
+
+// ============================================================================
+// AI CALL HISTORY TYPES
+// ============================================================================
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
+export interface CostEstimate {
+  inputCostUsd: number;
+  outputCostUsd: number;
+  totalCostUsd: number;
+}
+
+export interface AIMetricsEntry {
+  metricsId: string;
+  timestamp: string;
+  service: AIServiceType;
+  latencyMs: number;
+  tokenUsage: TokenUsage;
+  costEstimate: CostEstimate;
+  success: boolean;
+  errorCategory?: AIErrorCategory;
+  errorMessage?: string;
+  candidateId?: string;
+  jobId?: string;
+  userId?: string;
+  parseSuccess: boolean;
+  fallbackUsed: boolean;
+  outputLength: number;
+  retryCount: number;
+  inputLength: number;
+}
+
+export interface CallHistoryFilters {
+  page?: number;
+  limit?: number;
+  service?: AIServiceType;
+  success?: boolean;
+  candidateId?: string;
+  userId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface PaginationInfo {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface CallHistoryResponse {
+  entries: AIMetricsEntry[];
+  pagination: PaginationInfo;
+}
