@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { AIMetricsEntry, SERVICE_DISPLAY_NAMES, ERROR_CATEGORY_NAMES } from "../../types/aiMetrics";
+import { submitFeedback } from "../../utils/aiMetricsApi";
 import "../css/AIMetrics.css";
 
 interface AICallDetailsModalProps {
@@ -7,11 +9,46 @@ interface AICallDetailsModalProps {
 }
 
 const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }) => {
+  const [rating, setRating] = useState<number>(0);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+  const [feedbackText, setFeedbackText] = useState<string>("");
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
   const formatCurrency = (value: number | undefined): string => `$${(value ?? 0).toFixed(6)}`;
   const formatNumber = (value: number | undefined): string => (value ?? 0).toLocaleString();
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleString();
+  };
+
+  const handleRatingSubmit = async () => {
+    if (rating === 0) {
+      setError("Please select a rating");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await submitFeedback({
+        metricsEntryId: call.metricsId,
+        rating: rating as 1 | 2 | 3 | 4 | 5,
+        serviceType: call.service,
+        comments: feedbackText || undefined,
+        isAccurate: rating >= 4
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to submit feedback");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -89,6 +126,12 @@ const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }
                 <span className="detail-label">Completion Tokens:</span>
                 <span className="detail-value">{formatNumber(call.tokenUsage?.completionTokens)}</span>
               </div>
+              {call.tokenUsage?.thoughtsTokens !== undefined && call.tokenUsage.thoughtsTokens > 0 && (
+                <div className="detail-item">
+                  <span className="detail-label">Thoughts Tokens:</span>
+                  <span className="detail-value">{formatNumber(call.tokenUsage.thoughtsTokens)}</span>
+                </div>
+              )}
               <div className="detail-item">
                 <span className="detail-label">Total Tokens:</span>
                 <span className="detail-value">{formatNumber(call.tokenUsage?.totalTokens)}</span>
@@ -192,6 +235,64 @@ const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }
               </div>
             </div>
           )}
+
+          {/* Rating Section */}
+          <div className="detail-section rating-section">
+            <h3>Rate AI Output Quality</h3>
+            {!submitted ? (
+              <>
+                <div className="rating-stars">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={`star-btn ${
+                        (hoverRating || rating) >= star ? "filled" : ""
+                      }`}
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      disabled={submitting}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="rating-label">
+                    {rating > 0 && (
+                      <>
+                        {rating === 1 && "Very Poor"}
+                        {rating === 2 && "Poor"}
+                        {rating === 3 && "Neutral"}
+                        {rating === 4 && "Good"}
+                        {rating === 5 && "Excellent"}
+                      </>
+                    )}
+                  </span>
+                </div>
+                <div className="feedback-input">
+                  <textarea
+                    placeholder="Optional: Share your feedback about this AI output..."
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    disabled={submitting}
+                    rows={3}
+                  />
+                </div>
+                {error && <div className="error-message">{error}</div>}
+                <button
+                  className="btn-primary"
+                  onClick={handleRatingSubmit}
+                  disabled={submitting || rating === 0}
+                >
+                  {submitting ? "Submitting..." : "Submit Feedback"}
+                </button>
+              </>
+            ) : (
+              <div className="success-message">
+                ✓ Thank you for your feedback!
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="modal-footer">

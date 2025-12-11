@@ -15,10 +15,10 @@ interface ServiceLatencyChartProps {
 }
 
 const SERVICE_COLORS: Record<AIServiceType, string> = {
-  RESUME_PARSING: "#3b82f6",
-  JOB_ANALYSIS: "#10b981",
-  TRANSCRIPT_ANALYSIS: "#f59e0b",
-  PREDICTIVE_INSIGHTS: "#ef4444",
+  resume_parsing: "#8b5cf6",    // Purple
+  job_analysis: "#10b981",      // Green
+  transcript_analysis: "#f59e0b", // Orange
+  predictive_insights: "#ef4444", // Red
 };
 
 const ServiceLatencyChart: React.FC<ServiceLatencyChartProps> = ({ perServiceTrends }) => {
@@ -62,10 +62,19 @@ const ServiceLatencyChart: React.FC<ServiceLatencyChartProps> = ({ perServiceTre
           label={{ value: "Latency (ms)", angle: -90, position: "insideLeft" }}
         />
         <Tooltip
-          formatter={(value: number) => [`${value.toFixed(0)}ms`, ""]}
+          formatter={(value: number, name: string) => [
+            `${value.toFixed(0)}ms`, 
+            SERVICE_DISPLAY_NAMES[name as AIServiceType] || name
+          ]}
           labelFormatter={(label) => {
             const date = new Date(label);
             return date.toLocaleDateString();
+          }}
+          contentStyle={{
+            backgroundColor: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           }}
         />
         <Legend
@@ -80,6 +89,7 @@ const ServiceLatencyChart: React.FC<ServiceLatencyChartProps> = ({ perServiceTre
             name={service}
             strokeWidth={2}
             dot={false}
+            activeDot={{ r: 4 }}
             connectNulls
           />
         ))}

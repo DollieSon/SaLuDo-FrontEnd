@@ -262,10 +262,11 @@ export const fetchFeedbackStats = async (
 
 // Submit Feedback
 export interface SubmitFeedbackParams {
-  metricsId: string;
+  metricsEntryId: string;
   rating: 1 | 2 | 3 | 4 | 5;
-  feedbackType: "ACCURATE" | "INACCURATE" | "INCOMPLETE" | "IRRELEVANT" | "OTHER";
-  comment?: string;
+  serviceType: AIServiceType;
+  comments?: string;
+  isAccurate?: boolean;
 }
 
 export const submitFeedback = async (
@@ -338,10 +339,10 @@ export const fetchDashboardWithTrends = async (
  */
 export const fetchSeasonalityAnalysis = async (
   dateRange: DateRangeOption = "30d",
-  service?: AIServiceType
+  service?: AIServiceType | ""
 ): Promise<SeasonalityAnalysisData> => {
   const days = dateRangeToDays(dateRange);
-  const serviceParam = service ? `&service=${service}` : "";
+  const serviceParam = (typeof service === "string" && service !== "") ? `&service=${service}` : "";
   const response = await apiClient.get<{
     success: boolean;
     data: SeasonalityAnalysisData;

@@ -13,7 +13,6 @@ import {
   fetchLatencyStats,
   fetchActiveAlerts,
   acknowledgeAlert,
-  exportToCsv,
 } from "../utils/aiMetricsApi";
 import type {
   DashboardData,
@@ -99,20 +98,7 @@ const AIMetricsDashboard = () => {
     }
   };
 
-  // Export functionality
-  const handleExport = () => {
-    if (!dashboard) return;
 
-    const exportData = dashboard.byService.map((service) => ({
-      service: SERVICE_DISPLAY_NAMES[service.service],
-      totalCalls: service.calls,
-      successRate: `${service.successRate.toFixed(1)}%`,
-      avgLatencyMs: service.avgLatencyMs.toFixed(0),
-      totalCost: `$${service.totalCost.toFixed(4)}`,
-    }));
-
-    exportToCsv(exportData, "ai_metrics_report");
-  };
 
   // Format helpers
   const formatPercent = (value: number | undefined): string => 
@@ -171,9 +157,6 @@ const AIMetricsDashboard = () => {
             disabled={loading}
           >
             {loading ? "Refreshing..." : "Refresh"}
-          </button>
-          <button className="export-btn" onClick={handleExport}>
-            Export CSV
           </button>
         </div>
       </div>
@@ -373,7 +356,7 @@ const AIMetricsDashboard = () => {
           {/* Per-Service Latency Chart */}
           <div className="chart-section">
             <h3>Latency Over Time (By Service)</h3>
-            <div className="chart-container">
+            <div className="chart-container" style={{ height: "auto" }}>
               <ServiceLatencyChart perServiceTrends={latencyData.perServiceTrends} />
             </div>
           </div>

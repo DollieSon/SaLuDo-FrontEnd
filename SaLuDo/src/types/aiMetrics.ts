@@ -1,9 +1,9 @@
-// AI Service Types - matches backend AIServiceType enum
+// AI Service Types - matches backend AIServiceType enum VALUES
 export type AIServiceType =
-  | "RESUME_PARSING"
-  | "JOB_ANALYSIS"
-  | "TRANSCRIPT_ANALYSIS"
-  | "PREDICTIVE_INSIGHTS";
+  | "resume_parsing"
+  | "job_analysis"
+  | "transcript_analysis"
+  | "predictive_insights";
 
 // Error Categories
 export type AIErrorCategory =
@@ -28,6 +28,7 @@ export interface TokenUsage {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  thoughtsTokens?: number;
 }
 
 // Cost Estimate
@@ -351,10 +352,10 @@ export type DateRangeOption = "7d" | "30d" | "90d" | "1y";
 
 // Display Helpers
 export const SERVICE_DISPLAY_NAMES: Record<AIServiceType, string> = {
-  RESUME_PARSING: "Resume Parsing",
-  JOB_ANALYSIS: "Job Analysis",
-  TRANSCRIPT_ANALYSIS: "Transcript Analysis",
-  PREDICTIVE_INSIGHTS: "Predictive Insights",
+  resume_parsing: "Resume Parsing",
+  job_analysis: "Job Analysis",
+  transcript_analysis: "Transcript Analysis",
+  predictive_insights: "Predictive Insights",
 };
 
 export const ERROR_CATEGORY_NAMES: Record<AIErrorCategory, string> = {
