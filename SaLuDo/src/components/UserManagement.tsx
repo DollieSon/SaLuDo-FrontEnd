@@ -193,7 +193,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th style={{width: "15%", minWidth: "150px"}}>Name</th>
               <th>Email</th>
               <th>Title</th>
               <th>Role</th>

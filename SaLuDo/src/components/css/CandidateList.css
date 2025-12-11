@@ -292,6 +292,9 @@ table {
 thead {
   background: linear-gradient(135deg, #1e2a3d 0%, #24344a 100%);
   border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0; /* Sticks the header to the top of its scroll container */
+  z-index: 1;
 }
 
 thead th {
@@ -333,7 +336,6 @@ tbody td:first-child::before {
   transform-origin: top;
   transition: transform 0.28s ease;
   pointer-events: none;
-  z-index: 2;
 }
 
 tbody tr:hover td:not(:first-child) {
@@ -1108,4 +1110,273 @@ tbody tr td[style*="color: #6b7280"] {
 .highlight-card {
   border: 2px solid #4f46e5;
   background: #f9fafb;
+}
+
+/* Add this CSS to your CandidateList.css */
+
+/* Skills cell with tooltip */
+.skills-cell {
+  position: relative;
+  display: inline-block;
+}
+
+.skills-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.missing-skills-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.missing-skills-indicator:hover {
+  background: #fbbf24;
+  transform: scale(1.1);
+}
+
+/* Tooltip */
+.missing-skills-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: #1f2937;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  white-space: normal;
+}
+
+/* Tooltip arrow */
+.missing-skills-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+}
+
+/* Show tooltip on hover */
+.skills-cell:hover .missing-skills-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+/* Alternative: Tooltip on right side for better positioning */
+.missing-skills-tooltip.tooltip-right {
+  bottom: auto;
+  left: 100%;
+  top: 50%;
+  transform: translateX(8px) translateY(-50%);
+}
+
+.missing-skills-tooltip.tooltip-right::after {
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%) rotate(90deg);
+  border-top-color: #1f2937;
+}
+
+.skills-cell:hover .missing-skills-tooltip.tooltip-right {
+  transform: translateX(12px) translateY(-50%);
+}
+
+/* Missing skills list inside tooltip */
+.missing-skills-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 2;
+}
+
+.missing-skills-list li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.missing-skills-list li:last-child {
+  border-bottom: none;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #fbbf24;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Mobile: Show tooltip on tap */
+@media (max-width: 768px) {
+  .missing-skills-tooltip {
+    position: fixed;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 90vw;
+    white-space: normal;
+  }
+
+  .skills-cell:active .missing-skills-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+}/* Add this CSS to your CandidateList.css */
+
+/* Skills cell with tooltip */
+.skills-cell {
+  position: relative;
+  display: inline-block;
+}
+
+.skills-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.missing-skills-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.missing-skills-indicator:hover {
+  background: #fbbf24;
+  transform: scale(1.1);
+}
+
+/* Tooltip */
+.missing-skills-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: #1f2937;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  white-space: normal;
+}
+
+/* Tooltip arrow */
+.missing-skills-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1f2937;
+}
+
+/* Show tooltip on hover */
+.skills-cell:hover .missing-skills-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+/* Alternative: Tooltip on right side for better positioning */
+.missing-skills-tooltip.tooltip-right {
+  bottom: auto;
+  left: 100%;
+  top: 50%;
+  transform: translateX(8px) translateY(-50%);
+}
+
+.missing-skills-tooltip.tooltip-right::after {
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%) rotate(90deg);
+  border-top-color: #1f2937;
+}
+
+.skills-cell:hover .missing-skills-tooltip.tooltip-right {
+  transform: translateX(12px) translateY(-50%);
+}
+
+/* Missing skills list inside tooltip */
+.missing-skills-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.missing-skills-list li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.missing-skills-list li:last-child {
+  border-bottom: none;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #fbbf24;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Mobile: Show tooltip on tap */
+@media (max-width: 768px) {
+  .missing-skills-tooltip {
+    position: fixed;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 90vw;
+    white-space: normal;
+  }
+
+  .skills-cell:active .missing-skills-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
 }
