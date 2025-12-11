@@ -7,8 +7,8 @@ interface AICallDetailsModalProps {
 }
 
 const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }) => {
-  const formatCurrency = (value: number): string => `$${value.toFixed(6)}`;
-  const formatNumber = (value: number): string => value.toLocaleString();
+  const formatCurrency = (value: number | undefined): string => `$${(value ?? 0).toFixed(6)}`;
+  const formatNumber = (value: number | undefined): string => (value ?? 0).toLocaleString();
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleString();
@@ -82,26 +82,26 @@ const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }
             <h3>Token Usage</h3>
             <div className="detail-grid">
               <div className="detail-item">
-                <span className="detail-label">Input Tokens:</span>
-                <span className="detail-value">{formatNumber(call.tokenUsage.inputTokens)}</span>
+                <span className="detail-label">Prompt Tokens:</span>
+                <span className="detail-value">{formatNumber(call.tokenUsage?.promptTokens)}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Output Tokens:</span>
-                <span className="detail-value">{formatNumber(call.tokenUsage.outputTokens)}</span>
+                <span className="detail-label">Completion Tokens:</span>
+                <span className="detail-value">{formatNumber(call.tokenUsage?.completionTokens)}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Total Tokens:</span>
-                <span className="detail-value">{formatNumber(call.tokenUsage.totalTokens)}</span>
+                <span className="detail-value">{formatNumber(call.tokenUsage?.totalTokens)}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Input/Output Ratio:</span>
+                <span className="detail-label">Prompt/Completion Ratio:</span>
                 <span className="detail-value">
-                  {call.tokenUsage.totalTokens > 0
-                    ? ((call.tokenUsage.inputTokens / call.tokenUsage.totalTokens) * 100).toFixed(1)
+                  {(call.tokenUsage?.totalTokens ?? 0) > 0
+                    ? (((call.tokenUsage?.promptTokens ?? 0) / (call.tokenUsage?.totalTokens ?? 1)) * 100).toFixed(1)
                     : 0}
                   % / 
-                  {call.tokenUsage.totalTokens > 0
-                    ? ((call.tokenUsage.outputTokens / call.tokenUsage.totalTokens) * 100).toFixed(1)
+                  {(call.tokenUsage?.totalTokens ?? 0) > 0
+                    ? (((call.tokenUsage?.completionTokens ?? 0) / (call.tokenUsage?.totalTokens ?? 1)) * 100).toFixed(1)
                     : 0}
                   %
                 </span>
@@ -115,15 +115,15 @@ const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }
             <div className="detail-grid">
               <div className="detail-item">
                 <span className="detail-label">Input Cost:</span>
-                <span className="detail-value">{formatCurrency(call.costEstimate.inputCostUsd)}</span>
+                <span className="detail-value">{formatCurrency(call.costEstimate?.inputCostUsd)}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Output Cost:</span>
-                <span className="detail-value">{formatCurrency(call.costEstimate.outputCostUsd)}</span>
+                <span className="detail-value">{formatCurrency(call.costEstimate?.outputCostUsd)}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Total Cost:</span>
-                <span className="detail-value">{formatCurrency(call.costEstimate.totalCostUsd)}</span>
+                <span className="detail-value">{formatCurrency(call.costEstimate?.totalCostUsd)}</span>
               </div>
             </div>
           </div>

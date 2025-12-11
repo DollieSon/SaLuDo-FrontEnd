@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./css/AIMetrics.css";
 import {
-  CostTrendChart,
   LatencyChart,
   TrendsView,
   SeasonalityView,
@@ -11,7 +10,6 @@ import {
 } from "./aiMetrics";
 import {
   fetchDashboardData,
-  fetchCostAnalysis,
   fetchLatencyStats,
   fetchActiveAlerts,
   acknowledgeAlert,
@@ -19,14 +17,13 @@ import {
 } from "../utils/aiMetricsApi";
 import type {
   DashboardData,
-  CostAnalysisData,
   LatencyStatsData,
   AIAlert,
   DateRangeOption,
 } from "../types/aiMetrics";
 import { SERVICE_DISPLAY_NAMES, ERROR_CATEGORY_NAMES } from "../types/aiMetrics";
 
-type TabType = "overview" | "costs" | "performance" | "trends" | "seasonality" | "quality" | "history";
+type TabType = "overview" | "performance" | "trends" | "seasonality" | "quality" | "history";
 
 const AIMetricsDashboard = () => {
   // State
@@ -37,7 +34,6 @@ const AIMetricsDashboard = () => {
 
   // Data states
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [costData, setCostData] = useState<CostAnalysisData | null>(null);
   const [latencyData, setLatencyData] = useState<LatencyStatsData | null>(null);
   const [alerts, setAlerts] = useState<AIAlert[]>([]);
 
@@ -51,16 +47,14 @@ const AIMetricsDashboard = () => {
     setError(null);
 
     try {
-      const [dashboardRes, costRes, latencyRes, alertsRes] =
+      const [dashboardRes, latencyRes, alertsRes] =
         await Promise.all([
           fetchDashboardData(dateRange),
-          fetchCostAnalysis(dateRange),
           fetchLatencyStats(dateRange),
           fetchActiveAlerts(),
         ]);
 
       setDashboard(dashboardRes);
-      setCostData(costRes);
       setLatencyData(latencyRes);
       setAlerts(alertsRes);
       setLastRefresh(new Date());
@@ -121,8 +115,6 @@ const AIMetricsDashboard = () => {
   };
 
   // Format helpers
-  const formatCurrency = (value: number | undefined): string => 
-    `$${(value ?? 0).toFixed(4)}`;
   const formatPercent = (value: number | undefined): string => 
     `${(value ?? 0).toFixed(1)}%`;
   const formatNumber = (value: number | undefined): string => 
@@ -203,12 +195,6 @@ const AIMetricsDashboard = () => {
           Overview
         </button>
         <button
-          className={`metrics-tab ${activeTab === "costs" ? "active" : ""}`}
-          onClick={() => setActiveTab("costs")}
-        >
-          Costs
-        </button>
-        <button
           className={`metrics-tab ${activeTab === "performance" ? "active" : ""}`}
           onClick={() => setActiveTab("performance")}
         >
@@ -269,11 +255,6 @@ const AIMetricsDashboard = () => {
               <span className="subtext">Input + Output</span>
             </div>
             <div className="metric-card">
-              <p className="label">Total Cost</p>
-              <p className="value">{formatCurrency(overview.totalCost)}</p>
-              <span className="subtext">Estimated spend</span>
-            </div>
-            <div className="metric-card">
               <p className="label">Avg Latency</p>
               <p className="value">{formatLatency(overview.avgLatencyMs)}</p>
               <span className="subtext">Response time</span>
@@ -293,7 +274,6 @@ const AIMetricsDashboard = () => {
                   <th>Calls</th>
                   <th>Success Rate</th>
                   <th>Avg Latency</th>
-                  <th>Total Cost</th>
                 </tr>
               </thead>
               <tbody>
@@ -313,7 +293,6 @@ const AIMetricsDashboard = () => {
                       </span>
                     </td>
                     <td>{formatLatency(service.avgLatencyMs)}</td>
-                    <td>{formatCurrency(service.totalCost)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -345,43 +324,6 @@ const AIMetricsDashboard = () => {
               </div>
             </div>
           )}
-        </>
-      )}
-
-      {/* Costs Tab */}
-      {activeTab === "costs" && costData && (
-        <>
-          {/* Cost Summary Cards */}
-          <div className="cost-breakdown">
-            <div className="cost-card">
-              <p className="label">Total Cost</p>
-              <p className="value">{formatCurrency(costData.summary.totalCost)}</p>
-              <div className="breakdown">
-                <span>Input: {formatCurrency(costData.summary.totalInputCost)}</span>
-                <span>Output: {formatCurrency(costData.summary.totalOutputCost)}</span>
-              </div>
-            </div>
-            <div className="cost-card">
-              <p className="label">Daily Average</p>
-              <p className="value">{formatCurrency(costData.summary.avgDailyCost)}</p>
-              <span className="subtext">Per day in period</span>
-            </div>
-            <div className="cost-card">
-              <p className="label">Projected Monthly</p>
-              <p className="value">
-                {formatCurrency(costData.summary.projectedMonthlyCost)}
-              </p>
-              <span className="subtext">Based on current usage</span>
-            </div>
-          </div>
-
-          {/* Cost Trend Chart */}
-          <div className="chart-section">
-            <h3>Cost Trend</h3>
-            <div className="chart-container">
-              <CostTrendChart data={costData.dailyCosts} />
-            </div>
-          </div>
         </>
       )}
 

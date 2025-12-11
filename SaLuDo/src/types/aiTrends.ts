@@ -13,7 +13,7 @@ import type { AIServiceType } from './aiMetrics';
 export type TrendDirection = "improving" | "degrading" | "stable";
 
 // Comparison Type
-export type ComparisonType = "previous" | "year_ago";
+export type ComparisonType = "previous" | "year_ago" | "custom";
 
 // Quality Band
 export type QualityBand = "Excellent" | "Good" | "Fair" | "Poor";

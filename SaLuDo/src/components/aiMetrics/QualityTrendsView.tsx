@@ -14,7 +14,7 @@ export const QualityTrendsView = ({ dateRange }: QualityTrendsViewProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<QualityTrendsData | null>(null);
-  const [selectedService, setSelectedService] = useState<AIServiceType | undefined>(undefined);
+  const [selectedService, setSelectedService] = useState<AIServiceType | undefined | "">("");
 
   useEffect(() => {
     loadQualityTrends();
@@ -68,7 +68,7 @@ export const QualityTrendsView = ({ dateRange }: QualityTrendsViewProps) => {
           Service Filter
           <select
             value={selectedService || "all"}
-            onChange={(e) => setSelectedService(e.target.value === "all" ? undefined : (e.target.value as AIServiceType))}
+            onChange={(e) => setSelectedService(e.target.value === "all" ? "" : (e.target.value as AIServiceType))}
             style={{ padding: "0.5rem 0.75rem", borderRadius: "10px", border: "1px solid #d1d5db", fontSize: "0.9rem", background: "#fff" }}
           >
             <option value="all">All Services</option>

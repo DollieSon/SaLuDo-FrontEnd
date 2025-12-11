@@ -20,10 +20,9 @@ const formatLatency = (value: number): string => {
 
 const formatHour = (hourStr: string): string => {
   const date = new Date(hourStr);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    hour12: true,
-  });
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${month}/${day}`;
 };
 
 export const LatencyChart = ({ data }: LatencyChartProps) => {

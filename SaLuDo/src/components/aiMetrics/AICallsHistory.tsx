@@ -86,7 +86,6 @@ const AICallsHistory: React.FC<AICallsHistoryProps> = ({ dateRange }) => {
     setCurrentPage(newPage);
   };
 
-  const formatCurrency = (value: number): string => `$${value.toFixed(6)}`;
   const formatNumber = (value: number): string => value.toLocaleString();
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
@@ -157,7 +156,6 @@ const AICallsHistory: React.FC<AICallsHistoryProps> = ({ dateRange }) => {
               <th>Status</th>
               <th>Latency</th>
               <th>Tokens</th>
-              <th>Cost</th>
               <th>Retries</th>
             </tr>
           </thead>
@@ -169,15 +167,14 @@ const AICallsHistory: React.FC<AICallsHistoryProps> = ({ dateRange }) => {
                 className={`call-row ${!call.success ? "failed" : ""}`}
               >
                 <td>{formatDate(call.timestamp)}</td>
-                <td>{SERVICE_DISPLAY_NAMES[call.service]}</td>
+                <td>{SERVICE_DISPLAY_NAMES[call.service] || call.service || "Unknown Service"}</td>
                 <td>
                   <span className={`status-badge ${call.success ? "success" : "failed"}`}>
                     {call.success ? "Success" : "Failed"}
                   </span>
                 </td>
                 <td>{call.latencyMs.toFixed(0)}ms</td>
-                <td>{formatNumber(call.tokenUsage.totalTokens)}</td>
-                <td>{formatCurrency(call.costEstimate.totalCostUsd)}</td>
+                <td>{formatNumber(call.tokenUsage?.totalTokens ?? 0)}</td>
                 <td>{call.retryCount > 0 ? call.retryCount : "-"}</td>
               </tr>
             ))}

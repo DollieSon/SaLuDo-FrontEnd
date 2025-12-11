@@ -185,6 +185,7 @@
 .chart-container {
   width: 100%;
   height: 300px;
+  overflow: hidden;
 }
 
 /* Service Breakdown Table */
@@ -780,6 +781,7 @@
 .call-history-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .call-history-table thead {
@@ -800,6 +802,9 @@
   font-size: 0.875rem;
   color: #111827;
   border-bottom: 1px solid #f3f4f6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .call-row {
@@ -875,4 +880,35 @@
   text-align: center;
   padding: 3rem 1rem;
   color: #6b7280;
+}
+
+/* Call History Table Column Widths */
+.call-history-table th:nth-child(1),
+.call-history-table td:nth-child(1) {
+  width: 180px; /* Timestamp */
+}
+
+.call-history-table th:nth-child(2),
+.call-history-table td:nth-child(2) {
+  width: 120px; /* Service Name */
+}
+
+.call-history-table th:nth-child(3),
+.call-history-table td:nth-child(3) {
+  width: 100px; /* Status */
+}
+
+.call-history-table th:nth-child(4),
+.call-history-table td:nth-child(4) {
+  width: 90px; /* Latency */
+}
+
+.call-history-table th:nth-child(5),
+.call-history-table td:nth-child(5) {
+  width: 100px; /* Tokens */
+}
+
+.call-history-table th:nth-child(6),
+.call-history-table td:nth-child(6) {
+  width: 80px; /* Retries */
 }

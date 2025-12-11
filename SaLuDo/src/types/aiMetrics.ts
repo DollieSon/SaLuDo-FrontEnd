@@ -25,8 +25,8 @@ export type AIAlertType =
 
 // Token Usage
 export interface TokenUsage {
-  inputTokens: number;
-  outputTokens: number;
+  promptTokens: number;
+  completionTokens: number;
   totalTokens: number;
 }
 
