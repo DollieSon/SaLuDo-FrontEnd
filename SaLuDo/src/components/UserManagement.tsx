@@ -245,7 +245,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                     : "No logins yet"}
                 </td>
                 <td>
-                  <div className="actions-buttons">
+                  <div className="action-buttons">
                     <button
                       className={`action-btn edit ${
                         user.isActive ? "btn-deactivate" : "btn-activate"
