@@ -254,6 +254,28 @@
   transform: scale(1.1);
 }
 
+.btn-reset-password {
+  background: #3b82f6;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-reset-password:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+.btn-force-change {
+  background: #f59e0b;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-force-change:hover {
+  background: #d97706;
+  transform: scale(1.1);
+}
+
 /* Pagination */
 .pagination {
   display: flex;

@@ -762,7 +762,7 @@ export const usersApi = {
     return response.json();
   },
 
-  // Reset user password (Admin only)
+  // Reset user password (Admin only) - LEGACY
   resetUserPassword: async (
     accessToken: string,
     userId: string,
@@ -777,6 +777,48 @@ export const usersApi = {
       body: JSON.stringify({ newPassword }),
     });
     if (!response.ok) throw new Error("Failed to reset password");
+    return response.json();
+  },
+
+  // Admin reset user password with email (Admin only)
+  adminResetPassword: async (
+    accessToken: string,
+    userId: string,
+    reason?: string
+  ) => {
+    const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to reset password");
+    }
+    return response.json();
+  },
+
+  // Admin force password change (Admin only)
+  forcePasswordChange: async (
+    accessToken: string,
+    userId: string,
+    reason?: string
+  ) => {
+    const response = await fetch(`${apiUrl}users/${userId}/force-change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to force password change");
+    }
     return response.json();
   },
 
