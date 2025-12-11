@@ -5,6 +5,9 @@ import {
   LatencyChart,
   TokenUsageChart,
   ServiceComparisonChart,
+  TrendsView,
+  SeasonalityView,
+  QualityTrendsView,
 } from "./aiMetrics";
 import {
   fetchDashboardData,
@@ -25,7 +28,7 @@ import type {
 } from "../types/aiMetrics";
 import { SERVICE_DISPLAY_NAMES, ERROR_CATEGORY_NAMES } from "../types/aiMetrics";
 
-type TabType = "overview" | "costs" | "performance";
+type TabType = "overview" | "costs" | "performance" | "trends" | "seasonality" | "quality";
 
 const AIMetricsDashboard = () => {
   // State
@@ -213,6 +216,24 @@ const AIMetricsDashboard = () => {
           onClick={() => setActiveTab("performance")}
         >
           Performance
+        </button>
+        <button
+          className={`metrics-tab ${activeTab === "trends" ? "active" : ""}`}
+          onClick={() => setActiveTab("trends")}
+        >
+          Trends
+        </button>
+        <button
+          className={`metrics-tab ${activeTab === "seasonality" ? "active" : ""}`}
+          onClick={() => setActiveTab("seasonality")}
+        >
+          Seasonality
+        </button>
+        <button
+          className={`metrics-tab ${activeTab === "quality" ? "active" : ""}`}
+          onClick={() => setActiveTab("quality")}
+        >
+          Quality
         </button>
       </div>
 
@@ -470,6 +491,21 @@ const AIMetricsDashboard = () => {
             </table>
           </div>
         </>
+      )}
+
+      {/* Trends Tab */}
+      {activeTab === "trends" && (
+        <TrendsView dateRange={dateRange} />
+      )}
+
+      {/* Seasonality Tab */}
+      {activeTab === "seasonality" && (
+        <SeasonalityView dateRange={dateRange} />
+      )}
+
+      {/* Quality Tab */}
+      {activeTab === "quality" && (
+        <QualityTrendsView dateRange={dateRange} />
       )}
 
       {/* Alerts Section */}

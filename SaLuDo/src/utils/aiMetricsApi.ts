@@ -13,6 +13,12 @@ import type {
   AIServiceType,
   DateRangeOption,
 } from "../types/aiMetrics";
+import type {
+  DashboardWithTrendsResponse,
+  ComparisonType,
+  SeasonalityAnalysisData,
+  QualityTrendsData,
+} from "../types/aiTrends";
 
 // Helper to convert date range to days
 const dateRangeToDays = (range: DateRangeOption): number => {
@@ -292,6 +298,57 @@ export const updateAlertConfig = async (
     "/ai-metrics/alerts/config",
     config
   );
+  return response.data.data;
+};
+
+// ============================================================================
+// TREND ANALYSIS ENDPOINTS
+// ============================================================================
+
+/**
+ * Fetch dashboard data with trend comparison
+ */
+export const fetchDashboardWithTrends = async (
+  dateRange: DateRangeOption = "30d",
+  comparisonType: ComparisonType = "previous"
+): Promise<DashboardWithTrendsResponse> => {
+  const days = dateRangeToDays(dateRange);
+  const response = await apiClient.get<{
+    success: boolean;
+    data: DashboardWithTrendsResponse;
+  }>(`/ai-metrics/dashboard?range=${days}d&compare=${comparisonType}`);
+  return response.data.data;
+};
+
+/**
+ * Fetch seasonality analysis (day-of-week patterns)
+ */
+export const fetchSeasonalityAnalysis = async (
+  dateRange: DateRangeOption = "30d",
+  service?: AIServiceType
+): Promise<SeasonalityAnalysisData> => {
+  const days = dateRangeToDays(dateRange);
+  const serviceParam = service ? `&service=${service}` : "";
+  const response = await apiClient.get<{
+    success: boolean;
+    data: SeasonalityAnalysisData;
+  }>(`/ai-metrics/trends/seasonality?range=${days}d${serviceParam}`);
+  return response.data.data;
+};
+
+/**
+ * Fetch quality trends based on edit behavior
+ */
+export const fetchQualityTrends = async (
+  dateRange: DateRangeOption = "30d",
+  service?: AIServiceType
+): Promise<QualityTrendsData> => {
+  const days = dateRangeToDays(dateRange);
+  const serviceParam = service ? `&service=${service}` : "";
+  const response = await apiClient.get<{
+    success: boolean;
+    data: QualityTrendsData;
+  }>(`/ai-metrics/trends/quality?range=${days}d${serviceParam}`);
   return response.data.data;
 };
 
