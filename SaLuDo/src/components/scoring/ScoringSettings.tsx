@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { scoringSettingsApi } from '../../utils/scoringApi';
+import { jobsApi } from '../../utils/api';
 import {
   ScoringPreferences,
   ScoringWeights,
@@ -16,6 +17,12 @@ import {
   validatePersonalityCategoryWeights,
 } from '../../types/scoring';
 import '../css/PredictiveScore.css';
+
+interface JobInfo {
+  jobId: string;
+  title: string;
+  hasCustomSettings: boolean;
+}
 
 interface ScoringSettingsProps {
   jobId?: string;  // If provided, edit job-specific settings
@@ -33,6 +40,8 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
 }) => {
   // State
   const [settings, setSettings] = useState<ScoringPreferences | null>(null);
+  const [jobs, setJobs] = useState<JobInfo[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -42,17 +51,52 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
   const [weightsError, setWeightsError] = useState<string | null>(null);
   const [personalityWeightsError, setPersonalityWeightsError] = useState<string | null>(null);
 
-  // Load settings
+  // Load settings and jobs
   const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const result = jobId
-        ? await scoringSettingsApi.getJobSettings(jobId)
-        : await scoringSettingsApi.getGlobalSettings();
+      
+      if (jobId) {
+        // Old behavior: just load specific job settings
+        const result = await scoringSettingsApi.getJobSettings(jobId);
+        if (result.success && result.data) {
+          setSettings(result.data);
+          setIsJobSpecific('isJobSpecific' in result ? (result as { isJobSpecific: boolean }).isJobSpecific : false);
+        }
+      } else {
+        // New behavior: load global settings + all jobs
+        const [globalResult, jobsResult] = await Promise.all([
+          scoringSettingsApi.getGlobalSettings(),
+          jobsApi.getAllJobs()
+        ]);
 
-      if (result.success && result.data) {
-        setSettings(result.data);
-        setIsJobSpecific('isJobSpecific' in result ? (result as { isJobSpecific: boolean }).isJobSpecific : false);
+        if (globalResult.success && globalResult.data) {
+          setSettings(globalResult.data);
+        }
+
+        // jobsApi returns { success, data } structure
+        if (jobsResult?.success && jobsResult.data && Array.isArray(jobsResult.data)) {
+          const jobsList = jobsResult.data.map((job: any) => ({
+            jobId: job._id,
+            title: job.jobName,
+            hasCustomSettings: false
+          }));
+          setJobs(jobsList);
+          
+          // Check which jobs have custom settings
+          for (const job of jobsList) {
+            try {
+              const jobResult = await scoringSettingsApi.getJobSettings(job.jobId);
+              if (jobResult.success && jobResult.isJobSpecific) {
+                setJobs(prev => prev.map(j => 
+                  j.jobId === job.jobId ? { ...j, hasCustomSettings: true } : j
+                ));
+              }
+            } catch (error) {
+              // Job doesn't have custom settings, ignore
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -143,6 +187,35 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
     });
   };
 
+  // Select job from sidebar
+  const selectJob = async (jobIdToSelect: string | null) => {
+    setSelectedJobId(jobIdToSelect);
+    setLoading(true);
+    
+    try {
+      if (jobIdToSelect === null) {
+        // Load global settings
+        const result = await scoringSettingsApi.getGlobalSettings();
+        if (result.success && result.data) {
+          setSettings(result.data);
+          setIsJobSpecific(false);
+        }
+      } else {
+        // Load job-specific settings
+        const result = await scoringSettingsApi.getJobSettings(jobIdToSelect);
+        if (result.success && result.data) {
+          setSettings(result.data);
+          setIsJobSpecific(result.isJobSpecific || false);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      setToast({ message: 'Failed to load settings', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Save settings
   const handleSave = async () => {
     if (!settings) return;
@@ -170,12 +243,21 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
         isActive: settings.isActive,
       };
 
-      const result = jobId
-        ? await scoringSettingsApi.setJobSettings(jobId, updateData)
+      const targetJobId = jobId || selectedJobId;
+      const result = targetJobId
+        ? await scoringSettingsApi.setJobSettings(targetJobId, updateData)
         : await scoringSettingsApi.updateGlobalSettings(updateData);
 
       if (result.success) {
         setToast({ message: 'Settings saved successfully', type: 'success' });
+        
+        // Update hasCustomSettings flag if saving for a job
+        if (selectedJobId) {
+          setJobs(prev => prev.map(j => 
+            j.jobId === selectedJobId ? { ...j, hasCustomSettings: true } : j
+          ));
+        }
+        
         if (onSave) onSave();
       }
     } catch (error) {
@@ -190,12 +272,28 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
   const handleReset = async () => {
     if (!settings) return;
 
-    if (jobId) {
+    const targetJobId = jobId || selectedJobId;
+    
+    if (targetJobId) {
       // For job-specific, delete the override
+      const jobTitle = jobs.find(j => j.jobId === targetJobId)?.title;
+      
+      if (!window.confirm(`Revert "${jobTitle || 'this job'}" to global settings?`)) return;
+      
       try {
         setSaving(true);
-        await scoringSettingsApi.deleteJobSettings(jobId);
-        await fetchSettings();
+        await scoringSettingsApi.deleteJobSettings(targetJobId);
+        
+        // Update hasCustomSettings flag
+        if (selectedJobId) {
+          setJobs(prev => prev.map(j => 
+            j.jobId === selectedJobId ? { ...j, hasCustomSettings: false } : j
+          ));
+          await selectJob(selectedJobId);
+        } else {
+          await fetchSettings();
+        }
+        
         setToast({ message: 'Reverted to global settings', type: 'success' });
       } catch (error) {
         setToast({ message: 'Failed to reset settings', type: 'error' });
@@ -255,24 +353,69 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
   }
 
   return (
-    <div className="scoring-settings">
+    <div className="scoring-settings-container">
       {toast && (
         <div className={`settings-toast ${toast.type}`}>
           {toast.message}
         </div>
       )}
 
-      {/* Header */}
-      <div className="scoring-settings-header">
-        <h2>{jobId ? 'Job-Specific Scoring Settings' : 'Global Scoring Settings'}</h2>
-        <p>
-          {jobId
-            ? isJobSpecific
-              ? 'These settings override the global defaults for this job.'
-              : 'Using global defaults. Make changes to create job-specific overrides.'
-            : 'Configure how candidate success scores are calculated across all jobs.'}
-        </p>
-      </div>
+      {/* Sidebar - Only show when not in jobId mode (prop) */}
+      {!jobId && (
+        <div className="scoring-sidebar">
+          <h3>Scoring Settings</h3>
+          <div className="sidebar-list">
+            <div
+              className={`sidebar-item ${selectedJobId === null ? 'active' : ''}`}
+              onClick={() => selectJob(null)}
+            >
+              <span className="sidebar-item-icon">🌐</span>
+              <span className="sidebar-item-title">Global Settings</span>
+            </div>
+            
+            <div className="sidebar-divider">Jobs</div>
+            
+            {jobs.length === 0 && <div style={{ padding: '1rem', color: '#64748b', fontSize: '0.875rem' }}>No jobs available</div>}
+            
+            {jobs.map((job) => {
+              console.log('Rendering job:', job);
+              return (
+                <div
+                  key={job.jobId}
+                  className={`sidebar-item ${selectedJobId === job.jobId ? 'active' : ''}`}
+                  onClick={() => selectJob(job.jobId)}
+                >
+                  <span className="sidebar-item-icon">📋</span>
+                  <span className="sidebar-item-title">{job.title}</span>
+                  {job.hasCustomSettings && (
+                    <span className="sidebar-badge">Custom</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="scoring-settings">
+        {/* Header */}
+        <div className="scoring-settings-header">
+          <h2>
+            {jobId 
+              ? 'Job-Specific Scoring Settings' 
+              : selectedJobId 
+                ? jobs.find(j => j.jobId === selectedJobId)?.title + ' - Scoring Settings'
+                : 'Global Scoring Settings'}
+          </h2>
+          <p>
+            {jobId || selectedJobId
+              ? isJobSpecific
+                ? 'These settings override the global defaults for this job.'
+                : 'Using global defaults. Make changes to create job-specific overrides.'
+              : 'Configure how candidate success scores are calculated across all jobs.'}
+          </p>
+        </div>
 
       {/* Main Weights Section */}
       <div className="settings-section">
@@ -438,7 +581,9 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
           onClick={handleReset}
           disabled={saving}
         >
-          {jobId ? 'Revert to Global' : 'Reset to Defaults'}
+          {(jobId || selectedJobId) 
+            ? (isJobSpecific ? 'Revert to Global' : 'Reset to Defaults')
+            : 'Reset to Defaults'}
         </button>
         <button
           className="settings-btn primary"
@@ -447,6 +592,7 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </button>
+      </div>
       </div>
     </div>
   );
