@@ -298,15 +298,7 @@ const AIMetricsDashboard = () => {
           </div>
 
           {/* Service Comparison Chart */}
-          {byService.length > 0 && (
-          <div className="chart-section">
-            <h3>Calls by Service</h3>
-            <div className="chart-container">
-              <ServiceComparisonChart data={byService} metric="calls" />
-            </div>
-          </div>
-          )}
-
+         
           {/* Recent Errors */}
           {recentErrors.length > 0 && (
             <div className="recent-errors">
