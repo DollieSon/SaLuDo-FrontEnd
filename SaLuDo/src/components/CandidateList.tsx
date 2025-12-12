@@ -528,7 +528,7 @@ const CandidateList: React.FC = () => {
         </div>
       )}
 
-      <div className="table-wrapper">
+      <div className="table-wrapper" style={{maxHeight: "50%"}}>
         <table>
           <thead>
             <tr>
@@ -595,6 +595,10 @@ const CandidateList: React.FC = () => {
                     ? getMatchCategory(enhancedCandidate.jobMatchScore)
                     : null;
 
+                // Determine tooltip position based on row index
+                const totalRows = filteredCandidates.length;
+                const isTopHalf = idx < totalRows / 2;
+
                 return (
                   <tr
                     key={c.candidateId}
@@ -639,23 +643,35 @@ const CandidateList: React.FC = () => {
                     <td>
                       {selectedJob !== "all" &&
                       enhancedCandidate.jobMatchScore !== undefined ? (
-                        <span>
-                          {enhancedCandidate.matchedSkills || 0}/
-                          {enhancedCandidate.totalJobSkills || 0}
-                          {enhancedCandidate.missingSkills &&
-                            enhancedCandidate.missingSkills.length > 0 && (
-                              <div
-                                style={{ fontSize: "11px", color: "#ef4444" }}
-                              >
-                                Missing:{" "}
-                                {enhancedCandidate.missingSkills
-                                  .slice(0, 2)
-                                  .join(", ")}
-                                {enhancedCandidate.missingSkills.length > 2 &&
-                                  "..."}
-                              </div>
-                            )}
-                        </span>
+                        <div className="skills-cell">
+                          <span className="skills-match">
+                            {enhancedCandidate.matchedSkills || 0}/
+                            {enhancedCandidate.totalJobSkills || 0}
+                            {enhancedCandidate.missingSkills &&
+                              enhancedCandidate.missingSkills.length > 0 && (
+                                <>
+                                  <span className="missing-skills-indicator">
+                                    !
+                                  </span>
+                                  <div 
+                                    className={`missing-skills-tooltip ${
+                                      isTopHalf ? 'tooltip-below' : ''
+                                    }`}
+                                  >
+                                    <div className="tooltip-title">
+                                      Missing Skills ({enhancedCandidate.missingSkills.length})
+                                    </div>
+                                    <ul className="missing-skills-list">
+                                      {enhancedCandidate.missingSkills.slice(0, 3).map((skill, idx) => (
+                                        <li key={idx}>{skill}</li>
+                                      ))}
+                                      <li>...</li>
+                                    </ul>
+                                  </div>
+                                </>
+                              )}
+                          </span>
+                        </div>
                       ) : c.skills ? (
                         c.skills.length
                       ) : (

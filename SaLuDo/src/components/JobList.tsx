@@ -165,7 +165,7 @@ const JobList: React.FC = () => {
         </div>
       </div>
 
-      <div className="table-wrapper">
+      <div className="table-wrapper" style={{maxHeight: "50%"}}>
         <table>
           <thead>
             <tr>

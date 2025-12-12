@@ -188,7 +188,7 @@ const Dashboard: React.FC<DashboardProps> = ({ accessToken }) => {
                     View All →
                     </span>
                 </h3>
-                {stats.recentCandidates.map(candidate => (
+                {stats.recentCandidates.slice(0, 5).map(candidate => (
                     <div key={candidate.id} className="candidate-item" onClick={() => handleNavigation(`/profile/${candidate.id}`)}>
                     <div className="candidate-info">
                         <h4>{candidate.name}</h4>
@@ -206,7 +206,7 @@ const Dashboard: React.FC<DashboardProps> = ({ accessToken }) => {
 
                 <div className="content-card">
                 <h3>Recent Activity</h3>
-                {stats.recentActivity.map(activity => (
+                {stats.recentActivity.slice(0, 5).map(activity => (
                     <div key={activity.id} className="activity-item">
                     <div className={`activity-icon ${activity.type}`}>
                         {activity.type === 'application' && ''}
@@ -231,7 +231,7 @@ const Dashboard: React.FC<DashboardProps> = ({ accessToken }) => {
                     View All →
                     </span>
                 </h3>
-                {stats.topJobs.map(job => (
+                {stats.topJobs.slice(0, 5).map(job => (
                     <div key={job.id} className="job-item" onClick={() => handleNavigation(`/job/${job.id}`)}>
                     <div className="job-header">
                         <span className="job-name">{job.name}</span>

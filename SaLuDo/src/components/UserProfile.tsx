@@ -256,7 +256,7 @@ const UserProfile: React.FC = () => {
                 <section className="profile-section">
                   <h2>Availability</h2>
                   <div className="availability">
-                    <p className={`status status-${user.availability.status}`}>
+                    <p className={`availability-status status-${user.availability.status}`}>
                       {user.availability.status.toUpperCase()}
                     </p>
                     {user.availability.daysAvailable && user.availability.daysAvailable.length > 0 && (
