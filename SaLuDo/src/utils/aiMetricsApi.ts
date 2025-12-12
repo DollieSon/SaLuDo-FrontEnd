@@ -13,6 +13,12 @@ import type {
   AIServiceType,
   DateRangeOption,
 } from "../types/aiMetrics";
+import type {
+  DashboardWithTrendsResponse,
+  ComparisonType,
+  SeasonalityAnalysisData,
+  QualityTrendsData,
+} from "../types/aiTrends";
 
 // Helper to convert date range to days
 const dateRangeToDays = (range: DateRangeOption): number => {
@@ -194,9 +200,12 @@ export const fetchTokenStats = async (
 // Backend Latency Response
 interface BackendLatencyResponse {
   average: number;
+  min: number;
+  max: number;
   percentiles: { p50: number; p90: number; p95: number; p99: number };
-  byService: Record<AIServiceType, { avg: number; p95: number }>;
+  byService: Record<AIServiceType, { avg: number; p50: number; p95: number; p99: number }>;
   trends: Array<{ date: string; avgLatency: number }>;
+  perServiceTrends: Record<AIServiceType, Array<{ date: string; avgLatency: number }>>;
   dateRange: { days: number; startDate: string; endDate: string };
 }
 
@@ -218,8 +227,8 @@ export const fetchLatencyStats = async (
     },
     overall: {
       avgLatencyMs: backend.average,
-      minLatencyMs: backend.percentiles.p50 * 0.5, // Estimate
-      maxLatencyMs: backend.percentiles.p99 * 1.5, // Estimate
+      minLatencyMs: backend.min || 0,
+      maxLatencyMs: backend.max || 0,
       p50LatencyMs: backend.percentiles.p50,
       p95LatencyMs: backend.percentiles.p95,
       p99LatencyMs: backend.percentiles.p99,
@@ -227,15 +236,16 @@ export const fetchLatencyStats = async (
     byService: Object.entries(backend.byService).map(([service, data]) => ({
       service: service as AIServiceType,
       avgLatencyMs: data.avg,
-      p50LatencyMs: data.avg * 0.9, // Estimate
+      p50LatencyMs: data.p50 || data.avg,
       p95LatencyMs: data.p95,
-      p99LatencyMs: data.p95 * 1.2, // Estimate
+      p99LatencyMs: data.p99 || data.p95,
     })),
     hourlyLatency: backend.trends.map((trend) => ({
       hour: trend.date,
       avgLatency: trend.avgLatency,
-      p95Latency: trend.avgLatency * 1.5, // Estimate
+      p95Latency: backend.percentiles.p95,
     })),
+    perServiceTrends: backend.perServiceTrends || {},
   };
 };
 
@@ -252,10 +262,11 @@ export const fetchFeedbackStats = async (
 
 // Submit Feedback
 export interface SubmitFeedbackParams {
-  metricsId: string;
+  metricsEntryId: string;
   rating: 1 | 2 | 3 | 4 | 5;
-  feedbackType: "ACCURATE" | "INACCURATE" | "INCOMPLETE" | "IRRELEVANT" | "OTHER";
-  comment?: string;
+  serviceType: AIServiceType;
+  comments?: string;
+  isAccurate?: boolean;
 }
 
 export const submitFeedback = async (
@@ -292,6 +303,96 @@ export const updateAlertConfig = async (
     "/ai-metrics/alerts/config",
     config
   );
+  return response.data.data;
+};
+
+// ============================================================================
+// TREND ANALYSIS ENDPOINTS
+// ============================================================================
+
+/**
+ * Fetch dashboard data with trend comparison
+ */
+export const fetchDashboardWithTrends = async (
+  dateRange: DateRangeOption = "30d",
+  comparisonType: ComparisonType = "previous",
+  customStartDate?: string,
+  customEndDate?: string
+): Promise<DashboardWithTrendsResponse> => {
+  const days = dateRangeToDays(dateRange);
+  let url = `/ai-metrics/dashboard?range=${days}d&compare=${comparisonType}`;
+  
+  // Add custom date parameters if comparison type is custom
+  if (comparisonType === "custom" && customStartDate && customEndDate) {
+    url += `&customStart=${customStartDate}&customEnd=${customEndDate}`;
+  }
+  
+  const response = await apiClient.get<{
+    success: boolean;
+    data: DashboardWithTrendsResponse;
+  }>(url);
+  return response.data.data;
+};
+
+/**
+ * Fetch seasonality analysis (day-of-week patterns)
+ */
+export const fetchSeasonalityAnalysis = async (
+  dateRange: DateRangeOption = "30d",
+  service?: AIServiceType | ""
+): Promise<SeasonalityAnalysisData> => {
+  const days = dateRangeToDays(dateRange);
+  const serviceParam = (typeof service === "string" && service !== "") ? `&service=${service}` : "";
+  const response = await apiClient.get<{
+    success: boolean;
+    data: SeasonalityAnalysisData;
+  }>(`/ai-metrics/trends/seasonality?range=${days}d${serviceParam}`);
+  return response.data.data;
+};
+
+/**
+ * Fetch quality trends based on edit behavior
+ */
+export const fetchQualityTrends = async (
+  dateRange: DateRangeOption = "30d",
+  service?: AIServiceType | ""
+): Promise<QualityTrendsData> => {
+  const days = dateRangeToDays(dateRange);
+  const serviceParam = (typeof service === "string" && service !== "") ? `&service=${service}` : "";
+  const response = await apiClient.get<{
+    success: boolean;
+    data: QualityTrendsData;
+  }>(`/ai-metrics/trends/quality?range=${days}d${serviceParam}`);
+  return response.data.data;
+};
+
+// ============================================================================
+// AI CALL HISTORY ENDPOINTS
+// ============================================================================
+
+/**
+ * Fetch paginated AI call history with filters
+ */
+export const fetchCallHistory = async (
+  filters: import("../types/aiMetrics").CallHistoryFilters = {}
+): Promise<import("../types/aiMetrics").CallHistoryResponse> => {
+  const params = new URLSearchParams();
+  
+  if (filters.page) params.append("page", filters.page.toString());
+  if (filters.limit) params.append("limit", filters.limit.toString());
+  if (filters.service) params.append("service", filters.service);
+  if (filters.success !== undefined) params.append("success", filters.success.toString());
+  if (filters.candidateId) params.append("candidateId", filters.candidateId);
+  if (filters.userId) params.append("userId", filters.userId);
+  if (filters.startDate) params.append("startDate", filters.startDate);
+  if (filters.endDate) params.append("endDate", filters.endDate);
+  
+  const queryString = params.toString();
+  const response = await apiClient.get<{
+    success: boolean;
+    data: import("../types/aiMetrics").CallHistoryResponse;
+  }>(`/ai-metrics/calls${queryString ? `?${queryString}` : ""}`);
+  
   return response.data.data;
 };
 

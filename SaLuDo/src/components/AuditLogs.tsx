@@ -9,6 +9,7 @@ import {
   AuditStatistics,
   SecurityAlert,
 } from "../types/audit";
+import AuditLogDetailModal from "./AuditLogDetailModal";
 
 const eventTypeOptions: { label: string; value: AuditEventType }[] = [
   { label: "Login Success", value: "LOGIN_SUCCESS" },
@@ -87,6 +88,8 @@ const AuditLogs = () => {
   const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alertsError, setAlertsError] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const formattedFilters = useMemo(
     () => ({
@@ -222,6 +225,16 @@ const AuditLogs = () => {
     if (direction === "next" && page < pagination.totalPages) {
       setPage((current) => current + 1);
     }
+  };
+
+  const handleLogClick = (log: AuditLogEntry) => {
+    setSelectedLog(log);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowDetailModal(false);
+    setSelectedLog(null);
   };
 
   return (
@@ -489,7 +502,7 @@ const AuditLogs = () => {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log._id}>
+                  <tr key={log._id} onClick={() => handleLogClick(log)} style={{ cursor: 'pointer' }} title="Click to view details">
                     <td className="timestamp-column">
                       <div className="timestamp-cell">
                         <strong>
@@ -509,12 +522,20 @@ const AuditLogs = () => {
                     </td>
                     <td className="user-column">
                       <div className="user-cell">
-                        <strong>{log.userEmail || log.userId || "N/A"}</strong>
+                        <strong>
+                          {log.userEmail ? log.userEmail.split('@')[0] : (log.userId || "N/A")}
+                        </strong>
+                        <small>{log.userEmail || ''}</small>
                         {log.targetUserId && (
-                          <small>Target user: {log.targetUserId}</small>
-                        )}
-                        {log.sessionId && (
-                          <small>Session: {log.sessionId}</small>
+                          <small>
+                            Target: {(() => {
+                              const targetEmail = log.details.metadata?.targetUserEmail;
+                              if (targetEmail && typeof targetEmail === 'string') {
+                                return targetEmail.split('@')[0];
+                              }
+                              return log.targetUserId;
+                            })()}
+                          </small>
                         )}
                       </div>
                     </td>
@@ -611,6 +632,13 @@ const AuditLogs = () => {
           </button>
         </div>
       </section>
+
+      {/* Audit Log Detail Modal */}
+      <AuditLogDetailModal
+        isOpen={showDetailModal}
+        onClose={handleCloseModal}
+        log={selectedLog}
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usersApi } from "../utils/api";
 import { UserProfile, UserRole } from "../types/user";
+import ResetPasswordModal from "./ResetPasswordModal";
 import "../styles/UserManagement.css";
 
 interface UserManagementProps {
@@ -17,6 +18,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -122,6 +125,34 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
         alert(err instanceof Error ? err.message : "Failed to delete user");
       }
     }
+  };
+
+  // Handle reset password
+  const handleResetPassword = async (data: { reason?: string; customPassword?: string }) => {
+    if (!selectedUser) return { password: '' };
+    
+    try {
+      const response = await usersApi.adminResetPassword(
+        accessToken,
+        selectedUser.userId,
+        data.reason,
+        data.customPassword
+      );
+      if (response.success) {
+        // Return the password so modal can display it
+        return { password: response.data.password };
+      }
+      return { password: '' };
+    } catch (err) {
+      throw err; // Let modal handle the error
+    }
+  };
+
+  // Open reset password modal
+  const openResetPasswordModal = (user: UserProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedUser(user);
+    setShowResetPasswordModal(true);
   };
 
   // Get role display name
@@ -246,6 +277,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                 </td>
                 <td>
                   <div className="action-buttons">
+                    <button
+                      className="action-btn edit btn-reset-password"
+                      onClick={(e) => openResetPasswordModal(user, e)}
+                      title="Reset user password - set custom or generate random"
+                    >
+                      Reset Password
+                    </button>
                     <button
                       className={`action-btn edit ${
                         user.isActive ? "btn-deactivate" : "btn-activate"
@@ -421,6 +459,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {selectedUser && (
+        <ResetPasswordModal
+          isOpen={showResetPasswordModal}
+          onClose={() => {
+            setShowResetPasswordModal(false);
+            setSelectedUser(null);
+          }}
+          onConfirm={handleResetPassword}
+          userName={selectedUser.fullName}
+          userEmail={selectedUser.email}
+        />
       )}
     </div>
   );

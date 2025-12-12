@@ -54,8 +54,8 @@ const SkillsManagement: React.FC = () => {
   const fetchSkills = async () => {
     try {
       setIsLoading(true);
-      // Use the skillsApi utility function to get only skills used by candidates
-      const result = await skillsApi.getUsedMasterSkills();
+      // Get all skills from the skills_master collection
+      const result = await skillsApi.getAllMasterSkills();
 
       if (result.success && result.data) {
         const skillsData = result.data.map((skill: any) => ({
