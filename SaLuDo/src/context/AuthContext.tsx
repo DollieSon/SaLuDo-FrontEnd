@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { usersApi } from "../utils/api";
 import { UserProfile } from "../types/user";
+import { TokenManager } from "../utils/tokenManager";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -25,8 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Load auth state from localStorage on mount
   useEffect(() => {
-    const storedAccessToken = localStorage.getItem("accessToken");
-    const storedRefreshToken = localStorage.getItem("refreshToken");
+    const storedAccessToken = TokenManager.getAccessToken();
+    const storedRefreshToken = TokenManager.getRefreshToken();
     const storedUser = localStorage.getItem("user");
 
     if (storedAccessToken && storedUser) {
@@ -37,52 +38,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(false);
   }, []);
 
-  // Auto-refresh token before it expires (every 7 hours, token expires in 8 hours)
+  // Auto-refresh token before it expires
+  // TokenManager.shouldRefreshToken() checks if token expires within 5 minutes
   useEffect(() => {
     if (!accessToken || !refreshToken) return;
 
-    const refreshInterval = setInterval(async () => {
-      try {
-        console.log("🔄 Auto-refreshing token...");
-        const response = await usersApi.refreshToken(refreshToken);
+    // Check every minute if we need to refresh
+    const refreshCheckInterval = setInterval(async () => {
+      if (TokenManager.shouldRefreshToken()) {
+        try {
+          console.log("🔄 Auto-refreshing token (expires soon)...");
+          const response = await usersApi.refreshToken(refreshToken);
 
-        if (response.success) {
-          const newAccessToken = response.data.accessToken;
-          const newRefreshToken = response.data.refreshToken;
-          
-          setAccessToken(newAccessToken);
-          localStorage.setItem("accessToken", newAccessToken);
-          
-          // Update refresh token if rotated
-          if (newRefreshToken) {
-            setRefreshToken(newRefreshToken);
-            localStorage.setItem("refreshToken", newRefreshToken);
+          if (response.success && response.data) {
+            const newAccessToken = response.data.accessToken;
+            const newRefreshToken = response.data.refreshToken;
+            
+            setAccessToken(newAccessToken);
+            
+            // Update refresh token if rotated
+            if (newRefreshToken) {
+              setRefreshToken(newRefreshToken);
+            }
+            
+            console.log("✅ Token refreshed successfully");
           }
-          
-          console.log("✅ Token refreshed successfully");
+        } catch (error) {
+          console.error("❌ Auto-refresh failed:", error);
+          // Note: Don't logout here - the 401 interceptor will handle expired tokens
         }
-      } catch (error) {
-        console.error("❌ Auto-refresh failed:", error);
-        // Note: Don't logout here - the 401 interceptor will handle expired tokens
       }
-    }, 7 * 60 * 60 * 1000); // Refresh every 7 hours (token expires in 8 hours)
+    }, 60 * 1000); // Check every minute
 
-    return () => clearInterval(refreshInterval);
+    return () => clearInterval(refreshCheckInterval);
   }, [accessToken, refreshToken]);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await usersApi.login(email, password);
-
-      if (response.success) {
-        const { user, accessToken, refreshToken } = response.data;
+      const response = awa && response.data) {
+        const { user, accessToken, refreshToken, accessTokenExpiry, refreshTokenExpiry } = response.data;
 
         // Store in state
         setUser(user);
         setAccessToken(accessToken);
         setRefreshToken(refreshToken);
 
-        // Store in localStorage
+        // Store tokens using TokenManager (includes expiry tracking)
+        TokenManager.saveTokens({
+          accessToken,
+          refreshToken,
+          accessTokenExpiry,
+          refreshTokenExpiry,
+        });
+        
+        // Store user data
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("user", JSON.stringify(user));
@@ -102,9 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Logout error:", error);
-    } finally {
-      // Clear state
-      setUser(null);
+    } finally {tokens and user data using TokenManager
+      TokenManager.clearTokens(
       setAccessToken(null);
       setRefreshToken(null);
 

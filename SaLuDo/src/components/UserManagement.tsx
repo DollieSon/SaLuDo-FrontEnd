@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { usersApi } from "../utils/api";
 import { UserProfile, UserRole } from "../types/user";
 import ResetPasswordModal from "./ResetPasswordModal";
+import { validatePassword, getPasswordStrength, type PasswordValidationResult } from "../utils/passwordValidator";
 import "../styles/UserManagement.css";
 
 interface UserManagementProps {
@@ -37,6 +38,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
     title: "",
     role: UserRole.HR_USER,
   });
+  const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -70,9 +73,39 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
     fetchUsers();
   }, [pagination.page, pagination.limit, roleFilter, statusFilter, searchTerm]);
 
+  // Handle password change with validation
+  const handlePasswordChange = (value: string) => {
+    setNewUser({ ...newUser, password: value });
+    if (value) {
+      setPasswordValidation(validatePassword(value));
+    } else {
+      setPasswordValidation(null);
+    }
+  };
+
+  const getPasswordStrengthColor = (strength: number): string => {
+    if (strength < 40) return '#ef4444'; // red
+    if (strength < 70) return '#f59e0b'; // orange
+    return '#10b981'; // green
+  };
+
+  const getPasswordStrengthLabel = (strength: number): string => {
+    if (strength < 40) return 'Weak';
+    if (strength < 70) return 'Medium';
+    return 'Strong';
+  };
+
   // Handle create user
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate password before submission
+    const validation = validatePassword(newUser.password);
+    if (!validation.isValid) {
+      alert(validation.messages[0] || 'Password does not meet requirements');
+      return;
+    }
+    
     try {
       const response = await usersApi.createUser(accessToken, newUser);
       if (response.success) {
@@ -87,6 +120,8 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
           title: "",
           role: UserRole.HR_USER,
         });
+        setPasswordValidation(null);
+        setShowPassword(false);
         fetchUsers();
       }
     } catch (err) {
@@ -397,21 +432,165 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                   onChange={(e) =>
                     setNewUser({ ...newUser, email: e.target.value })
                   }
+                  placeholder="user@example.com"
                 />
               </div>
 
               <div className="form-group">
                 <label>Password *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={newUser.password}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, password: e.target.value })
-                  }
-                  placeholder="Minimum 8 characters"
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={8}
+                    value={newUser.password}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    placeholder="Minimum 8 characters"
+                    style={{ paddingRight: '40px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px'
+                    }}
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+
+                {/* Password Strength Meter */}
+                {newUser.password && passwordValidation && (
+                  <div style={{ marginTop: '8px' }}>
+                    <div style={{ 
+                      width: '100%', 
+                      height: '6px', 
+                      backgroundColor: '#e5e7eb', 
+                      borderRadius: '3px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${getPasswordStrength(newUser.password)}%`,
+                        height: '100%',
+                        backgroundColor: getPasswordStrengthColor(getPasswordStrength(newUser.password)),
+                        transition: 'all 0.3s ease'
+                      }} />
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      marginTop: '4px',
+                      fontSize: '12px'
+                    }}>
+                      <span style={{ 
+                        color: getPasswordStrengthColor(getPasswordStrength(newUser.password)),
+                        fontWeight: 500
+                      }}>
+                        Password Strength: {getPasswordStrengthLabel(getPasswordStrength(newUser.password))}
+                      </span>
+                      <span style={{ color: '#6b7280' }}>
+                        {getPasswordStrength(newUser.password)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Password Requirements */}
+                {newUser.password && passwordValidation && (
+                  <div style={{ marginTop: '12px', fontSize: '12px' }}>
+                    <div style={{ fontWeight: 500, marginBottom: '6px', color: '#374151' }}>
+                      Requirements:
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      <li style={{ 
+                        color: passwordValidation.requirements.minLength ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.minLength ? '✓' : '○'}</span>
+                        At least 8 characters
+                      </li>
+                      <li style={{ 
+                        color: passwordValidation.requirements.hasUpperCase ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasUpperCase ? '✓' : '○'}</span>
+                        One uppercase letter
+                      </li>
+                      <li style={{ 
+                        color: passwordValidation.requirements.hasLowerCase ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasLowerCase ? '✓' : '○'}</span>
+                        One lowercase letter
+                      </li>
+                      <li style={{ 
+                        color: passwordValidation.requirements.hasNumber ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasNumber ? '✓' : '○'}</span>
+                        One number
+                      </li>
+                      <li style={{
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasUpperCase ? '✓' : '○'}</span>
+                        One uppercase letter
+                      </li>
+                      <li style={{ 
+                        color: passwordValidation.requirements.hasLowerCase ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasLowerCase ? '✓' : '○'}</span>
+                        One lowercase letter
+                      </li>
+                      <li style={{ 
+                        color: passwordValidation.requirements.hasNumber ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasNumber ? '✓' : '○'}</span>
+                        One number
+                      </li>
+                      <li style={{ 
+                        color: passwordValidation.requirements.hasSpecialChar ? '#10b981' : '#6b7280',
+                        marginBottom: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{passwordValidation.requirements.hasSpecialChar ? '✓' : '○'}</span>
+                        One special character
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -447,12 +626,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
               <div className="form-actions">
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setPasswordValidation(null);
+                    setShowPassword(false);
+                  }}
                   className="btn-cancel"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn-submit">
+                <button 
+                  type="submit" 
+                  className="btn-submit"
+                  disabled={!!newUser.password && !passwordValidation?.isValid}
+                >
                   Create User
                 </button>
               </div>

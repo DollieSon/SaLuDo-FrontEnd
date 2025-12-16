@@ -4,7 +4,8 @@
  * Matches backend validation in routes/users.ts
  */
 
-export interface PasswordValidationResult {
+// Internal validation result (for the class)
+interface InternalPasswordValidationResult {
   valid: boolean;
   errors: string[];
   strength?: 'weak' | 'medium' | 'strong';
@@ -28,7 +29,7 @@ export class PasswordValidator {
   /**
    * Validate password against all requirements
    */
-  static validate(password: string): PasswordValidationResult {
+  static validate(password: string): InternalPasswordValidationResult {
     const errors: string[] = [];
 
     if (!password || password.length < this.MIN_LENGTH) {
@@ -120,4 +121,93 @@ export class PasswordValidator {
   static isValid(password: string): boolean {
     return this.validate(password).valid;
   }
+}
+
+// ============================================
+// Convenience Functions (for easier imports)
+// ============================================
+
+export interface PasswordValidationResult {
+  isValid: boolean;
+  requirements: {
+    minLength: boolean;
+    hasUpperCase: boolean;
+    hasLowerCase: boolean;
+    hasNumber: boolean;
+    hasSpecialChar: boolean;
+  };
+  messages: string[];
+}
+
+/**
+ * Validate password and return detailed result
+ */
+export function validatePassword(password: string): PasswordValidationResult {
+  const errors: string[] = [];
+  
+  const requirements = {
+    minLength: !!(password && password.length >= PasswordValidator.MIN_LENGTH),
+    hasUpperCase: PasswordValidator.UPPERCASE_REGEX.test(password),
+    hasLowerCase: PasswordValidator.LOWERCASE_REGEX.test(password),
+    hasNumber: PasswordValidator.NUMBER_REGEX.test(password),
+    hasSpecialChar: PasswordValidator.SPECIAL_CHAR_REGEX.test(password),
+  };
+
+  if (!requirements.minLength) {
+    errors.push(`Password must be at least ${PasswordValidator.MIN_LENGTH} characters long`);
+  }
+  if (!requirements.hasUpperCase) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (!requirements.hasLowerCase) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (!requirements.hasNumber) {
+    errors.push('Password must contain at least one number');
+  }
+  if (!requirements.hasSpecialChar) {
+    errors.push('Password must contain at least one special character');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    requirements,
+    messages: errors,
+  };
+}
+
+/**
+ * Get password strength as a percentage (0-100)
+ */
+export function getPasswordStrength(password: string): number {
+  if (!password) return 0;
+
+  let score = 0;
+  
+  // Length scoring
+  if (password.length >= 8) score += 20;
+  if (password.length >= 12) score += 10;
+  if (password.length >= 16) score += 10;
+  
+  // Character type scoring
+  if (PasswordValidator.UPPERCASE_REGEX.test(password)) score += 15;
+  if (PasswordValidator.LOWERCASE_REGEX.test(password)) score += 15;
+  if (PasswordValidator.NUMBER_REGEX.test(password)) score += 15;
+  if (PasswordValidator.SPECIAL_CHAR_REGEX.test(password)) score += 15;
+
+  return Math.min(100, score);
+}
+
+/**
+ * Validate if passwords match
+ */
+export function validatePasswordsMatch(password: string, confirmPassword: string): boolean {
+  return password === confirmPassword && password.length > 0;
+}
+
+/**
+ * Get password requirements as text array
+ */
+export function getPasswordRequirementsText(): string[] {
+  return PasswordValidator.getRequirementDescriptions();
 }

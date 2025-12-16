@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { validatePassword, getPasswordStrength, type PasswordValidationResult } from '../utils/passwordValidator';
 import '../styles/Modal.css';
 
 interface ResetPasswordModalProps {
@@ -20,6 +21,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   const [reason, setReason] = useState('');
   const [passwordOption, setPasswordOption] = useState<'generate' | 'custom'>('generate');
   const [customPassword, setCustomPassword] = useState('');
+  const [passwordValidation, setPasswordValidation] = useState<PasswordValidationResult | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,23 +30,25 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 
   if (!isOpen) return null;
 
-  const validatePassword = (password: string): string | null => {
-    if (password.length < 8) {
-      return 'Password must be at least 8 characters long';
+  const handlePasswordChange = (value: string) => {
+    setCustomPassword(value);
+    if (value) {
+      setPasswordValidation(validatePassword(value));
+    } else {
+      setPasswordValidation(null);
     }
-    if (!/[A-Z]/.test(password)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!/[a-z]/.test(password)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!/[0-9]/.test(password)) {
-      return 'Password must contain at least one number';
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      return 'Password must contain at least one special character';
-    }
-    return null;
+  };
+
+  const getPasswordStrengthColor = (strength: number): string => {
+    if (strength < 40) return '#ef4444'; // red
+    if (strength < 70) return '#f59e0b'; // orange
+    return '#10b981'; // green
+  };
+
+  const getPasswordStrengthLabel = (strength: number): string => {
+    if (strength < 40) return 'Weak';
+    if (strength < 70) return 'Medium';
+    return 'Strong';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,9 +63,9 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 
     // Validate custom password if selected
     if (passwordOption === 'custom') {
-      const passwordError = validatePassword(customPassword);
-      if (passwordError) {
-        setError(passwordError);
+      const validation = validatePassword(customPassword);
+      if (!validation.isValid) {
+        setError(validation.messages[0] || 'Password does not meet requirements');
         return;
       }
     }
@@ -95,6 +99,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     setConfirmEmail('');
     setReason('');
     setCustomPassword('');
+    setPasswordValidation(null);
     setPasswordOption('generate');
     setGeneratedPassword('');
     setError('');
@@ -107,6 +112,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       setConfirmEmail('');
       setReason('');
       setCustomPassword('');
+      setPasswordValidation(null);
       setPasswordOption('generate');
       setError('');
       onClose();
@@ -237,7 +243,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                 <input
                   type={showPassword ? "text" : "password"}
                   value={customPassword}
-                  onChange={(e) => setCustomPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   placeholder="Enter custom password"
                   required
                   disabled={isLoading}
@@ -252,9 +258,121 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                   {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
               </div>
-              <small>
-                Must be at least 8 characters with uppercase, lowercase, number, and special character
-              </small>
+
+              {/* Password Strength Meter */}
+              {customPassword && passwordValidation && (
+                <div className="password-strength-container" style={{ marginTop: '8px' }}>
+                  <div className="password-strength-bar-wrapper" style={{ 
+                    width: '100%', 
+                    height: '6px', 
+                    backgroundColor: '#e5e7eb', 
+                    borderRadius: '3px',
+                    overflow: 'hidden'
+                  }}>
+                    <div 
+                      className="password-strength-bar" 
+                      style={{
+                        width: `${getPasswordStrength(customPassword)}%`,
+                        height: '100%',
+                        backgroundColor: getPasswordStrengthColor(getPasswordStrength(customPassword)),
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
+                  </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginTop: '4px',
+                    fontSize: '12px'
+                  }}>
+                    <span style={{ 
+                      color: getPasswordStrengthColor(getPasswordStrength(customPassword)),
+                      fontWeight: 500
+                    }}>
+                      {getPasswordStrengthLabel(getPasswordStrength(customPassword))}
+                    </span>
+                    <span style={{ color: '#6b7280' }}>
+                      {getPasswordStrength(customPassword)}% strong
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Password Requirements Checklist */}
+              {customPassword && passwordValidation && (
+                <div className="password-requirements" style={{ marginTop: '12px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px', color: '#374151' }}>
+                    Password Requirements:
+                  </div>
+                  <ul style={{ 
+                    listStyle: 'none', 
+                    padding: 0, 
+                    margin: 0,
+                    fontSize: '12px'
+                  }}>
+                isLoading || 
+                confirmEmail !== userEmail || 
+                (passwordOption === 'custom' && (!customPassword || !passwordValidation?.isValid))
+              
+                    <li style={{ 
+                      color: passwordValidation.requirements.minLength ? '#10b981' : '#6b7280',
+                      marginBottom: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>{passwordValidation.requirements.minLength ? '✓' : '○'}</span>
+                      At least 8 characters
+                    </li>
+                    <li style={{ 
+                      color: passwordValidation.requirements.hasUpperCase ? '#10b981' : '#6b7280',
+                      marginBottom: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>{passwordValidation.requirements.hasUpperCase ? '✓' : '○'}</span>
+                      One uppercase letter
+                    </li>
+                    <li style={{ 
+                      color: passwordValidation.requirements.hasLowerCase ? '#10b981' : '#6b7280',
+                      marginBottom: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>{passwordValidation.requirements.hasLowerCase ? '✓' : '○'}</span>
+                      One lowercase letter
+                    </li>
+                    <li style={{ 
+                      color: passwordValidation.requirements.hasNumber ? '#10b981' : '#6b7280',
+                      marginBottom: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>{passwordValidation.requirements.hasNumber ? '✓' : '○'}</span>
+                      One number
+                    </li>
+                    <li style={{ 
+                      color: passwordValidation.requirements.hasSpecialChar ? '#10b981' : '#6b7280',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <span>{passwordValidation.requirements.hasSpecialChar ? '✓' : '○'}</span>
+                      One special character
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {!customPassword && (
+                <small>
+                  Must be at least 8 characters with uppercase, lowercase, number, and special character
+                </small>
+              )}
             </div>
           )}
 
