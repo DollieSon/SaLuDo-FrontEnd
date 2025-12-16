@@ -224,15 +224,46 @@ export const candidatesApi = {
   updateCandidate: async (
     candidateId: string,
     updates: any,
+    resumeFile?: File,
     accessToken?: string
   ) => {
     const token = accessToken || localStorage.getItem("accessToken") || "";
-    const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
-      method: "PUT",
-      headers: createAuthHeaders(token),
-      body: JSON.stringify(updates),
-    });
-    return await validateApiResponse(response);
+    
+    // If resume file is provided, use FormData
+    if (resumeFile) {
+      const formData = new FormData();
+      
+      // Add all update fields to FormData
+      if (updates.name) formData.append('name', updates.name);
+      if (updates.email) {
+        // Handle email as array
+        const emailArray = Array.isArray(updates.email) ? updates.email : [updates.email];
+        emailArray.forEach((email: string) => formData.append('email', email));
+      }
+      if (updates.birthdate) formData.append('birthdate', updates.birthdate);
+      if (updates.roleApplied !== undefined) formData.append('roleApplied', updates.roleApplied);
+      if (updates.socialLinks) formData.append('socialLinks', JSON.stringify(updates.socialLinks));
+      
+      // Add resume file
+      formData.append('resume', resumeFile);
+      
+      const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      return await validateApiResponse(response);
+    } else {
+      // No resume file, use JSON
+      const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+        method: "PUT",
+        headers: createAuthHeaders(token),
+        body: JSON.stringify(updates),
+      });
+      return await validateApiResponse(response);
+    }
   },
 
   // Delete candidate
@@ -371,6 +402,19 @@ export const candidatesApi = {
     const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/assignments`,
+      { headers: createAuthHeaders(token) }
+    );
+    return await validateApiResponse(response);
+  },
+
+  // Get candidate status history
+  getStatusHistory: async (
+    candidateId: string,
+    accessToken?: string
+  ) => {
+    const token = accessToken || localStorage.getItem("accessToken") || "";
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/status-history`,
       { headers: createAuthHeaders(token) }
     );
     return await validateApiResponse(response);

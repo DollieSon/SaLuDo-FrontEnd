@@ -258,7 +258,8 @@ export interface CreateCandidateData {
     email: string[];
     birthdate: Date;
     roleApplied?: string | null;
-    status?: CandidateStatus;
+    socialLinks?: SocialLink[]; // Social media and professional links
+    // Note: status field is IGNORED by backend - all new candidates are set to APPLIED status
     // Note: Resume file should be sent as FormData with key "resume"
 }
 
@@ -268,6 +269,8 @@ export interface UpdateCandidateData {
     birthdate?: Date;
     roleApplied?: string | null;
     status?: CandidateStatus;
+    socialLinks?: SocialLink[];
+    // Note: If updating with resume file, use FormData instead of JSON
 }
 
 export interface CandidateJobApplication {

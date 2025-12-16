@@ -100,8 +100,14 @@ export class CandidateApiClient {
             formData.append('roleApplied', candidateData.roleApplied);
         }
         
-        if (candidateData.status) {
-            formData.append('status', candidateData.status);
+        // Note: status field is ignored by backend - always set to APPLIED
+        // if (candidateData.status) {
+        //     formData.append('status', candidateData.status);
+        // }
+        
+        // Add socialLinks if provided
+        if (candidateData.socialLinks && candidateData.socialLinks.length > 0) {
+            formData.append('socialLinks', JSON.stringify(candidateData.socialLinks));
         }
         
         formData.append('resume', resumeFile);
@@ -123,13 +129,39 @@ export class CandidateApiClient {
     // Update candidate
     static async updateCandidate(
         candidateId: string, 
-        updateData: UpdateCandidateData
+        updateData: UpdateCandidateData,
+        resumeFile?: File
     ): Promise<void> {
-        await apiCall<ApiResponse<CandidateData>>(
-            `/candidates/${candidateId}`, 
-            'PUT', 
-            updateData
-        );
+        // If resume file is provided, use FormData
+        if (resumeFile) {
+            const formData = new FormData();
+            
+            // Add all update fields to FormData
+            if (updateData.name) formData.append('name', updateData.name);
+            if (updateData.email) {
+                updateData.email.forEach(email => formData.append('email', email));
+            }
+            if (updateData.birthdate) formData.append('birthdate', updateData.birthdate.toISOString());
+            if (updateData.roleApplied !== undefined) formData.append('roleApplied', updateData.roleApplied || '');
+            if (updateData.socialLinks) formData.append('socialLinks', JSON.stringify(updateData.socialLinks));
+            
+            // Add resume file
+            formData.append('resume', resumeFile);
+            
+            await apiCall<ApiResponse<CandidateData>>(
+                `/candidates/${candidateId}`, 
+                'PUT', 
+                formData,
+                true
+            );
+        } else {
+            // No resume file, use JSON
+            await apiCall<ApiResponse<CandidateData>>(
+                `/candidates/${candidateId}`, 
+                'PUT', 
+                updateData
+            );
+        }
     }
 
     // Delete candidate (soft delete)
