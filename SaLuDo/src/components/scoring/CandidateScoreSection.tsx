@@ -8,7 +8,7 @@ import { usePredictiveScore } from '../../hooks/usePredictiveScore';
 import { PredictiveScoreCard } from './PredictiveScoreCard';
 import { ScoreHistoryChart } from './ScoreHistoryChart';
 import { AIInsightsCard } from './AIInsightsCard';
-import { jobsApi } from '../../utils/api';
+import { JobApiClient } from '../../../ForFrontEnd/clients/AllApiClients';
 import '../css/PredictiveScore.css';
 
 interface CandidateScoreSectionProps {
@@ -56,10 +56,8 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
     const fetchJobs = async () => {
       try {
         setIsLoadingJobs(true);
-        const response = await jobsApi.getAllJobs();
-        if (response.success) {
-          setJobs(response.data || []);
-        }
+        const jobs = await JobApiClient.getAllJobs();
+        setJobs(jobs || []);
       } catch (err) {
         console.error('Failed to fetch jobs:', err);
       } finally {

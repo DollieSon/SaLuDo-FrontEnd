@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { scoringSettingsApi } from '../../utils/scoringApi';
-import { jobsApi } from '../../utils/api';
+import { JobApiClient } from '../../../ForFrontEnd/clients/AllApiClients';
 import {
   ScoringPreferences,
   ScoringWeights,
@@ -65,18 +65,18 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
         }
       } else {
         // New behavior: load global settings + all jobs
-        const [globalResult, jobsResult] = await Promise.all([
+        const [globalResult, jobs] = await Promise.all([
           scoringSettingsApi.getGlobalSettings(),
-          jobsApi.getAllJobs()
+          JobApiClient.getAllJobs()
         ]);
 
         if (globalResult.success && globalResult.data) {
           setSettings(globalResult.data);
         }
 
-        // jobsApi returns { success, data } structure
-        if (jobsResult?.success && jobsResult.data && Array.isArray(jobsResult.data)) {
-          const jobsList = jobsResult.data.map((job: any) => ({
+        // JobApiClient returns jobs directly
+        if (jobs && Array.isArray(jobs)) {
+          const jobsList = jobs.map((job: any) => ({
             jobId: job._id,
             title: job.jobName,
             hasCustomSettings: false

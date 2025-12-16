@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { jobsApi, skillsApi, candidatesApi } from '../utils/api';
+import { skillsApi, candidatesApi } from '../utils/api';
+import { JobApiClient } from '../../ForFrontEnd/clients/AllApiClients';
 import './css/JobDetails.css';
 
 interface JobSkillRequirement {
@@ -85,14 +86,9 @@ const JobDetails: React.FC = () => {
     
     try {
       setIsLoading(true);
-      const response = await jobsApi.getJob(jobId, true);
+      const jobData = await JobApiClient.getJobWithSkillNames(jobId);
       
-      if (response.success && response.data) {
-        const jobData = response.data;
-        
-        // Enrich skills with names from master skills list
-        await enrichSkillsWithNames(jobData);
-        
+      if (jobData) {
         setJob(jobData);
         await calculateCandidateMatches(jobData);
         await fetchApplicants(jobId);
@@ -637,7 +633,7 @@ const JobDetails: React.FC = () => {
                           if (window.confirm(`Are you sure you want to delete "${skill.skillName}"?`)) {
                             try {
                               const updatedSkills = job.skills.filter((_, i) => i !== index);
-                              await jobsApi.updateJob(jobId!, { skills: updatedSkills });
+                              await JobApiClient.updateJob(jobId!, { skills: updatedSkills });
                               setJob({ ...job, skills: updatedSkills });
                               alert('Skill deleted successfully!');
                             } catch (error) {
@@ -971,7 +967,7 @@ const JobDetails: React.FC = () => {
               <button
                 onClick={async () => {
                   try {
-                    await jobsApi.updateJob(jobId!, {
+                    await JobApiClient.updateJob(jobId!, {
                       jobName: editJobData.jobName,
                       jobDescription: editJobData.jobDescription
                     });
@@ -1067,7 +1063,7 @@ const JobDetails: React.FC = () => {
                       requiredLevel: editSkillData.requiredLevel,
                       evidence: editSkillData.evidence
                     };
-                    await jobsApi.updateJob(jobId!, { skills: updatedSkills });
+                    await JobApiClient.updateJob(jobId!, { skills: updatedSkills });
                     setJob({ ...job, skills: updatedSkills });
                     setShowEditSkillModal(false);
                     setEditingSkillIndex(null);

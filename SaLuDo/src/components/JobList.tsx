@@ -1,7 +1,8 @@
 import './css/CandidateList.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { jobsApi, candidatesApi } from '../utils/api';
+import { candidatesApi } from '../utils/api';
+import { JobApiClient } from '../../ForFrontEnd/clients/AllApiClients';
 import { Job } from '../types/job';
 
 const JobList: React.FC = () => {
@@ -23,16 +24,12 @@ const JobList: React.FC = () => {
       setError(null);
       
       // Fetch jobs and candidates in parallel
-      const [jobsResponse, candidatesResponse] = await Promise.all([
-        jobsApi.getAllJobs(),
+      const [jobs, candidatesResponse] = await Promise.all([
+        JobApiClient.getAllJobs(),
         candidatesApi.getAllCandidates()
       ]);
       
-      if (jobsResponse.success) {
-        setJobs(jobsResponse.data);
-      } else {
-        throw new Error('Failed to fetch jobs');
-      }
+      setJobs(jobs);
       
       if (candidatesResponse.success) {
         setCandidates(candidatesResponse.data);

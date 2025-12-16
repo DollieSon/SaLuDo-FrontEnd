@@ -83,13 +83,21 @@ async function apiCall<T>(
 ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
+    // Get token from localStorage
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+    
+    const headers: HeadersInit = isFormData ? {} : {
+        'Content-Type': 'application/json',
+    };
+    
+    // Add authorization header if token exists
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const config: RequestInit = {
         method,
-        headers: isFormData ? {} : {
-            'Content-Type': 'application/json',
-            // Add authentication headers here
-            // 'Authorization': `Bearer ${token}`,
-        },
+        headers,
     };
 
     if (data) {
@@ -185,13 +193,13 @@ export class JobApiClient {
 
     // Get jobs by skill
     static async getJobsBySkill(skillId: string): Promise<JobData[]> {
-        const response = await apiCall<SearchJobsResponse>(`/jobs/skill/${skillId}`);
+        const response = await apiCall<SearchJobsResponse>(`/jobs/by-skill/${skillId}`);
         return response.data || [];
     }
 
     // Get jobs by skill name
     static async getJobsBySkillName(skillName: string): Promise<JobData[]> {
-        const response = await apiCall<SearchJobsResponse>(`/jobs/skill-name/${skillName}`);
+        const response = await apiCall<SearchJobsResponse>(`/jobs/by-skill-name/${skillName}`);
         return response.data || [];
     }
 

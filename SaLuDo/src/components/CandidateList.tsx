@@ -1,7 +1,8 @@
 import "./css/CandidateList.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { candidatesApi, jobsApi, skillsApi } from "../utils/api";
+import { candidatesApi, skillsApi } from "../utils/api";
+import { JobApiClient } from '../../ForFrontEnd/clients/AllApiClients';
 import { CandidateProfile } from "../types/profile";
 
 interface JobSkillRequirement {
@@ -43,9 +44,9 @@ const CandidateList: React.FC = () => {
       setError(null);
 
       // Fetch candidates and jobs in parallel
-      const [candidatesResponse, jobsResponse] = await Promise.all([
+      const [candidatesResponse, jobs] = await Promise.all([
         candidatesApi.getAllCandidates(),
-        jobsApi.getAllJobs(),
+        JobApiClient.getAllJobs(),
       ]);
 
       if (candidatesResponse.success) {
@@ -87,16 +88,15 @@ const CandidateList: React.FC = () => {
         }
       };
 
-      if (jobsResponse.success) {
-        // Enrich job skills with names
-        const jobsWithSkillNames = await Promise.all(
-          jobsResponse.data.map(async (job: any) => {
-            const enrichedJob = { ...job };
-            await enrichJobSkillsWithNames(enrichedJob);
-            return enrichedJob;
-          })
-        );
-        setJobs(jobsWithSkillNames);
+      // Enrich job skills with names
+      const jobsWithSkillNames = await Promise.all(
+        jobs.map(async (job: any) => {
+          const enrichedJob = { ...job };
+          await enrichJobSkillsWithNames(enrichedJob);
+          return enrichedJob;
+        })
+      );
+      setJobs(jobsWithSkillNames);
       } else {
         console.warn("Failed to fetch jobs:", jobsResponse);
         setJobs([]);
