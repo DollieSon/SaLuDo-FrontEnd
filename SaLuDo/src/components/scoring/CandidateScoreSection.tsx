@@ -57,7 +57,7 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
       try {
         setIsLoadingJobs(true);
         const jobs = await JobApiClient.getAllJobs();
-        setJobs(jobs || []);
+        setJobs((jobs || []) as Job[]);
       } catch (err) {
         console.error('Failed to fetch jobs:', err);
       } finally {

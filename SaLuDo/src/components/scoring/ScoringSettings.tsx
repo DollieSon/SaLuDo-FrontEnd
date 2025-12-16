@@ -307,6 +307,11 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
         weights: { ...DEFAULT_SCORING_WEIGHTS },
         personalityCategoryWeights: { ...DEFAULT_PERSONALITY_CATEGORY_WEIGHTS },
         modifiers: {
+          manualSkillBoost: 1.2,
+          recencyBiasWeight: 1.1,
+          recencyThresholdYears: 2,
+          missingSkillPenalty: 5,
+          skillGapThreshold: 2,
           certificationBonus: 2,
           maxCertificationBonus: 10,
           yearsExperienceMultiplier: 1.0,

@@ -19,6 +19,12 @@ export interface ScoringModifiers {
   recencyThresholdYears: number;    // Years threshold for "recent" items (default: 2)
   missingSkillPenalty: number;      // Penalty per missing required skill in job mode (default: 5, range: 0-20)
   skillGapThreshold: number;        // Max acceptable gap for partial skill match (default: 2, range: 0-5)
+  certificationBonus?: number;      // Bonus points per certification (optional)
+  maxCertificationBonus?: number;   // Max total certification bonus (optional)
+  yearsExperienceMultiplier?: number; // Multiplier for years of experience (optional)
+  recentActivityBonus?: number;     // Bonus for recent activity (optional)
+  skillEvidenceBonus?: number;      // Bonus for skill evidence (optional)
+  educationLevelBonus?: any;        // Bonus per education level (optional, flexible structure)
 }
 
 // Personality category weights

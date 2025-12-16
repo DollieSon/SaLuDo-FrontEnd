@@ -169,6 +169,7 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
       // address: '',
       // phone: '',
       email: "",
+      socialLinks: [],
       resume: null,
       introductionVideo: null,
     });

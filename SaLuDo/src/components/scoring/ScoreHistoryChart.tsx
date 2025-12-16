@@ -259,8 +259,8 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     
     if (sorted.length < 2) return null;
     
-    const first = sorted[0].score ?? 0;
-    const last = sorted[sorted.length - 1].score ?? 0;
+    const first = sorted[0].overallScore ?? 0;
+    const last = sorted[sorted.length - 1].overallScore ?? 0;
     const diff = last - first;
     
     if (Math.abs(diff) < 2) return { direction: 'stable', value: diff };

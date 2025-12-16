@@ -25,8 +25,8 @@ export class ApiError extends Error {
     this.responseData = responseData;
 
     // Maintains proper stack trace for where our error was thrown
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, ApiError);
+    if (typeof (Error as any).captureStackTrace === 'function') {
+      (Error as any).captureStackTrace(this, ApiError);
     }
   }
 

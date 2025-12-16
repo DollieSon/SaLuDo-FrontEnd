@@ -24,6 +24,11 @@ export enum AddedBy {
 // BASE DATA TYPES
 // ===========================================
 
+export interface SocialLink {
+    platform: string;
+    url: string;
+}
+
 export interface ResumeMetadata {
     fileId: string;           // GridFS file ID
     filename: string;         // Original filename

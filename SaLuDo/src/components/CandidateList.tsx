@@ -97,10 +97,6 @@ const CandidateList: React.FC = () => {
         })
       );
       setJobs(jobsWithSkillNames);
-      } else {
-        console.warn("Failed to fetch jobs:", jobsResponse);
-        setJobs([]);
-      }
     } catch (err) {
       console.error("Error fetching data:", err);
       setError(err instanceof Error ? err.message : "Failed to load data");

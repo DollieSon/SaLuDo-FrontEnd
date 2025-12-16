@@ -29,7 +29,7 @@ const JobList: React.FC = () => {
         candidatesApi.getAllCandidates()
       ]);
       
-      setJobs(jobs);
+      setJobs(jobs as unknown as Job[]);
       
       if (candidatesResponse.success) {
         setCandidates(candidatesResponse.data);

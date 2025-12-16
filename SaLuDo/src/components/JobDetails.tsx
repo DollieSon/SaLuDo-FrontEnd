@@ -89,8 +89,8 @@ const JobDetails: React.FC = () => {
       const jobData = await JobApiClient.getJobWithSkillNames(jobId);
       
       if (jobData) {
-        setJob(jobData);
-        await calculateCandidateMatches(jobData);
+        setJob(jobData as unknown as Job);
+        await calculateCandidateMatches(jobData as unknown as Job);
         await fetchApplicants(jobId);
         setError(null);
       } else {
@@ -593,7 +593,7 @@ const JobDetails: React.FC = () => {
 
             <div className="panel-content-scrollable">
               {job.skills.map((skill, index) => {
-                const isAICreated = skill.addedBy === undefined || skill.addedBy === null;
+                const isAICreated = (skill as any).addedBy === undefined || (skill as any).addedBy === null;
                 return (
                 <div 
                   key={index}

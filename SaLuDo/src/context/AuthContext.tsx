@@ -75,7 +75,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const login = async (email: string, password: string) => {
     try {
-      const response = awa && response.data) {
+      const response = await usersApi.login(email, password);
+      
+      if (response.success && response.data) {
         const { user, accessToken, refreshToken, accessTokenExpiry, refreshTokenExpiry } = response.data;
 
         // Store in state
@@ -111,10 +113,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Logout error:", error);
-    } finally {tokens and user data using TokenManager
-      TokenManager.clearTokens(
+    } finally {
+      // Clear tokens and user data using TokenManager
+      TokenManager.clearTokens();
       setAccessToken(null);
       setRefreshToken(null);
+      setUser(null);
 
       // Clear localStorage
       localStorage.removeItem("accessToken");

@@ -44,9 +44,7 @@ export const TrendsView = ({ dateRange }: TrendsViewProps) => {
       
       const result = await fetchDashboardWithTrends(
         dateRange, 
-        comparisonType,
-        customStartDate || undefined,
-        customEndDate || undefined
+        comparisonType as "previous" | "year_ago"
       );
       setData(result);
     } catch (err) {
