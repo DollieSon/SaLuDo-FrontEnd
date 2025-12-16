@@ -6,6 +6,9 @@ import {
   AuditStatistics,
   SecurityAlert,
 } from "../types/audit";
+import { TokenManager } from "./tokenManager";
+import { createAuthHeaders, createBasicHeaders } from "./apiHeaders";
+import { validateApiResponse } from "./apiErrorHandler";
 
 // Get API URL from environment variables with fallback
 const getApiUrl = (): string => {
@@ -25,43 +28,26 @@ export const apiUrl: string = getApiUrl();
 export const skillsApi = {
   // Get all master skills - AVAILABLE: GET /api/skills
   getAllMasterSkills: async (accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
-    const response = await fetch(`${apiUrl}skills`, { headers });
-    if (!response.ok) throw new Error("Failed to fetch skills");
-    return response.json();
+    const token = accessToken || localStorage.getItem("accessToken") || "";
+    const response = await fetch(`${apiUrl}skills`, {
+      headers: createAuthHeaders(token),
+    });
+    return await validateApiResponse(response);
   },
 
   // Get only skills used by candidates - AVAILABLE: GET /api/skills/master/used
   getUsedMasterSkills: async (accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
-    const response = await fetch(`${apiUrl}skills/master/used`, { headers });
-    if (!response.ok) throw new Error("Failed to fetch used skills");
-    return response.json();
+    const token = accessToken || localStorage.getItem("accessToken") || "";
+    const response = await fetch(`${apiUrl}skills/master/used`, {
+      headers: createAuthHeaders(token),
+    });
+    return await validateApiResponse(response);
   },
 
   // Get single skill master data - AVAILABLE: GET /api/skills/master/:skillId
   getSkillMaster: async (skillId: string) => {
     const response = await fetch(`${apiUrl}skills/master/${skillId}`);
-    if (!response.ok) throw new Error("Failed to fetch skill");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Update skill master data - AVAILABLE: PUT /api/skills/master/:skillId
@@ -71,11 +57,10 @@ export const skillsApi = {
   ) => {
     const response = await fetch(`${apiUrl}skills/master/${skillId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify(updates),
     });
-    if (!response.ok) throw new Error("Failed to update skill");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Accept/Approve skill - Available via update endpoint
@@ -93,8 +78,7 @@ export const skillsApi = {
     const response = await fetch(
       `${apiUrl}skills/search/${encodeURIComponent(skillName)}`
     );
-    if (!response.ok) throw new Error("Failed to search skills");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get candidates with specific skill - AVAILABLE: GET /api/skills/candidates/:skillName
@@ -102,19 +86,17 @@ export const skillsApi = {
     const response = await fetch(
       `${apiUrl}skills/candidates/${encodeURIComponent(skillName)}`
     );
-    if (!response.ok) throw new Error("Failed to get candidates with skill");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Merge skills - AVAILABLE: POST /api/skills/master/merge
   mergeSkills: async (targetSkillId: string, sourceSkillIds: string[]) => {
     const response = await fetch(`${apiUrl}skills/master/merge`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify({ targetSkillId, sourceSkillIds }),
     });
-    if (!response.ok) throw new Error("Failed to merge skills");
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
 
@@ -127,19 +109,11 @@ export const skillsApi = {
 export const jobsApi = {
   // Get all jobs
   getAllJobs: async (accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
-    const response = await fetch(`${apiUrl}jobs?limit=1000`, { headers }); // Set high limit to get all jobs
-    if (!response.ok) throw new Error("Failed to fetch jobs");
-    return response.json();
+    const token = accessToken || localStorage.getItem("accessToken") || "";
+    const response = await fetch(`${apiUrl}jobs?limit=1000`, {
+      headers: createAuthHeaders(token),
+    }); // Set high limit to get all jobs
+    return await validateApiResponse(response);
   },
 
   // Get single job with skill names
@@ -147,30 +121,27 @@ export const jobsApi = {
     const response = await fetch(
       `${apiUrl}jobs/${jobId}?includeSkillNames=${includeSkillNames}`
     );
-    if (!response.ok) throw new Error("Failed to fetch job");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Create new job
   createJob: async (jobData: any) => {
     const response = await fetch(`${apiUrl}jobs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify(jobData),
     });
-    if (!response.ok) throw new Error("Failed to create job");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Update job
   updateJob: async (jobId: string, updates: any) => {
     const response = await fetch(`${apiUrl}jobs/${jobId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify(updates),
     });
-    if (!response.ok) throw new Error("Failed to update job");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Delete job
@@ -178,8 +149,7 @@ export const jobsApi = {
     const response = await fetch(`${apiUrl}jobs/${jobId}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to delete job");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Add skill to job
@@ -189,11 +159,10 @@ export const jobsApi = {
   ) => {
     const response = await fetch(`${apiUrl}jobs/${jobId}/skills`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify(skillData),
     });
-    if (!response.ok) throw new Error("Failed to add skill to job");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Remove skill from job
@@ -201,8 +170,7 @@ export const jobsApi = {
     const response = await fetch(`${apiUrl}jobs/${jobId}/skills/${skillId}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to remove skill from job");
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
 
@@ -210,60 +178,33 @@ export const jobsApi = {
 export const candidatesApi = {
   // Get all candidates
   getAllCandidates: async (accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      // Try to get token from localStorage
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
-    const response = await fetch(`${apiUrl}candidates`, { headers });
-    if (!response.ok) throw new Error("Failed to fetch candidates");
-    return response.json();
+    const token = accessToken || localStorage.getItem("accessToken") || "";
+    const response = await fetch(`${apiUrl}candidates`, {
+      headers: createAuthHeaders(token),
+    });
+    return await validateApiResponse(response);
   },
 
   // Create new candidate
   createCandidate: async (formData: FormData, accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(`${apiUrl}candidates`, {
       method: "POST",
-      headers,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       body: formData, // Don't set Content-Type header, let browser set it for FormData
     });
-    if (!response.ok) throw new Error("Failed to create candidate");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get single candidate by ID
   getCandidateById: async (candidateId: string, accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
-      headers,
+      headers: createAuthHeaders(token),
     });
-    if (!response.ok) throw new Error("Failed to fetch candidate");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get candidate personality data
@@ -271,22 +212,12 @@ export const candidatesApi = {
     candidateId: string,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/personality`,
-      { headers }
+      { headers: createAuthHeaders(token) }
     );
-    if (!response.ok) throw new Error("Failed to fetch candidate personality");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Update candidate information
@@ -295,43 +226,23 @@ export const candidatesApi = {
     updates: any,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
       method: "PUT",
-      headers,
+      headers: createAuthHeaders(token),
       body: JSON.stringify(updates),
     });
-    if (!response.ok) throw new Error("Failed to update candidate");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Delete candidate
   deleteCandidate: async (candidateId: string, accessToken?: string) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
       method: "DELETE",
-      headers,
+      headers: createAuthHeaders(token),
     });
-    if (!response.ok) throw new Error("Failed to delete candidate");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Upload transcript file
@@ -340,26 +251,18 @@ export const candidatesApi = {
     formData: FormData,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/transcripts`,
       {
         method: "POST",
-        headers,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       }
     );
-    if (!response.ok) throw new Error("Failed to upload transcript");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Upload interview video file
@@ -368,26 +271,18 @@ export const candidatesApi = {
     formData: FormData,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/videos/interview/upload`,
       {
         method: "POST",
-        headers,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       }
     );
-    if (!response.ok) throw new Error("Failed to upload interview video");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Upload introduction video file
@@ -396,26 +291,18 @@ export const candidatesApi = {
     formData: FormData,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/videos/introduction/upload`,
       {
         method: "POST",
-        headers,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       }
     );
-    if (!response.ok) throw new Error("Failed to upload introduction video");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get file download URL
@@ -434,22 +321,12 @@ export const candidatesApi = {
     candidateId2: string,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId1}/compare/${candidateId2}`,
-      { headers }
+      { headers: createAuthHeaders(token) }
     );
-    if (!response.ok) throw new Error("Failed to compare candidates");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Assign user to candidate
@@ -458,27 +335,15 @@ export const candidatesApi = {
     userId: string,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/assign/${userId}`,
       {
         method: "POST",
-        headers,
+        headers: createAuthHeaders(token),
       }
     );
-    if (!response.ok) throw new Error("Failed to assign user");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Unassign user from candidate
@@ -487,25 +352,15 @@ export const candidatesApi = {
     userId: string,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/unassign/${userId}`,
       {
         method: "DELETE",
-        headers,
+        headers: createAuthHeaders(token),
       }
     );
-    if (!response.ok) throw new Error("Failed to unassign user");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get candidate assignments
@@ -513,22 +368,12 @@ export const candidatesApi = {
     candidateId: string,
     accessToken?: string
   ) => {
-    const headers: HeadersInit = {};
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    } else {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
-
+    const token = accessToken || localStorage.getItem("accessToken") || "";
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/assignments`,
-      { headers }
+      { headers: createAuthHeaders(token) }
     );
-    if (!response.ok) throw new Error("Failed to get assignments");
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
 
@@ -538,11 +383,22 @@ export const usersApi = {
   login: async (email: string, password: string) => {
     const response = await fetch(`${apiUrl}users/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify({ email, password }),
     });
-    if (!response.ok) throw new Error("Login failed");
-    return response.json();
+    const result = await validateApiResponse(response);
+    
+    // Store tokens with expiry
+    if (result.data) {
+      TokenManager.saveTokens({
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+        accessTokenExpiry: result.data.accessTokenExpiry,
+        refreshTokenExpiry: result.data.refreshTokenExpiry,
+      });
+    }
+    
+    return result;
   },
 
   // Logout
@@ -553,25 +409,37 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users/auth/logout`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify({ refreshToken, revokeAllSessions }),
     });
-    if (!response.ok) throw new Error("Logout failed");
-    return response.json();
+    const result = await validateApiResponse(response);
+    
+    // Clear stored tokens on successful logout
+    TokenManager.clearTokens();
+    
+    return result;
   },
 
   // Refresh token
   refreshToken: async (refreshToken: string) => {
     const response = await fetch(`${apiUrl}users/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: createBasicHeaders(),
       body: JSON.stringify({ refreshToken }),
     });
-    if (!response.ok) throw new Error("Token refresh failed");
-    return response.json();
+    const result = await validateApiResponse(response);
+    
+    // Update stored tokens with new values
+    if (result.data) {
+      TokenManager.saveTokens({
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+        accessTokenExpiry: result.data.accessTokenExpiry,
+        refreshTokenExpiry: result.data.refreshTokenExpiry,
+      });
+    }
+    
+    return result;
   },
 
   // Change password
@@ -582,14 +450,10 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users/auth/change-password`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify({ currentPassword, newPassword }),
     });
-    if (!response.ok) throw new Error("Password change failed");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get all users (Admin only)
@@ -612,19 +476,17 @@ export const usersApi = {
     if (options?.search) params.append("search", options.search);
 
     const response = await fetch(`${apiUrl}users?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to fetch users");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get user by ID
   getUserById: async (accessToken: string, userId: string) => {
     const response = await fetch(`${apiUrl}users/${userId}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to fetch user");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Create new user (Admin only)
@@ -642,14 +504,10 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify(userData),
     });
-    if (!response.ok) throw new Error("Failed to create user");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Update user profile
@@ -673,14 +531,10 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/profile`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify(updates),
     });
-    if (!response.ok) throw new Error("Failed to update user profile");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Upload profile photo
@@ -699,8 +553,7 @@ export const usersApi = {
       },
       body: formData,
     });
-    if (!response.ok) throw new Error("Failed to upload profile photo");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get profile photo URL
@@ -713,19 +566,17 @@ export const usersApi = {
   deleteProfilePhoto: async (accessToken: string, userId: string) => {
     const response = await fetch(`${apiUrl}users/${userId}/profile/photo`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to delete profile photo");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get user profile stats
   getUserStats: async (accessToken: string, userId: string) => {
     const response = await fetch(`${apiUrl}users/${userId}/profile/stats`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to fetch user stats");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get user profile activity
@@ -737,11 +588,10 @@ export const usersApi = {
     const response = await fetch(
       `${apiUrl}users/${userId}/profile/activity?limit=${limit}`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to fetch profile activity");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Set user active status (Admin only)
@@ -752,14 +602,10 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/status`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify({ isActive }),
     });
-    if (!response.ok) throw new Error("Failed to update user status");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Reset user password (Admin only) - LEGACY
@@ -770,14 +616,10 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify({ newPassword }),
     });
-    if (!response.ok) throw new Error("Failed to reset password");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Admin reset user password with email (Admin only)
@@ -789,27 +631,19 @@ export const usersApi = {
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify({ reason, customPassword }),
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to reset password");
-    }
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Delete user (Admin only)
   deleteUser: async (accessToken: string, userId: string) => {
     const response = await fetch(`${apiUrl}users/${userId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to delete user");
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
 
@@ -861,11 +695,10 @@ export const auditLogsApi = {
     }
 
     const response = await fetch(`${apiUrl}audit-logs?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
 
-    if (!response.ok) throw new Error("Failed to fetch audit logs");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   getAlerts: async (
@@ -887,12 +720,11 @@ export const auditLogsApi = {
         params.toString() ? `?${params.toString()}` : ""
       }`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
 
-    if (!response.ok) throw new Error("Failed to fetch security alerts");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   getStats: async (
@@ -913,12 +745,11 @@ export const auditLogsApi = {
         params.toString() ? `?${params.toString()}` : ""
       }`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
 
-    if (!response.ok) throw new Error("Failed to fetch audit statistics");
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
 
@@ -936,14 +767,10 @@ export const commentsApi = {
   ) => {
     const response = await fetch(`${apiUrl}comments`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Failed to create comment");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get comments for entity
@@ -969,11 +796,10 @@ export const commentsApi = {
         params.toString() ? `?${params.toString()}` : ""
       }`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to fetch comments");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get top-level comments
@@ -999,20 +825,18 @@ export const commentsApi = {
         params.toString() ? `?${params.toString()}` : ""
       }`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to fetch top-level comments");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get replies for a comment
   getReplies: async (accessToken: string, commentId: string) => {
     const response = await fetch(`${apiUrl}comments/${commentId}/replies`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to fetch replies");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Update comment
@@ -1023,24 +847,19 @@ export const commentsApi = {
   ) => {
     const response = await fetch(`${apiUrl}comments/${commentId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: createAuthHeaders(accessToken),
       body: JSON.stringify({ text }),
     });
-    if (!response.ok) throw new Error("Failed to update comment");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Delete comment
   deleteComment: async (accessToken: string, commentId: string) => {
     const response = await fetch(`${apiUrl}comments/${commentId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to delete comment");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get comment stats
@@ -1052,11 +871,10 @@ export const commentsApi = {
     const response = await fetch(
       `${apiUrl}comments/stats/${entityType}/${entityId}`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to fetch comment stats");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Search users for mentions
@@ -1067,16 +885,11 @@ export const commentsApi = {
     const response = await fetch(
       `${apiUrl}comments/autocomplete/users?${params.toString()}`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Search users API error:', response.status, errorText);
-      throw new Error(`Failed to search users: ${response.status} - ${errorText}`);
-    }
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
 
@@ -1109,29 +922,26 @@ export const notificationsApi = {
         params.toString() ? `?${params.toString()}` : ""
       }`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to fetch notifications");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get unread count
   getUnreadCount: async (accessToken: string) => {
     const response = await fetch(`${apiUrl}notifications/unread-count`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to fetch unread count");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get notification summary
   getSummary: async (accessToken: string) => {
     const response = await fetch(`${apiUrl}notifications/summary`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to fetch notification summary");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Mark as read
@@ -1140,32 +950,28 @@ export const notificationsApi = {
       `${apiUrl}notifications/${notificationId}/read`,
       {
         method: "PUT",
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to mark notification as read");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Mark all as read
   markAllAsRead: async (accessToken: string) => {
     const response = await fetch(`${apiUrl}notifications/read-all`, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok)
-      throw new Error("Failed to mark all notifications as read");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Delete notification
   deleteNotification: async (accessToken: string, notificationId: string) => {
     const response = await fetch(`${apiUrl}notifications/${notificationId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: createAuthHeaders(accessToken),
     });
-    if (!response.ok) throw new Error("Failed to delete notification");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Get preferences
@@ -1173,11 +979,10 @@ export const notificationsApi = {
     const response = await fetch(
       `${apiUrl}notifications/preferences/settings`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: createAuthHeaders(accessToken),
       }
     );
-    if (!response.ok) throw new Error("Failed to fetch preferences");
-    return response.json();
+    return await validateApiResponse(response);
   },
 
   // Update preferences
@@ -1186,31 +991,11 @@ export const notificationsApi = {
       `${apiUrl}notifications/preferences/settings`,
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: createAuthHeaders(accessToken),
         body: JSON.stringify(preferences),
       }
     );
     
-    if (!response.ok) {
-      // Try to get error details from response
-      let errorMessage = "Failed to update preferences";
-      try {
-        const errorData = await response.json();
-        if (errorData.error) {
-          errorMessage = errorData.error;
-        } else if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-      } catch (e) {
-        // If response is not JSON, use status text
-        errorMessage = `Failed to update preferences: ${response.statusText}`;
-      }
-      throw new Error(errorMessage);
-    }
-    
-    return response.json();
+    return await validateApiResponse(response);
   },
 };
