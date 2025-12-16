@@ -62,7 +62,8 @@ export interface ScoreHistoryEntry {
   score: number;
   breakdown: ScoreBreakdown;
   confidence?: number;                    // 0-100 based on profile completeness
-  mode?: 'job-specific' | 'general';      // Scoring mode used
+  scoringSettingsId?: string;             // References the ScoringPreferences used for calculation
+  scoringSettingsName?: string;           // Human-readable name (e.g., "Global Settings" or "Job-specific: Software Engineer")
   jobId?: string;
   jobTitle?: string;
   calculatedAt: string;

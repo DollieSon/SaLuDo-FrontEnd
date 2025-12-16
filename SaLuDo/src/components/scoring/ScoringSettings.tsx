@@ -385,7 +385,6 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
                   className={`sidebar-item ${selectedJobId === job.jobId ? 'active' : ''}`}
                   onClick={() => selectJob(job.jobId)}
                 >
-                  <span className="sidebar-item-icon">📋</span>
                   <span className="sidebar-item-title">{job.title}</span>
                   {job.hasCustomSettings && (
                     <span className="sidebar-badge">Custom</span>

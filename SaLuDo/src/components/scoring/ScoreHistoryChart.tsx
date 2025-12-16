@@ -30,6 +30,7 @@ interface ChartDataPoint {
   fullDate: string;
   score: number;
   jobTitle?: string;
+  scoringSettingsName?: string;
   color: string;
   originalEntry: ScoreHistoryEntry; // Reference to original entry for modal
 }
@@ -79,12 +80,10 @@ const ScoreDetailModal: React.FC<{
               <span className="meta-label">Date:</span>
               <span className="meta-value">{formatDate(entry.calculatedAt)}</span>
             </div>
-            {entry.mode && (
+            {entry.scoringSettingsName && (
               <div className="score-modal-meta-item">
-                <span className="meta-label">Mode:</span>
-                <span className="meta-value" style={{ textTransform: 'capitalize' }}>
-                  {entry.mode.replace('-', ' ')}
-                </span>
+                <span className="meta-label">Scoring Settings:</span>
+                <span className="meta-value">{entry.scoringSettingsName}</span>
               </div>
             )}
             {entry.jobTitle && (
@@ -185,6 +184,9 @@ const CustomTooltip: React.FC<any> = ({ active, payload }) => {
         {data.jobTitle && (
           <div className="score-history-tooltip-job">{data.jobTitle}</div>
         )}
+        {data.scoringSettingsName && (
+          <div className="score-history-tooltip-settings">{data.scoringSettingsName}</div>
+        )}
       </div>
     );
   }
@@ -221,6 +223,7 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
         }),
         score: entry.score ?? 0,
         jobTitle: entry.jobTitle,
+        scoringSettingsName: entry.scoringSettingsName,
         color: getScoreColor(entry.score ?? 0),
         originalEntry: entry,
       }));
@@ -376,6 +379,11 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
                   stroke: '#ffffff',
                   r: 4,
                   cursor: 'pointer',
+                  onClick: (_: any, payload: any) => {
+                    if (payload && payload.payload && payload.payload.originalEntry) {
+                      setSelectedEntry(payload.payload.originalEntry);
+                    }
+                  },
                 }}
                 activeDot={{
                   r: 6,
