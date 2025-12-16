@@ -14,12 +14,11 @@ export interface ScoringWeights {
 
 // Scoring modifiers for adjustments
 export interface ScoringModifiers {
-  certificationBonus: number;         // 0-20, bonus per certification
-  maxCertificationBonus: number;      // 0-30, cap on certification bonus
-  yearsExperienceMultiplier: number;  // 0.5-2, experience weight
-  educationLevelBonus: Record<string, number>;  // Bonus by degree level
-  recentActivityBonus: number;        // 0-10, bonus for recent updates
-  skillEvidenceBonus: number;         // 0-15, bonus for skill evidence
+  manualSkillBoost: number;         // Multiplier for manually-added skills vs resume-parsed (default: 1.2, range: 1.0-2.0)
+  recencyBiasWeight: number;        // Weight applied to recent experience/certifications (default: 1.1, range: 1.0-1.5)
+  recencyThresholdYears: number;    // Years threshold for "recent" items (default: 2)
+  missingSkillPenalty: number;      // Penalty per missing required skill in job mode (default: 5, range: 0-20)
+  skillGapThreshold: number;        // Max acceptable gap for partial skill match (default: 2, range: 0-5)
 }
 
 // Personality category weights
@@ -59,7 +58,7 @@ export interface ScoreBreakdown {
 
 // Individual score history entry
 export interface ScoreHistoryEntry {
-  score: number;
+  overallScore: number;
   breakdown: ScoreBreakdown;
   confidence?: number;                    // 0-100 based on profile completeness
   scoringSettingsId?: string;             // References the ScoringPreferences used for calculation
@@ -171,11 +170,11 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
 
 export const DEFAULT_PERSONALITY_CATEGORY_WEIGHTS: PersonalityCategoryWeights = {
   cognitiveAndProblemSolving: 20,
-  communicationAndTeamwork: 25,
+  communicationAndTeamwork: 20,
   workEthicAndReliability: 20,
   growthAndLeadership: 15,
   cultureAndPersonalityFit: 15,
-  bonusTraits: 5,
+  bonusTraits: 10,
 };
 
 // Validation helpers

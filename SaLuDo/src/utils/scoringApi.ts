@@ -188,24 +188,9 @@ export const predictiveScoreApi = {
   }> => {
     const params = limit ? `?limit=${limit}` : '';
     const response = await apiClient.get(`/candidates/${candidateId}/success-score/history${params}`);
-    // Backend returns { success, data, count }, transform to expected format
-    // Backend uses 'overallScore' but frontend expects 'score' - map the field
-    const rawHistory = response.data.data || [];
-    const transformedHistory: ScoreHistoryEntry[] = rawHistory.map((entry: any) => ({
-      score: entry.overallScore ?? entry.score ?? 0,
-      breakdown: entry.breakdown,
-      confidence: entry.confidence,
-      scoringSettingsId: entry.scoringSettingsId,
-      scoringSettingsName: entry.scoringSettingsName,
-      jobId: entry.jobId,
-      jobTitle: entry.jobTitle,
-      calculatedAt: entry.calculatedAt,
-      calculatedBy: entry.calculatedBy,
-      weightsUsed: entry.weightsUsed,
-    }));
     return {
       success: response.data.success,
-      history: transformedHistory,
+      history: response.data.data || [],
       candidateId,
       totalEntries: response.data.count || 0
     };

@@ -65,12 +65,12 @@ const ScoreDetailModal: React.FC<{
           <div className="score-modal-main-score">
             <div
               className="score-modal-score-value"
-              style={{ color: getScoreColor(entry.score ?? 0) }}
+              style={{ color: getScoreColor(entry.overallScore ?? 0) }}
             >
-              {(entry.score ?? 0).toFixed(1)}
+              {(entry.overallScore ?? 0).toFixed(1)}
             </div>
             <div className="score-modal-score-label">
-              {getScoreLabel(entry.score ?? 0)}
+              {getScoreLabel(entry.overallScore ?? 0)}
             </div>
           </div>
 
@@ -208,7 +208,7 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     return history
       .slice()
       .sort((a, b) => new Date(a.calculatedAt).getTime() - new Date(b.calculatedAt).getTime())
-      .filter((entry) => entry.score != null && !isNaN(entry.score))
+      .filter((entry) => entry.overallScore != null && !isNaN(entry.overallScore))
       .map((entry) => ({
         date: new Date(entry.calculatedAt).toLocaleDateString('en-US', {
           month: 'short',
@@ -221,10 +221,10 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
           hour: '2-digit',
           minute: '2-digit',
         }),
-        score: entry.score ?? 0,
+        score: entry.overallScore ?? 0,
         jobTitle: entry.jobTitle,
         scoringSettingsName: entry.scoringSettingsName,
-        color: getScoreColor(entry.score ?? 0),
+        color: getScoreColor(entry.overallScore ?? 0),
         originalEntry: entry,
       }));
   }, [history]);
@@ -242,9 +242,9 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   // Calculate average score
   const averageScore = useMemo(() => {
     if (!history || history.length === 0) return 0;
-    const validScores = history.filter(entry => entry.score != null && !isNaN(entry.score));
+    const validScores = history.filter(entry => entry.overallScore != null && !isNaN(entry.overallScore));
     if (validScores.length === 0) return 0;
-    return validScores.reduce((sum, entry) => sum + (entry.score ?? 0), 0) / validScores.length;
+    return validScores.reduce((sum, entry) => sum + (entry.overallScore ?? 0), 0) / validScores.length;
   }, [history]);
 
   // Get score trend
@@ -252,7 +252,7 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
     if (!history || history.length < 2) return null;
     
     const sorted = [...history]
-      .filter(entry => entry.score != null && !isNaN(entry.score))
+      .filter(entry => entry.overallScore != null && !isNaN(entry.overallScore))
       .sort(
         (a, b) => new Date(a.calculatedAt).getTime() - new Date(b.calculatedAt).getTime()
       );
@@ -446,9 +446,9 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
                 </div>
                 <span
                   className="history-item-score"
-                  style={{ color: getScoreColor(entry.score ?? 0) }}
+                  style={{ color: getScoreColor(entry.overallScore ?? 0) }}
                 >
-                  {(entry.score ?? 0).toFixed(1)}
+                  {(entry.overallScore ?? 0).toFixed(1)}
                 </span>
               </div>
             ))}
@@ -459,3 +459,4 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
 };
 
 export default ScoreHistoryChart;
+

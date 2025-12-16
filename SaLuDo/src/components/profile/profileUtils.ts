@@ -182,18 +182,21 @@ export const formatDate = (dateString: string) => {
   });
 };
 
+// Get API base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/';
+
 export const getFileDownloadUrl = (fileId: string) => {
-  return `http://localhost:3000/api/candidates/files/${fileId}/download`;
+  return `${API_URL}files/${fileId}`;
 };
 
 export const getTranscriptDownloadUrl = (fileId: string) => {
-  return `http://localhost:3000/api/candidates/transcripts/${fileId}/download`;
+  return `${API_URL}files/transcripts/${fileId}`;
 };
 
 export const getInterviewVideoDownloadUrl = (id: string, fileId: string) => {
-  return `http://localhost:3000/api/candidates/${id}/videos/interview/${fileId}/download`;
+  return `${API_URL}candidates/${id}/videos/interview/${fileId}/download`;
 };
 
 export const getIntroductionVideoDownloadUrl = (id: string, fileId: string) => {
-  return `http://localhost:3000/api/candidates/${id}/videos/introduction/${fileId}/download`;
+  return `${API_URL}candidates/${id}/videos/introduction/${fileId}/download`;
 };
