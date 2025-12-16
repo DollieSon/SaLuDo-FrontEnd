@@ -100,40 +100,49 @@ export const scoringSettingsApi = {
    */
   resetToDefaults: async (): Promise<{
     success: boolean;
-    settings: ScoringPreferences;
+    data: ScoringPreferences;
+    message: string;
   }> => {
-    const response = await apiClient.put('/settings/scoring', {
-      weights: {
-        skillMatch: 35,
-        personalityFit: 25,
-        experience: 20,
-        education: 10,
-        profileQuality: 10,
-      },
-      modifiers: {
-        certificationBonus: 2,
-        maxCertificationBonus: 10,
-        yearsExperienceMultiplier: 1.0,
-        educationLevelBonus: {
-          'high_school': 0,
-          'associate': 2,
-          'bachelor': 5,
-          'master': 8,
-          'doctorate': 10,
-        },
-        recentActivityBonus: 5,
-        skillEvidenceBonus: 5,
-      },
-      personalityCategoryWeights: {
-        cognitiveAndProblemSolving: 20,
-        communicationAndTeamwork: 25,
-        workEthicAndReliability: 20,
-        growthAndLeadership: 15,
-        cultureAndPersonalityFit: 15,
-        bonusTraits: 5,
-      },
-      isActive: true,
-    });
+    const response = await apiClient.post('/settings/scoring/reset');
+    return response.data;
+  },
+
+  /**
+   * Get default scoring values (for UI reference)
+   */
+  getDefaults: async (): Promise<{
+    success: boolean;
+    data: {
+      weights: ScoringWeights;
+      modifiers: ScoringModifiers;
+      personalityCategoryWeights: PersonalityCategoryWeights;
+    };
+  }> => {
+    const response = await apiClient.get('/settings/scoring/defaults');
+    return response.data;
+  },
+
+  /**
+   * Copy global settings to create job-specific settings
+   */
+  copyGlobalToJob: async (jobId: string): Promise<{
+    success: boolean;
+    data: ScoringPreferences;
+    message: string;
+  }> => {
+    const response = await apiClient.post(`/settings/scoring/job/${jobId}/copy-from-global`);
+    return response.data;
+  },
+
+  /**
+   * Get list of jobs that have custom scoring settings
+   */
+  getJobsWithCustomSettings: async (): Promise<{
+    success: boolean;
+    data: string[];
+    count: number;
+  }> => {
+    const response = await apiClient.get('/settings/scoring/jobs-with-custom');
     return response.data;
   },
 };
@@ -215,8 +224,10 @@ export const predictiveScoreApi = {
     insights: CandidateAIInsights;
     candidateId: string;
   }> => {
-    const body = jobId ? { jobId } : {};
-    const response = await apiClient.post(`/candidates/${candidateId}/success-score/insights`, body);
+    const url = jobId 
+      ? `/candidates/${candidateId}/success-score/insights?jobId=${jobId}`
+      : `/candidates/${candidateId}/success-score/insights`;
+    const response = await apiClient.post(url);
     // Backend returns { success, data, message }, transform to expected format
     return {
       success: response.data.success,

@@ -207,7 +207,7 @@ export class SkillsApiClient {
         await apiCall<ApiResponse<null>>(
             `/skills/${candidateId}/skills/bulk`, 
             'POST', 
-            skills
+            { skills }  // Wrap array in object to match backend expectation
         );
     }
 

@@ -312,20 +312,14 @@ export const updateAlertConfig = async (
 
 /**
  * Fetch dashboard data with trend comparison
+ * Note: Only 'previous' and 'year_ago' comparison types are currently supported
  */
 export const fetchDashboardWithTrends = async (
   dateRange: DateRangeOption = "30d",
-  comparisonType: ComparisonType = "previous",
-  customStartDate?: string,
-  customEndDate?: string
+  comparisonType: "previous" | "year_ago" = "previous"
 ): Promise<DashboardWithTrendsResponse> => {
   const days = dateRangeToDays(dateRange);
-  let url = `/ai-metrics/dashboard?range=${days}d&compare=${comparisonType}`;
-  
-  // Add custom date parameters if comparison type is custom
-  if (comparisonType === "custom" && customStartDate && customEndDate) {
-    url += `&customStart=${customStartDate}&customEnd=${customEndDate}`;
-  }
+  const url = `/ai-metrics/dashboard?range=${days}d&compare=${comparisonType}`;
   
   const response = await apiClient.get<{
     success: boolean;

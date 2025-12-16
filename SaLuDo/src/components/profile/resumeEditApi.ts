@@ -10,8 +10,11 @@ import {
 } from "./resumeEditTypes";
 import { API_ENDPOINTS } from "./resumeEditConstants";
 
+// Use environment variable for API base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+
 const getAuthHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem("token")}`,
+  Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
   "Content-Type": "application/json"
 });
 
@@ -19,7 +22,7 @@ export const resumeEditApi = {
   // Skills
   async updateSkill(candidateId: string, skill: EditableSkill) {
     const endpoint = API_ENDPOINTS.SKILLS(candidateId, skill.candidateSkillId);
-    await axios.put(`http://localhost:3000${endpoint}`, {
+    await axios.put(`${API_BASE_URL}${endpoint}`, {
       skillName: skill.skillName,
       score: skill.score,
       evidence: skill.evidence,
@@ -29,7 +32,7 @@ export const resumeEditApi = {
 
   async createSkill(candidateId: string, skill: EditableSkill) {
     const endpoint = API_ENDPOINTS.SKILLS(candidateId);
-    await axios.post(`http://localhost:3000${endpoint}`, {
+    await axios.post(`${API_BASE_URL}${endpoint}`, {
       skillName: skill.skillName,
       score: skill.score,
       evidence: skill.evidence,
@@ -39,13 +42,13 @@ export const resumeEditApi = {
 
   async deleteSkill(candidateId: string, skillId: string) {
     const endpoint = API_ENDPOINTS.SKILLS(candidateId, skillId);
-    await axios.delete(`http://localhost:3000${endpoint}`, { headers: getAuthHeaders() });
+    await axios.delete(`${API_BASE_URL}${endpoint}`, { headers: getAuthHeaders() });
   },
 
   // Experience
   async updateExperience(candidateId: string, exp: EditableExperience) {
     const endpoint = API_ENDPOINTS.EXPERIENCE(candidateId, exp.experienceId);
-    await axios.put(`http://localhost:3000${endpoint}`, {
+    await axios.put(`${API_BASE_URL}${endpoint}`, {
       description: exp.description,
       title: exp.title,
       role: exp.role,
@@ -57,7 +60,7 @@ export const resumeEditApi = {
 
   async createExperience(candidateId: string, exp: EditableExperience) {
     const endpoint = API_ENDPOINTS.EXPERIENCE(candidateId);
-    await axios.post(`http://localhost:3000${endpoint}`, {
+    await axios.post(`${API_BASE_URL}${endpoint}`, {
       description: exp.description,
       title: exp.title,
       role: exp.role,
@@ -69,13 +72,13 @@ export const resumeEditApi = {
 
   async deleteExperience(candidateId: string, expId: string) {
     const endpoint = API_ENDPOINTS.EXPERIENCE(candidateId, expId);
-    await axios.delete(`http://localhost:3000${endpoint}`, { headers: getAuthHeaders() });
+    await axios.delete(`${API_BASE_URL}${endpoint}`, { headers: getAuthHeaders() });
   },
 
   // Education
   async updateEducation(candidateId: string, edu: EditableEducation) {
     const endpoint = API_ENDPOINTS.EDUCATION(candidateId, edu.educationId);
-    await axios.put(`http://localhost:3000${endpoint}`, {
+    await axios.put(`${API_BASE_URL}${endpoint}`, {
       description: edu.description,
       institution: edu.institution,
       startDate: edu.startDate,
@@ -86,7 +89,7 @@ export const resumeEditApi = {
 
   async createEducation(candidateId: string, edu: EditableEducation) {
     const endpoint = API_ENDPOINTS.EDUCATION(candidateId);
-    await axios.post(`http://localhost:3000${endpoint}`, {
+    await axios.post(`${API_BASE_URL}${endpoint}`, {
       description: edu.description,
       institution: edu.institution,
       startDate: edu.startDate,
@@ -97,13 +100,13 @@ export const resumeEditApi = {
 
   async deleteEducation(candidateId: string, eduId: string) {
     const endpoint = API_ENDPOINTS.EDUCATION(candidateId, eduId);
-    await axios.delete(`http://localhost:3000${endpoint}`, { headers: getAuthHeaders() });
+    await axios.delete(`${API_BASE_URL}${endpoint}`, { headers: getAuthHeaders() });
   },
 
   // Certifications
   async updateCertification(candidateId: string, cert: EditableCertification) {
     const endpoint = API_ENDPOINTS.CERTIFICATIONS(candidateId, cert.certificationId);
-    await axios.put(`http://localhost:3000${endpoint}`, {
+    await axios.put(`${API_BASE_URL}${endpoint}`, {
       description: cert.description,
       name: cert.certificationName,
       issuingOrganization: cert.issuingOrganization,
@@ -114,7 +117,7 @@ export const resumeEditApi = {
 
   async createCertification(candidateId: string, cert: EditableCertification) {
     const endpoint = API_ENDPOINTS.CERTIFICATIONS(candidateId);
-    await axios.post(`http://localhost:3000${endpoint}`, {
+    await axios.post(`${API_BASE_URL}${endpoint}`, {
       description: cert.description,
       name: cert.certificationName,
       issuingOrganization: cert.issuingOrganization,
@@ -125,13 +128,13 @@ export const resumeEditApi = {
 
   async deleteCertification(candidateId: string, certId: string) {
     const endpoint = API_ENDPOINTS.CERTIFICATIONS(candidateId, certId);
-    await axios.delete(`http://localhost:3000${endpoint}`, { headers: getAuthHeaders() });
+    await axios.delete(`${API_BASE_URL}${endpoint}`, { headers: getAuthHeaders() });
   },
 
   // Strengths & Weaknesses
   async updateStrengthWeakness(candidateId: string, item: EditableStrengthWeakness) {
     const endpoint = API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId, item.strengthWeaknessId);
-    await axios.put(`http://localhost:3000${endpoint}`, {
+    await axios.put(`${API_BASE_URL}${endpoint}`, {
       name: item.name,
       description: item.description,
       type: item.type,
@@ -141,7 +144,7 @@ export const resumeEditApi = {
 
   async createStrengthWeakness(candidateId: string, item: EditableStrengthWeakness) {
     const endpoint = API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId);
-    await axios.post(`http://localhost:3000${endpoint}`, {
+    await axios.post(`${API_BASE_URL}${endpoint}`, {
       name: item.name,
       description: item.description,
       type: item.type,
@@ -151,6 +154,6 @@ export const resumeEditApi = {
 
   async deleteStrengthWeakness(candidateId: string, id: string, type: 'strength' | 'weakness') {
     const endpoint = `${API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId, id)}?type=${type}`;
-    await axios.delete(`http://localhost:3000${endpoint}`, { headers: getAuthHeaders() });
+    await axios.delete(`${API_BASE_URL}${endpoint}`, { headers: getAuthHeaders() });
   }
 };
