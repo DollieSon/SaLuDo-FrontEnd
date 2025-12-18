@@ -8,6 +8,7 @@ interface AuthContextType {
   refreshToken: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -114,12 +115,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const refreshUser = async () => {
+    if (!accessToken || !user?.userId) return;
+    
+    try {
+      console.log('Refreshing user data for sidebar...');
+      const response = await usersApi.getUserById(accessToken, user.userId);
+      if (response.success) {
+        console.log('User data refreshed:', response.data);
+        setUser(response.data);
+        localStorage.setItem("user", JSON.stringify(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    }
+  };
+
   const value = {
     user,
     accessToken,
     refreshToken,
     login,
     logout,
+    refreshUser,
     isAuthenticated: !!user && !!accessToken,
     isLoading,
   };

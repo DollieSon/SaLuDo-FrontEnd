@@ -166,8 +166,28 @@ const Sidebar = () => {
           title="View my profile"
         >
           <div className="user-avatar">
-            {user?.firstName?.[0]}
-            {user?.lastName?.[0]}
+            {user?.photoMetadata ? (
+              <img 
+                key={new Date(user.photoMetadata.uploadedAt).getTime()}
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/'}users/${user.userId}/profile/photo?thumbnail=true&t=${new Date(user.photoMetadata.uploadedAt).getTime()}`}
+                alt={user.fullName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                onError={(e) => {
+                  // Fallback to initials if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.textContent = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`;
+                  }
+                }}
+              />
+            ) : (
+              <>
+                {user?.firstName?.[0]}
+                {user?.lastName?.[0]}
+              </>
+            )}
           </div>
           <div className="user-info">
             <h4>{user?.fullName || "User"}</h4>

@@ -164,7 +164,6 @@ const CandidateComparison: React.FC = () => {
     return (
       <main className="candidate-comparison">
         <div className="loading-container">
-          <div className="loading-spinner"></div>
           <p>Loading candidate comparison...</p>
         </div>
       </main>

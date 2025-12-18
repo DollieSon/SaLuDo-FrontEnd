@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { ProfilePhotoMetadata } from "../types/user";
 import { usersApi } from "../utils/api";
 import "./css/ProfilePhotoUpload.css";
@@ -25,9 +25,12 @@ const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const photoUrl = photoMetadata
-    ? usersApi.getProfilePhotoUrl(userId, false)
-    : null;
+  // Add timestamp to force cache refresh when photo changes
+  const photoUrl = useMemo(() => {
+    if (!photoMetadata) return null;
+    const timestamp = photoMetadata.uploadedAt ? new Date(photoMetadata.uploadedAt).getTime() : Date.now();
+    return `${usersApi.getProfilePhotoUrl(userId, false)}?t=${timestamp}`;
+  }, [photoMetadata, userId]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -101,12 +104,23 @@ const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({
           <img src={preview} alt="Preview" className="profile-photo preview" />
         ) : photoUrl ? (
           <img
+            key={photoUrl}
             src={photoUrl}
             alt="Profile"
             className="profile-photo"
             onError={(e) => {
               // Fallback to initials if image fails to load
-              (e.target as HTMLImageElement).style.display = 'none';
+              console.error('Failed to load profile photo:', photoUrl);
+              const img = e.target as HTMLImageElement;
+              img.style.display = 'none';
+              // Show placeholder with initials
+              const parent = img.parentElement;
+              if (parent && !parent.querySelector('.profile-photo-placeholder')) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'profile-photo-placeholder';
+                placeholder.textContent = getInitials(fullName);
+                parent.appendChild(placeholder);
+              }
             }}
           />
         ) : (
