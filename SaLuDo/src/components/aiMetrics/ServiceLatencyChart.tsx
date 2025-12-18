@@ -91,6 +91,7 @@ const ServiceLatencyChart: React.FC<ServiceLatencyChartProps> = ({ perServiceTre
             dot={false}
             activeDot={{ r: 4 }}
             connectNulls
+            isAnimationActive={false}
           />
         ))}
       </LineChart>

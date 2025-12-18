@@ -75,6 +75,7 @@ export const LatencyChart = ({ data }: LatencyChartProps) => {
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
+          isAnimationActive={false}
         />
         <Line
           type="monotone"
@@ -83,6 +84,7 @@ export const LatencyChart = ({ data }: LatencyChartProps) => {
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
+          isAnimationActive={false}
         />
       </LineChart>
     </ResponsiveContainer>
