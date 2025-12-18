@@ -111,7 +111,7 @@ export const NotificationBell: React.FC = () => {
   };
 
   return (
-    <div className="notification-bell-container" ref={dropdownRef}>
+    <div className="notification-bell-container" ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
       <button
         className="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}

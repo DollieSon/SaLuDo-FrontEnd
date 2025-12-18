@@ -35,6 +35,7 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingResume, setIsEditingResume] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'info' | 'score' | 'resume' | 'comments'>('info');
   const [editedData, setEditedData] = useState({
     name: "",
     email: [] as string[],
@@ -986,73 +987,111 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      <div className="profile-content">
-        <CandidateInfoSection
-          candidate={candidate}
-          isEditing={isEditing}
-          editedData={editedData}
-          uploadingTranscript={uploadingTranscript}
-          uploadingInterviewVideo={uploadingInterviewVideo}
-          uploadingIntroductionVideo={uploadingIntroductionVideo}
-          processingVideo={processingVideo}
-          deletingFile={deletingFile}
-          onEditToggle={handleEditToggle}
-          onCancelEdit={handleCancelEdit}
-          onEditedDataChange={setEditedData}
-          onTranscriptUpload={handleTranscriptUpload}
-          onInterviewVideoUpload={handleInterviewVideoUpload}
-          onIntroductionVideoUpload={handleIntroductionVideoUpload}
-          onProcessVideo={handleProcessVideo}
-          onDeleteVideo={handleDeleteVideo}
-          onDeleteResume={handleDeleteResume}
-          onDownload={handleDownload}
-        />
+      {/* Tab Navigation */}
+      <div className="profile-tabs">
+        <button 
+          className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}
+          onClick={() => setActiveTab('info')}
+        >
+          Candidate Information
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'score' ? 'active' : ''}`}
+          onClick={() => setActiveTab('score')}
+        >
+          Predictive Success Score
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'resume' ? 'active' : ''}`}
+          onClick={() => setActiveTab('resume')}
+        >
+          Resume & Interview Analysis
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'comments' ? 'active' : ''}`}
+          onClick={() => setActiveTab('comments')}
+        >
+          Comments
+        </button>
       </div>
 
-      {/* Predictive Success Score Section */}
-      <CandidateScoreSection candidateId={id!} candidateName={candidate.name} />
-
-      <div className="parsed-sections-container">
-        <ResumeParsedSection
-          skills={resumeParsed.skills}
-          experience={resumeParsed.experience}
-          education={resumeParsed.education}
-          certification={resumeParsed.certification}
-          strength={resumeParsed.strength}
-          weaknesses={resumeParsed.weaknesses}
-          isEditing={isEditingResume}
-          editedResumeData={editedResumeData}
-          onEditToggle={handleResumeEditToggle}
-          onCancelEdit={handleCancelResumeEdit}
-          onResumeDataChange={setEditedResumeData}
-          onItemClick={openDetailModal}
-        />
-
-        {/* Introduction Video Analysis */}
-        {candidate.introductionVideos &&
-          candidate.introductionVideos.length > 0 && (
-            <VideoAnalysisSection
-              videos={candidate.introductionVideos}
-              videoType="introduction"
+      {/* Tab Content */}
+      <div className="tab-content">
+        {activeTab === 'info' && (
+          <div className="profile-content">
+            <CandidateInfoSection
+              candidate={candidate}
+              isEditing={isEditing}
+              editedData={editedData}
+              uploadingTranscript={uploadingTranscript}
+              uploadingInterviewVideo={uploadingInterviewVideo}
+              uploadingIntroductionVideo={uploadingIntroductionVideo}
+              processingVideo={processingVideo}
+              deletingFile={deletingFile}
+              onEditToggle={handleEditToggle}
+              onCancelEdit={handleCancelEdit}
+              onEditedDataChange={setEditedData}
+              onTranscriptUpload={handleTranscriptUpload}
+              onInterviewVideoUpload={handleInterviewVideoUpload}
+              onIntroductionVideoUpload={handleIntroductionVideoUpload}
+              onProcessVideo={handleProcessVideo}
+              onDeleteVideo={handleDeleteVideo}
+              onDeleteResume={handleDeleteResume}
+              onDownload={handleDownload}
             />
-          )}
-
-        {/* Interview Video Analysis */}
-        {candidate.interviewVideos && candidate.interviewVideos.length > 0 && (
-          <VideoAnalysisSection
-            videos={candidate.interviewVideos}
-            videoType="interview"
-          />
+          </div>
         )}
 
-        <PersonalitySection
-          personality={personality}
-          radarData={radarData}
-          isEditing={isEditing}
-          onEditToggle={handleEditToggle}
-        />
+        {activeTab === 'score' && (
+          <CandidateScoreSection candidateId={id!} candidateName={candidate.name} />
+        )}
 
-        <Comments entityType={CommentEntityType.CANDIDATE} entityId={id!} />
+        {activeTab === 'resume' && (
+          <div className="parsed-sections-container">
+            <ResumeParsedSection
+              skills={resumeParsed.skills}
+              experience={resumeParsed.experience}
+              education={resumeParsed.education}
+              certification={resumeParsed.certification}
+              strength={resumeParsed.strength}
+              weaknesses={resumeParsed.weaknesses}
+              isEditing={isEditingResume}
+              editedResumeData={editedResumeData}
+              onEditToggle={handleResumeEditToggle}
+              onCancelEdit={handleCancelResumeEdit}
+              onResumeDataChange={setEditedResumeData}
+              onItemClick={openDetailModal}
+            />
+
+            {/* Introduction Video Analysis */}
+            {candidate.introductionVideos &&
+              candidate.introductionVideos.length > 0 && (
+                <VideoAnalysisSection
+                  videos={candidate.introductionVideos}
+                  videoType="introduction"
+                />
+              )}
+
+            {/* Interview Video Analysis */}
+            {candidate.interviewVideos && candidate.interviewVideos.length > 0 && (
+              <VideoAnalysisSection
+                videos={candidate.interviewVideos}
+                videoType="interview"
+              />
+            )}
+
+            <PersonalitySection
+              personality={personality}
+              radarData={radarData}
+              isEditing={isEditing}
+              onEditToggle={handleEditToggle}
+            />
+          </div>
+        )}
+
+        {activeTab === 'comments' && (
+          <Comments entityType={CommentEntityType.CANDIDATE} entityId={id!} />
+        )}
       </div>
 
       {showDetailModal && (

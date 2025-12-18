@@ -34,7 +34,6 @@ const TimeAnalyticsDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner"></div>
         <p className="loading-text">Loading system-wide analytics...</p>
       </div>
     );
@@ -44,7 +43,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
     return (
       <div className="error-container">
         <div className="error-header">
-          <span className="error-icon">⚠️</span>
+          <span className="error-icon"></span>
           <h3>Error Loading Analytics</h3>
         </div>
         <p className="error-message">{error}</p>
@@ -94,7 +93,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
         </div>
         <div className="analytics-header-actions">
           <button onClick={loadAnalytics} className="refresh-button">
-            🔄 Refresh Data
+            Refresh Data
           </button>
           {lastUpdated && (
             <p className="last-updated">
@@ -110,7 +109,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
         <div className="summary-card blue">
           <div className="summary-card-header">
             <h3>Total Candidates</h3>
-            <span className="summary-card-icon">👥</span>
+            <span className="summary-card-icon"></span>
           </div>
           <div className="summary-card-value">{analytics.totalCandidates}</div>
           <p className="summary-card-subtitle">In process</p>
@@ -120,7 +119,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
         <div className="summary-card green">
           <div className="summary-card-header">
             <h3>Active Stages</h3>
-            <span className="summary-card-icon">📊</span>
+            <span className="summary-card-icon"></span>
           </div>
           <div className="summary-card-value">
             {analytics.conversionFunnel.filter(s => s.candidateCount > 0).length}
@@ -132,7 +131,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
         <div className="summary-card orange">
           <div className="summary-card-header">
             <h3>Stuck Candidates</h3>
-            <span className="summary-card-icon">⚠️</span>
+            <span className="summary-card-icon"></span>
           </div>
           <div className="summary-card-value">{analytics.stuckCandidates.length}</div>
           <p className="summary-card-subtitle">Need attention</p>
@@ -142,7 +141,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
         <div className="summary-card purple">
           <div className="summary-card-header">
             <h3>Avg Time to Hire</h3>
-            <span className="summary-card-icon">⏱️</span>
+            <span className="summary-card-icon"></span>
           </div>
           <div className="summary-card-value">
             {Math.round(analytics.averageTimeToHire)}
@@ -200,7 +199,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
       <div className="two-column-grid">
         {/* Top Bottlenecks */}
         <div className="bottlenecks-section">
-          <h2>🔴 Top 5 Bottlenecks</h2>
+          <h2>Top 5 Bottlenecks</h2>
           <div>
             {bottleneckData.map((stage, index) => (
               <div key={index} className="bottleneck-item">
@@ -223,7 +222,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
 
         {/* Stuck Candidates Table */}
         <div className="stuck-candidates-section">
-          <h2>⚠️ Stuck Candidates</h2>
+          <h2>Stuck Candidates</h2>
           
           {analytics.stuckCandidates.length > 0 ? (
             <div className="stuck-table-container">
@@ -261,7 +260,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="no-stuck-candidates">
-              <p className="no-stuck-candidates-icon">🎉</p>
+              <p className="no-stuck-candidates-icon"></p>
               <p>No stuck candidates!</p>
               <p>All candidates are progressing well</p>
             </div>
@@ -312,7 +311,7 @@ const TimeAnalyticsDashboard: React.FC = () => {
 
       {/* Info Banner */}
       <div className="info-banner">
-        <span className="info-banner-icon">💡</span>
+        <span className="info-banner-icon"></span>
         <div className="info-banner-content">
           <h3>Analytics Information</h3>
           <p>
