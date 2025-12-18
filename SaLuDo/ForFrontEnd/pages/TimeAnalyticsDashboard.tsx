@@ -62,16 +62,20 @@ const TimeAnalyticsDashboard: React.FC = () => {
     );
   }
 
-  // Prepare average time chart data from conversion funnel
+  // Prepare average time chart data from conversionFunnel (includes all active stages)
   const avgTimeChartData = analytics.conversionFunnel
-    .filter(stage => stage.candidateCount > 0 && stage.status) // Only show stages with candidates and valid status
+    .filter(stage => stage.candidateCount > 0) // Only show stages with candidates
     .map(stage => ({
       name: stage.status ? stage.status.replace(/_/g, ' ') : 'Unknown',
-      avgHours: stage.averageDaysInStage * 24, // Convert days to hours for consistency
+      avgHours: stage.averageDaysInStage * 24, // Convert days to hours for better precision
       avgDays: stage.averageDaysInStage,
       count: stage.candidateCount,
       color: getTimeColorHex(stage.averageDaysInStage * 24 * 60 * 60 * 1000) // Convert to ms
-    }));
+    }))
+    .sort((a, b) => b.avgDays - a.avgDays); // Sort by average days descending
+
+  // If we have only a few bars, increase gaps and padding to avoid clustering to the edges
+  const isSparse = avgTimeChartData.length <= 3;
 
   // Prepare bottleneck data (stages with longest average times)
   const bottleneckData = [...analytics.bottleneckStages]
@@ -153,46 +157,61 @@ const TimeAnalyticsDashboard: React.FC = () => {
       {/* Average Time by Stage Chart */}
       <div className="charts-section">
         <h2>Average Time by Stage</h2>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={avgTimeChartData} margin={{ top: 20, right: 30, left: 20, bottom: 100 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="name" 
-              angle={-45} 
-              textAnchor="end" 
-              height={120}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
-            />
-            <YAxis 
-              label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
-              tick={{ fontSize: 12, fill: '#6b7280' }}
-            />
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-lg">
-                      <p className="font-semibold text-gray-900">{data.name}</p>
-                      <p className="text-sm text-gray-600">
-                        Avg Time: {data.avgHours.toFixed(1)} hours
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Candidates: {data.count}
-                      </p>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Bar dataKey="avgHours" radius={[8, 8, 0, 0]}>
-              {avgTimeChartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {avgTimeChartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={500}>
+            <BarChart 
+              data={avgTimeChartData}
+              margin={{ top: 30, right: 50, left: 60, bottom: 100 }}
+              barCategoryGap={isSparse ? '40%' : '15%'}
+              barGap={isSparse ? 10 : 4}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45} 
+                textAnchor="end" 
+                height={120}
+                interval={0}
+                padding={{ left: 30, right: 30 }}
+                tick={{ fontSize: 12, fill: '#6b7280' }}
+              />
+              <YAxis 
+                label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { fill: '#6b7280', fontSize: 14 } }}
+                tick={{ fontSize: 12, fill: '#6b7280' }}
+                domain={[0, 'auto']}
+                allowDecimals={false}
+              />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    return (
+                      <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-lg">
+                        <p className="font-semibold text-gray-900">{data.name}</p>
+                        <p className="text-sm text-gray-600">
+                          Avg Time: {data.avgDays.toFixed(1)} days ({data.avgHours.toFixed(1)} hours)
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Candidates: {data.count}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar dataKey="avgHours" radius={[8, 8, 0, 0]} maxBarSize={isSparse ? 100 : 60}>
+                {avgTimeChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            <p>No stage data available</p>
+          </div>
+        )}
       </div>
 
       {/* Bottlenecks and Stuck Candidates */}

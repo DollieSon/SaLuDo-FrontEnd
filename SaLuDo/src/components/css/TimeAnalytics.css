@@ -169,6 +169,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   margin-bottom: 2rem;
   border: 1px solid #e5e7eb;
+  width: 100%;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
 }
 
 .charts-section h2 {
@@ -179,6 +183,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .charts-section h2::before {

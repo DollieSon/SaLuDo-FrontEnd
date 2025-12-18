@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { candidatesApi, jobsApi, skillsApi } from "../utils/api";
 import { CandidateProfile } from "../types/profile";
+import { CandidateStatus as CandidateStatusEnum } from "../../ForFrontEnd/types/CandidateApiTypes";
 
 interface JobSkillRequirement {
   skillId: string;
@@ -382,6 +383,12 @@ const CandidateList: React.FC = () => {
     selectedJob !== "all" ? getJobNameById(selectedJob) : "All Roles";
   const [activeFilter, setActiveFilter] = useState("job");
 
+  // Canonical candidate statuses (aligned with backend)
+  const STATUS_OPTIONS: string[] = React.useMemo(
+    () => Object.values(CandidateStatusEnum),
+    []
+  );
+
   return (
     <main className="candidate-list">
       <div
@@ -479,9 +486,9 @@ const CandidateList: React.FC = () => {
           onClick={() => setActiveFilter("status")}
         >
           <option value="all">All Statuses</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Pending">Pending</option>
+          {STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>{status}</option>
+          ))}
         </select>
 
         <select

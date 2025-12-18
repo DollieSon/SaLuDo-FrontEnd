@@ -39,6 +39,7 @@ interface CandidateInfoSectionProps {
     filename: string,
     type: "resume" | "transcript" | "interview-video" | "introduction-video"
   ) => void;
+  onStatusChangeClick?: () => void;
 }
 
 export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
@@ -60,6 +61,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
   onDeleteVideo,
   onDeleteResume,
   onDownload,
+  onStatusChangeClick,
 }) => {
   return (
     <div className="info-box">
@@ -714,23 +716,53 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                   fontWeight: "500",
                 }}
               >
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
+                <option value="For Review">For Review</option>
+                <option value="Paper Screening">Paper Screening</option>
+                <option value="Exam">Exam</option>
+                <option value="HR Interview">HR Interview</option>
+                <option value="Technical Interview">Technical Interview</option>
+                <option value="Final Interview">Final Interview</option>
+                <option value="For Job Offer">For Job Offer</option>
+                <option value="Offer Extended">Offer Extended</option>
+                <option value="Hired">Hired</option>
                 <option value="Rejected">Rejected</option>
-                <option value="In Review">In Review</option>
+                <option value="Withdrawn">Withdrawn</option>
+                <option value="On Hold">On Hold</option>
               </select>
             ) : (
-              <span
-                className={`status-badge ${
-                  candidate.status?.toLowerCase() || "pending"
-                }`}
-              >
-                {candidate.status === "Approved" && "Approved"}
-                {candidate.status === "Rejected" && "Rejected"}
-                {candidate.status === "Pending" && "Pending"}
-                {candidate.status === "In Review" && "In Review"}
-                {candidate.status || "No Status"}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  className={`status-badge ${
+                    candidate.status?.toLowerCase().replace(/ /g, '-') || "for-review"
+                  }`}
+                >
+                  {candidate.status || "No Status"}
+                </span>
+                {onStatusChangeClick && (
+                  <button
+                    onClick={() => {
+                      console.log('Change Status button clicked');
+                      console.log('onStatusChangeClick:', onStatusChangeClick);
+                      onStatusChangeClick();
+                    }}
+                    style={{
+                      padding: "0.4rem 0.8rem",
+                      backgroundColor: "#3b82f6",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.375rem",
+                      fontSize: "0.75rem",
+                      fontWeight: "500",
+                      cursor: "pointer",
+                      transition: "background-color 0.2s",
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#2563eb"}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#3b82f6"}
+                  >
+                    Change Status
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

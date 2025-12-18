@@ -105,6 +105,7 @@ export interface CandidateProfile {
   introductionVideos?: VideoMetadata[];
 
   skills: Array<{
+    candidateSkillId?: string;
     skillId: string;
     skillName: string;
     source: "ai" | "manual";

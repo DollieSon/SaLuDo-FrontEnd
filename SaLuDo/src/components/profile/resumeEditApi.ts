@@ -11,7 +11,7 @@ import {
 import { API_ENDPOINTS } from "./resumeEditConstants";
 
 const getAuthHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem("token")}`,
+  Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
   "Content-Type": "application/json"
 });
 
@@ -105,7 +105,7 @@ export const resumeEditApi = {
     const endpoint = API_ENDPOINTS.CERTIFICATIONS(candidateId, cert.certificationId);
     await axios.put(`http://localhost:3000${endpoint}`, {
       description: cert.description,
-      name: cert.certificationName,
+      certificationName: cert.certificationName,
       issuingOrganization: cert.issuingOrganization,
       issueDate: cert.issueDate,
       addedBy: cert.source === 'ai' ? 'AI' : 'HUMAN'
@@ -116,7 +116,7 @@ export const resumeEditApi = {
     const endpoint = API_ENDPOINTS.CERTIFICATIONS(candidateId);
     await axios.post(`http://localhost:3000${endpoint}`, {
       description: cert.description,
-      name: cert.certificationName,
+      certificationName: cert.certificationName,
       issuingOrganization: cert.issuingOrganization,
       issueDate: cert.issueDate,
       addedBy: cert.source === 'ai' ? 'AI' : 'HUMAN'
@@ -150,7 +150,10 @@ export const resumeEditApi = {
   },
 
   async deleteStrengthWeakness(candidateId: string, id: string, type: 'strength' | 'weakness') {
-    const endpoint = `${API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId, id)}?type=${type}`;
-    await axios.delete(`http://localhost:3000${endpoint}`, { headers: getAuthHeaders() });
+    const endpoint = API_ENDPOINTS.STRENGTHS_WEAKNESSES(candidateId, id);
+    await axios.delete(`http://localhost:3000${endpoint}`, { 
+      headers: getAuthHeaders(),
+      data: { type }
+    });
   }
 };
