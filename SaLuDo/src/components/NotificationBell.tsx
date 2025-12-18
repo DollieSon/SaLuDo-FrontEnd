@@ -114,7 +114,10 @@ export const NotificationBell: React.FC = () => {
     <div className="notification-bell-container" ref={dropdownRef}>
       <button
         className="notification-bell-button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation(); // Add this
+          setIsOpen(!isOpen);
+        }}
         title={isConnected ? "Notifications (Live)" : "Notifications (Offline)"}
       >
         <svg

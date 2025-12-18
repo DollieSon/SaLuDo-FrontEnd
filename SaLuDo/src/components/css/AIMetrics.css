@@ -6,6 +6,7 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
+  padding: 0px 10px;
 }
 
 .metric-card {
@@ -90,7 +91,6 @@
 }
 
 .header-controls select {
-  padding: 0.5rem 0.75rem;
   border-radius: 10px;
   border: 1px solid #d1d5db;
   font-size: 0.9rem;

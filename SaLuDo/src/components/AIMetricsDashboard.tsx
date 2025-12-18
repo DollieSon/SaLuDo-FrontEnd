@@ -129,10 +129,12 @@ const AIMetricsDashboard = () => {
   return (
     <div className="candidate-list">
       {/* Header */}
-      <div className="ai-metrics-header">
+      <div
+        className="candidate-list-header"
+        data-text="Monitor Gemini API usage, costs, and performance"
+      >
         <div>
           <h2>AI Performance Metrics</h2>
-          <p>Monitor Gemini API usage, costs, and performance</p>
         </div>
         <div className="header-controls">
           <div className="auto-refresh-indicator">
@@ -170,39 +172,39 @@ const AIMetricsDashboard = () => {
       )}
 
       {/* Tabs */}
-      <div className="metrics-tabs">
+      <div className="profile-tabs">
         <button
-          className={`metrics-tab ${activeTab === "overview" ? "active" : ""}`}
+          className={`tab-button ${activeTab === "overview" ? "active" : ""}`}
           onClick={() => setActiveTab("overview")}
         >
           Overview
         </button>
         <button
-          className={`metrics-tab ${activeTab === "performance" ? "active" : ""}`}
+          className={`tab-button ${activeTab === "performance" ? "active" : ""}`}
           onClick={() => setActiveTab("performance")}
         >
           Performance
         </button>
         <button
-          className={`metrics-tab ${activeTab === "trends" ? "active" : ""}`}
+          className={`tab-button ${activeTab === "trends" ? "active" : ""}`}
           onClick={() => setActiveTab("trends")}
         >
           Trends
         </button>
         <button
-          className={`metrics-tab ${activeTab === "seasonality" ? "active" : ""}`}
+          className={`tab-button ${activeTab === "seasonality" ? "active" : ""}`}
           onClick={() => setActiveTab("seasonality")}
         >
           Seasonality
         </button>
         <button
-          className={`metrics-tab ${activeTab === "quality" ? "active" : ""}`}
+          className={`tab-button ${activeTab === "quality" ? "active" : ""}`}
           onClick={() => setActiveTab("quality")}
         >
           Quality
         </button>
         <button
-          className={`metrics-tab ${activeTab === "history" ? "active" : ""}`}
+          className={`tab-button ${activeTab === "history" ? "active" : ""}`}
           onClick={() => setActiveTab("history")}
         >
           Call History
