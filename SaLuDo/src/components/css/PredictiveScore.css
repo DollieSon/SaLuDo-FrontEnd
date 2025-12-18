@@ -103,7 +103,7 @@
   transition: stroke-dashoffset 0.8s ease-out;
 }
 
-.score-value {
+.scores-value {
   position: absolute;
   top: 50%;
   left: 50%;

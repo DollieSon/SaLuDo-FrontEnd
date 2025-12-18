@@ -156,7 +156,7 @@ export const PredictiveScoreCard: React.FC<PredictiveScoreCardProps> = ({
               }}
             />
           </svg>
-          <div className="score-value">
+          <div className="scores-value">
             {isLoading ? (
               <span className="score-number score-skeleton">--</span>
             ) : (
