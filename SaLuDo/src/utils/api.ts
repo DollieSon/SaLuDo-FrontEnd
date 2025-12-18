@@ -267,6 +267,127 @@ export const candidatesApi = {
     return await validateApiResponse(response);
   },
 
+  // Process introduction video with AI
+  processIntroductionVideo: async (
+    candidateId: string,
+    videoId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/videos/introduction/${videoId}/process`,
+      {
+        method: "POST",
+        headers,
+      }
+    );
+    if (!response.ok) throw new Error("Failed to process introduction video");
+    return response.json();
+  },
+
+  // Process interview video with AI
+  processInterviewVideo: async (
+    candidateId: string,
+    videoId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/videos/interview/${videoId}/process`,
+      {
+        method: "POST",
+        headers,
+      }
+    );
+    if (!response.ok) throw new Error("Failed to process interview video");
+    return response.json();
+  },
+
+  // Get all introduction videos for a candidate
+  getIntroductionVideos: async (candidateId: string, accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/videos/introduction`,
+      { headers }
+    );
+    if (!response.ok) throw new Error("Failed to fetch introduction videos");
+    return response.json();
+  },
+
+  // Delete introduction video
+  deleteIntroductionVideo: async (
+    candidateId: string,
+    videoId: string,
+    accessToken?: string
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/videos/introduction/${videoId}`,
+      {
+        method: "DELETE",
+        headers,
+      }
+    );
+    if (!response.ok) throw new Error("Failed to delete introduction video");
+    return response.json();
+  },
+
+  // Delete resume
+  deleteResume: async (candidateId: string, accessToken?: string) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${apiUrl}candidates/${candidateId}/resume`, {
+      method: "DELETE",
+      headers,
+    });
+    if (!response.ok) throw new Error("Failed to delete resume");
+    return response.json();
+  },
+
   // Get file download URL
   getFileDownloadUrl: (fileId: string) => {
     return `${apiUrl}files/${fileId}`;
@@ -519,7 +640,7 @@ export const usersApi = {
     photoFile: File
   ) => {
     const formData = new FormData();
-    formData.append('photo', photoFile);
+    formData.append("photo", photoFile);
 
     const response = await fetch(`${apiUrl}users/${userId}/profile/photo`, {
       method: "POST",
@@ -533,7 +654,7 @@ export const usersApi = {
 
   // Get profile photo URL
   getProfilePhotoUrl: (userId: string, thumbnail: boolean = false) => {
-    const params = thumbnail ? '?thumbnail=true' : '';
+    const params = thumbnail ? "?thumbnail=true" : "";
     return `${apiUrl}users/${userId}/profile/photo${params}`;
   },
 

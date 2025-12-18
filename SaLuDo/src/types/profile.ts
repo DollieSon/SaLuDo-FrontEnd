@@ -49,6 +49,37 @@ export interface VideoMetadata {
   duration?: number;
   resolution?: string;
   interviewRound?: string;
+  videoAnalysis?: {
+    communicationSkills?: {
+      clarity: number;
+      articulateness: number;
+      pace: number;
+      confidence: number;
+      evidence: string;
+    };
+    nonVerbalCues?: {
+      eyeContact: number;
+      bodyLanguage: number;
+      facialExpressions: number;
+      overallPresence: number;
+      evidence: string;
+    };
+    contentQuality?: {
+      relevance: number;
+      depth: number;
+      structure: number;
+      examples: number;
+      evidence: string;
+    };
+    overallImpression?: {
+      score: number;
+      strengths: string[];
+      areasForImprovement: string[];
+      summary: string;
+    };
+    transcribedText?: string;
+  };
+  videoId?: string;
 }
 
 export interface SocialLink {
@@ -72,7 +103,7 @@ export interface CandidateProfile {
   transcripts?: TranscriptMetadata[];
   interviewVideos?: VideoMetadata[];
   introductionVideos?: VideoMetadata[];
-  
+
   skills: Array<{
     skillId: string;
     skillName: string;
@@ -80,9 +111,9 @@ export interface CandidateProfile {
     score?: number;
     evidence?: string;
     isAccepted?: boolean;
-    addedBy?: 'AI' | 'HUMAN';
+    addedBy?: "AI" | "HUMAN";
   }>;
-  
+
   experience: Array<{
     experienceId: string;
     source: "ai" | "manual";
@@ -91,9 +122,9 @@ export interface CandidateProfile {
     role?: string;
     startDate?: string;
     endDate?: string;
-    addedBy?: 'AI' | 'HUMAN';
+    addedBy?: "AI" | "HUMAN";
   }>;
-  
+
   education: Array<{
     educationId: string;
     source: "ai" | "manual";
@@ -101,9 +132,9 @@ export interface CandidateProfile {
     institution?: string;
     startDate?: string;
     endDate?: string;
-    addedBy?: 'AI' | 'HUMAN';
+    addedBy?: "AI" | "HUMAN";
   }>;
-  
+
   certification: Array<{
     certificationId: string;
     source: "ai" | "manual";
@@ -112,27 +143,27 @@ export interface CandidateProfile {
     certificationName?: string;
     issuingOrganization?: string;
     issueDate?: string;
-    addedBy?: 'AI' | 'HUMAN';
+    addedBy?: "AI" | "HUMAN";
   }>;
-  
+
   strengths: Array<{
     strengthWeaknessId: string;
     source: "ai" | "manual";
     description: string;
     type: "strength";
     name?: string;
-    addedBy?: 'AI' | 'HUMAN';
+    addedBy?: "AI" | "HUMAN";
   }>;
-  
+
   weaknesses: Array<{
     strengthWeaknessId: string;
     source: "ai" | "manual";
     description: string;
     type: "weakness";
     name?: string;
-    addedBy?: 'AI' | 'HUMAN';
+    addedBy?: "AI" | "HUMAN";
   }>;
-  
+
   resumeAssessment?: string;
   interviewAssessment?: string;
   // Add these optional job matching properties
