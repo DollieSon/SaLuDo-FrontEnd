@@ -9,12 +9,18 @@ interface CandidateCardProps {
 }
 
 const statusColors = {
-  [CandidateStatus.APPLIED]: 'bg-blue-100 text-blue-800',
-  [CandidateStatus.REFERENCE_CHECK]: 'bg-yellow-100 text-yellow-800',
-  [CandidateStatus.OFFER]: 'bg-purple-100 text-purple-800',
+  [CandidateStatus.FOR_REVIEW]: 'bg-blue-100 text-blue-800',
+  [CandidateStatus.PAPER_SCREENING]: 'bg-indigo-100 text-indigo-800',
+  [CandidateStatus.EXAM]: 'bg-cyan-100 text-cyan-800',
+  [CandidateStatus.HR_INTERVIEW]: 'bg-sky-100 text-sky-800',
+  [CandidateStatus.TECHNICAL_INTERVIEW]: 'bg-blue-100 text-blue-900',
+  [CandidateStatus.FINAL_INTERVIEW]: 'bg-violet-100 text-violet-800',
+  [CandidateStatus.FOR_JOB_OFFER]: 'bg-purple-100 text-purple-800',
+  [CandidateStatus.OFFER_EXTENDED]: 'bg-fuchsia-100 text-fuchsia-800',
   [CandidateStatus.HIRED]: 'bg-green-100 text-green-800',
   [CandidateStatus.REJECTED]: 'bg-red-100 text-red-800',
   [CandidateStatus.WITHDRAWN]: 'bg-gray-100 text-gray-800',
+  [CandidateStatus.ON_HOLD]: 'bg-yellow-100 text-yellow-800',
 };
 
 const CandidateCard: React.FC<CandidateCardProps> = ({

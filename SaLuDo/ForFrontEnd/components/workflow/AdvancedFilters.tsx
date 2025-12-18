@@ -88,12 +88,18 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   });
 
   const statusOptions = [
-    { value: 'applied', label: 'Applied' },
-    { value: 'reference_check', label: 'Reference Check' },
-    { value: 'offer', label: 'Offer' },
+    { value: 'for_review', label: 'For Review' },
+    { value: 'paper_screening', label: 'Paper Screening' },
+    { value: 'exam', label: 'Exam' },
+    { value: 'hr_interview', label: 'HR Interview' },
+    { value: 'technical_interview', label: 'Technical Interview' },
+    { value: 'final_interview', label: 'Final Interview' },
+    { value: 'for_job_offer', label: 'For Job Offer' },
+    { value: 'offer_extended', label: 'Offer Extended' },
     { value: 'hired', label: 'Hired' },
     { value: 'rejected', label: 'Rejected' },
-    { value: 'withdrawn', label: 'Withdrawn' }
+    { value: 'withdrawn', label: 'Withdrawn' },
+    { value: 'on_hold', label: 'On Hold' }
   ];
 
   const certificationStatusOptions = [

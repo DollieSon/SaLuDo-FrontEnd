@@ -98,12 +98,18 @@ const CandidateActions: React.FC<CandidateActionsProps> = ({
                 defaultValue=""
               >
                 <option value="" disabled>Update Status</option>
-                <option value={CandidateStatus.APPLIED}>Mark as Applied</option>
-                <option value={CandidateStatus.REFERENCE_CHECK}>Move to Reference Check</option>
-                <option value={CandidateStatus.OFFER}>Move to Offer</option>
-                <option value={CandidateStatus.HIRED}>Mark as Hired</option>
-                <option value={CandidateStatus.REJECTED}>Mark as Rejected</option>
-                <option value={CandidateStatus.WITHDRAWN}>Mark as Withdrawn</option>
+                <option value={CandidateStatus.FOR_REVIEW}>For Review</option>
+                <option value={CandidateStatus.PAPER_SCREENING}>Paper Screening</option>
+                <option value={CandidateStatus.EXAM}>Exam</option>
+                <option value={CandidateStatus.HR_INTERVIEW}>HR Interview</option>
+                <option value={CandidateStatus.TECHNICAL_INTERVIEW}>Technical Interview</option>
+                <option value={CandidateStatus.FINAL_INTERVIEW}>Final Interview</option>
+                <option value={CandidateStatus.FOR_JOB_OFFER}>For Job Offer</option>
+                <option value={CandidateStatus.OFFER_EXTENDED}>Offer Extended</option>
+                <option value={CandidateStatus.HIRED}>Hired</option>
+                <option value={CandidateStatus.REJECTED}>Rejected</option>
+                <option value={CandidateStatus.WITHDRAWN}>Withdrawn</option>
+                <option value={CandidateStatus.ON_HOLD}>On Hold</option>
               </select>
             </div>
 

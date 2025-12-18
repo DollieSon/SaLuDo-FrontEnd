@@ -15,7 +15,13 @@ import {
     GetAllCandidatesResponse,
     GetCandidateResponse,
     CandidateStatus,
-    AddedBy
+    AddedBy,
+    StatusHistoryEntry,
+    CandidateTimeAnalytics,
+    SystemWideTimeAnalytics,
+    GetStatusHistoryResponse,
+    GetCandidateTimeAnalyticsResponse,
+    GetSystemWideTimeAnalyticsResponse
 } from '../types/CandidateApiTypes';
 
 // ===========================================
@@ -123,13 +129,67 @@ export class CandidateApiClient {
     // Update candidate
     static async updateCandidate(
         candidateId: string, 
-        updateData: UpdateCandidateData
+        updateData: UpdateCandidateData & {
+            statusChangeReason?: string;
+            statusChangeNotes?: string;
+            statusChangeSource?: 'manual' | 'automation' | 'bulk_action' | 'api';
+        }
     ): Promise<void> {
         await apiCall<ApiResponse<CandidateData>>(
             `/candidates/${candidateId}`, 
             'PUT', 
             updateData
         );
+    }
+
+    // Get status history for a candidate
+    static async getStatusHistory(candidateId: string): Promise<{
+        candidateId: string;
+        candidateName: string;
+        currentStatus: CandidateStatus;
+        statusHistory: StatusHistoryEntry[];
+        totalChanges: number;
+    }> {
+        const response = await apiCall<GetStatusHistoryResponse>(
+            `/candidates/${candidateId}/status-history`
+        );
+        if (!response.data) {
+            throw new Error('Failed to get status history');
+        }
+        return response.data;
+    }
+
+    // Get time analytics for a candidate
+    static async getCandidateTimeAnalytics(
+        candidateId: string,
+        stuckThresholdDays?: number
+    ): Promise<CandidateTimeAnalytics> {
+        const params = stuckThresholdDays 
+            ? `?stuckThresholdDays=${stuckThresholdDays}` 
+            : '';
+        const response = await apiCall<GetCandidateTimeAnalyticsResponse>(
+            `/candidates/${candidateId}/time-analytics${params}`
+        );
+        if (!response.data) {
+            throw new Error('Failed to get time analytics');
+        }
+        return response.data;
+    }
+
+    // Get system-wide time analytics (HR Manager/Admin only)
+    static async getSystemWideTimeAnalytics(
+        stuckThresholdDays?: number
+    ): Promise<SystemWideTimeAnalytics> {
+        const params = stuckThresholdDays 
+            ? `?stuckThresholdDays=${stuckThresholdDays}` 
+            : '';
+        const response = await apiCall<GetSystemWideTimeAnalyticsResponse>(
+            `/candidates/analytics/system-wide${params}`
+        );
+        if (!response.data) {
+            throw new Error('Failed to get system-wide analytics');
+        }
+        return response.data;
     }
 
     // Delete candidate (soft delete)
