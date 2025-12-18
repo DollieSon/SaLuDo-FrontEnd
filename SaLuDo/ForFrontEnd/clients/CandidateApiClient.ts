@@ -39,13 +39,23 @@ async function apiCall<T>(
 ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
+    // Get auth token from localStorage
+    const token = localStorage.getItem("accessToken");
+    const headers: HeadersInit = {};
+    
+    // Don't set Content-Type for FormData (browser sets it with boundary)
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
+    
+    // Always add auth token if available
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const config: RequestInit = {
         method,
-        headers: isFormData ? {} : {
-            'Content-Type': 'application/json',
-            // Add authentication headers here
-            // 'Authorization': `Bearer ${token}`,
-        },
+        headers,
     };
 
     if (data) {
@@ -413,7 +423,7 @@ async function createCandidateExample() {
             email: ["john.doe@email.com", "john.doe.work@company.com"],
             birthdate: new Date("1990-01-01"),
             roleApplied: "507f1f77bcf86cd799439012", // Optional job ID
-            status: CandidateStatus.APPLIED
+            status: CandidateStatus.FOR_REVIEW
         };
 
         // Assuming you have a file input

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CandidateData, CandidateStatus } from '../../CandidateApiTypes';
+import { formatTimeInStage, getTimeColor } from '../../utils/timeFormatters';
 
 interface CandidateCardProps {
   candidate: CandidateData;
@@ -43,6 +44,33 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
     });
   };
 
+  // Calculate time in current stage
+  const timeInCurrentStage = useMemo(() => {
+    if (!candidate.statusHistory || candidate.statusHistory.length === 0) {
+      return null;
+    }
+
+    // Get the latest status change (current stage)
+    const latestChange = candidate.statusHistory[candidate.statusHistory.length - 1];
+    const timeInStageMs = Date.now() - new Date(latestChange.changedAt).getTime();
+    
+    return {
+      duration: formatTimeInStage(timeInStageMs),
+      color: getTimeColor(timeInStageMs),
+      ms: timeInStageMs
+    };
+  }, [candidate.statusHistory]);
+
+  // Get color classes for time badge
+  const getTimeBadgeClasses = (color: 'success' | 'warning' | 'danger') => {
+    const colorMap = {
+      success: 'bg-green-100 text-green-700 border-green-200',
+      warning: 'bg-amber-100 text-amber-700 border-amber-200',
+      danger: 'bg-red-100 text-red-700 border-red-200'
+    };
+    return colorMap[color];
+  };
+
   return (
     <div 
       className={`bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow ${
@@ -64,6 +92,14 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[candidate.status]}`}>
             {candidate.status}
           </span>
+          {timeInCurrentStage && (
+            <span 
+              className={`px-2 py-1 rounded text-xs font-medium border ${getTimeBadgeClasses(timeInCurrentStage.color)}`}
+              title={`Time in ${candidate.status}`}
+            >
+              🕐 {timeInCurrentStage.duration}
+            </span>
+          )}
           <span className="text-xs text-gray-500">
             Applied: {formatDate(candidate.dateCreated)}
           </span>

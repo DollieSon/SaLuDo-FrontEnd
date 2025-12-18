@@ -44,7 +44,10 @@ const CandidateActions: React.FC<CandidateActionsProps> = ({
 
       if (pendingAction.type === 'status') {
         const updatePromises = candidateIds.map(id =>
-          CandidateApiClient.updateCandidate(id, { status: pendingAction.data })
+          CandidateApiClient.updateCandidate(id, { 
+            status: pendingAction.data,
+            statusChangeSource: 'bulk_action'
+          })
         );
         await Promise.all(updatePromises);
       } else if (pendingAction.type === 'delete') {
