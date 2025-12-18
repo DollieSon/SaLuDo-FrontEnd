@@ -33,7 +33,7 @@ export const CandidateBulkActions: React.FC<CandidateBulkActionsProps> = ({
   const [actionLoading, setActionLoading] = useState(false);
 
   const [statusFormData, setStatusFormData] = useState({
-    newStatus: CandidateStatus.APPLIED,
+    newStatus: CandidateStatus.FOR_REVIEW,
     reason: ''
   });
 
@@ -47,12 +47,18 @@ export const CandidateBulkActions: React.FC<CandidateBulkActionsProps> = ({
   });
 
   const statusOptions = [
-    { value: CandidateStatus.APPLIED, label: 'Applied', color: 'blue' },
-    { value: CandidateStatus.REFERENCE_CHECK, label: 'Reference Check', color: 'yellow' },
-    { value: CandidateStatus.OFFER, label: 'Offer', color: 'purple' },
+    { value: CandidateStatus.FOR_REVIEW, label: 'For Review', color: 'blue' },
+    { value: CandidateStatus.PAPER_SCREENING, label: 'Paper Screening', color: 'indigo' },
+    { value: CandidateStatus.EXAM, label: 'Exam', color: 'cyan' },
+    { value: CandidateStatus.HR_INTERVIEW, label: 'HR Interview', color: 'sky' },
+    { value: CandidateStatus.TECHNICAL_INTERVIEW, label: 'Technical Interview', color: 'blue' },
+    { value: CandidateStatus.FINAL_INTERVIEW, label: 'Final Interview', color: 'violet' },
+    { value: CandidateStatus.FOR_JOB_OFFER, label: 'For Job Offer', color: 'purple' },
+    { value: CandidateStatus.OFFER_EXTENDED, label: 'Offer Extended', color: 'fuchsia' },
     { value: CandidateStatus.HIRED, label: 'Hired', color: 'green' },
     { value: CandidateStatus.REJECTED, label: 'Rejected', color: 'red' },
-    { value: CandidateStatus.WITHDRAWN, label: 'Withdrawn', color: 'gray' }
+    { value: CandidateStatus.WITHDRAWN, label: 'Withdrawn', color: 'gray' },
+    { value: CandidateStatus.ON_HOLD, label: 'On Hold', color: 'yellow' }
   ];
 
   const handleBulkStatusChange = async () => {

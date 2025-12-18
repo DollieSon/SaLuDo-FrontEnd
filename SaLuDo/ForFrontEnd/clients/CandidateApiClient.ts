@@ -15,7 +15,13 @@ import {
     GetAllCandidatesResponse,
     GetCandidateResponse,
     CandidateStatus,
-    AddedBy
+    AddedBy,
+    StatusHistoryEntry,
+    CandidateTimeAnalytics,
+    SystemWideTimeAnalytics,
+    GetStatusHistoryResponse,
+    GetCandidateTimeAnalyticsResponse,
+    GetSystemWideTimeAnalyticsResponse
 } from '../types/CandidateApiTypes';
 
 // ===========================================
@@ -33,13 +39,23 @@ async function apiCall<T>(
 ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
+    // Get auth token from localStorage
+    const token = localStorage.getItem("accessToken");
+    const headers: HeadersInit = {};
+    
+    // Don't set Content-Type for FormData (browser sets it with boundary)
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
+    
+    // Always add auth token if available
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const config: RequestInit = {
         method,
-        headers: isFormData ? {} : {
-            'Content-Type': 'application/json',
-            // Add authentication headers here
-            // 'Authorization': `Bearer ${token}`,
-        },
+        headers,
     };
 
     if (data) {
@@ -123,13 +139,67 @@ export class CandidateApiClient {
     // Update candidate
     static async updateCandidate(
         candidateId: string, 
-        updateData: UpdateCandidateData
+        updateData: UpdateCandidateData & {
+            statusChangeReason?: string;
+            statusChangeNotes?: string;
+            statusChangeSource?: 'manual' | 'automation' | 'bulk_action' | 'api';
+        }
     ): Promise<void> {
         await apiCall<ApiResponse<CandidateData>>(
             `/candidates/${candidateId}`, 
             'PUT', 
             updateData
         );
+    }
+
+    // Get status history for a candidate
+    static async getStatusHistory(candidateId: string): Promise<{
+        candidateId: string;
+        candidateName: string;
+        currentStatus: CandidateStatus;
+        statusHistory: StatusHistoryEntry[];
+        totalChanges: number;
+    }> {
+        const response = await apiCall<GetStatusHistoryResponse>(
+            `/candidates/${candidateId}/status-history`
+        );
+        if (!response.data) {
+            throw new Error('Failed to get status history');
+        }
+        return response.data;
+    }
+
+    // Get time analytics for a candidate
+    static async getCandidateTimeAnalytics(
+        candidateId: string,
+        stuckThresholdDays?: number
+    ): Promise<CandidateTimeAnalytics> {
+        const params = stuckThresholdDays 
+            ? `?stuckThresholdDays=${stuckThresholdDays}` 
+            : '';
+        const response = await apiCall<GetCandidateTimeAnalyticsResponse>(
+            `/candidates/${candidateId}/time-analytics${params}`
+        );
+        if (!response.data) {
+            throw new Error('Failed to get time analytics');
+        }
+        return response.data;
+    }
+
+    // Get system-wide time analytics (HR Manager/Admin only)
+    static async getSystemWideTimeAnalytics(
+        stuckThresholdDays?: number
+    ): Promise<SystemWideTimeAnalytics> {
+        const params = stuckThresholdDays 
+            ? `?stuckThresholdDays=${stuckThresholdDays}` 
+            : '';
+        const response = await apiCall<GetSystemWideTimeAnalyticsResponse>(
+            `/candidates/analytics/system-wide${params}`
+        );
+        if (!response.data) {
+            throw new Error('Failed to get system-wide analytics');
+        }
+        return response.data;
     }
 
     // Delete candidate (soft delete)
@@ -353,7 +423,7 @@ async function createCandidateExample() {
             email: ["john.doe@email.com", "john.doe.work@company.com"],
             birthdate: new Date("1990-01-01"),
             roleApplied: "507f1f77bcf86cd799439012", // Optional job ID
-            status: CandidateStatus.APPLIED
+            status: CandidateStatus.FOR_REVIEW
         };
 
         // Assuming you have a file input
