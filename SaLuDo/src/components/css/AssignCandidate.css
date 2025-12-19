@@ -61,6 +61,23 @@
   margin: 20px;
 }
 
+/* Filters Container - Outside panels */
+.filters-container {
+  margin: 0 20px 20px 20px;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filters-container h3 {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #3498db;
+}
+
 .panel {
   background: white;
   border-radius: 12px;
@@ -101,6 +118,86 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
+}
+
+/* Filters Section */
+.filters-section {
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-row:last-child {
+  margin-bottom: 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.filter-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.filter-group select {
+  padding: 0.6rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-group select:hover {
+  border-color: #3498db;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btn-clear-filters {
+  width: 100%;
+  padding: 0.6rem;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  background-color: #5a6268;
+}
+
+.results-count {
+  margin-top: 0.5rem;
+  padding: 0.8rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #2c3e50;
+  background-color: #e3f2fd;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid #90caf9;
 }
 
 .candidate-list {

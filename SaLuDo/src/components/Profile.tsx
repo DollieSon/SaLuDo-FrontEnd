@@ -23,6 +23,10 @@ import { SKILL_SCORE } from "./profile/resumeEditConstants";
 import { resumeEditApi } from "./profile/resumeEditApi";
 import { CandidateScoreSection } from "./scoring/CandidateScoreSection";
 import { VideoAnalysisSection } from "./profile/VideoAnalysisSection";
+import StatusHistoryTimeline from "../../ForFrontEnd/components/candidate/StatusHistoryTimeline";
+import { StatusHistoryEntry, CandidateStatus } from "../../ForFrontEnd/types/CandidateApiTypes";
+import { CandidateApiClient } from "../../ForFrontEnd/clients/CandidateApiClient";
+import { StatusChangeDialog } from "../../ForFrontEnd/components/common/StatusChangeDialog";
 
 const Profile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +39,11 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingResume, setIsEditingResume] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'info' | 'score' | 'resume' | 'history' | 'comments'>('info');
+  const [statusHistory, setStatusHistory] = useState<StatusHistoryEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [statusChanging, setStatusChanging] = useState(false);
   const [editedData, setEditedData] = useState({
     name: "",
     email: [] as string[],
@@ -220,7 +229,7 @@ const Profile: React.FC = () => {
         setEditedResumeData({
           skills:
             candidateData.skills?.map((s: any) => ({
-              candidateSkillId: s.skillId,
+              candidateSkillId: s.candidateSkillId || s.skillId,
               skillId: s.skillId,
               skillName: s.skillName,
               score: s.score || SKILL_SCORE.DEFAULT,
@@ -331,8 +340,63 @@ const Profile: React.FC = () => {
     }
   };
 
+  const fetchStatusHistory = async () => {
+    if (!id) return;
+    
+    try {
+      setLoadingHistory(true);
+      const data = await CandidateApiClient.getStatusHistory(id);
+      setStatusHistory(data.statusHistory);
+    } catch (err) {
+      console.error('Failed to load status history:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string, reason?: string) => {
+    if (!id) return;
+    
+    setStatusChanging(true);
+    try {
+      await candidatesApi.updateCandidate(id, {
+        status: newStatus,
+        statusChangeReason: reason,
+        statusChangeSource: 'manual'
+      });
+      
+      setToastMessage("Status updated successfully");
+      await fetchCandidateData();
+      await fetchStatusHistory();
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setToastMessage("Failed to update status");
+      setTimeout(() => setToastMessage(null), 3000);
+      throw error;
+    } finally {
+      setStatusChanging(false);
+    }
+  };
+
+  const availableStatuses = [
+    { value: CandidateStatus.FOR_REVIEW, label: 'For Review', color: '#3b82f6' },
+    { value: CandidateStatus.PAPER_SCREENING, label: 'Paper Screening', color: '#6366f1' },
+    { value: CandidateStatus.EXAM, label: 'Exam', color: '#8b5cf6' },
+    { value: CandidateStatus.HR_INTERVIEW, label: 'HR Interview', color: '#ec4899' },
+    { value: CandidateStatus.TECHNICAL_INTERVIEW, label: 'Technical Interview', color: '#f97316' },
+    { value: CandidateStatus.FINAL_INTERVIEW, label: 'Final Interview', color: '#f59e0b' },
+    { value: CandidateStatus.FOR_JOB_OFFER, label: 'For Job Offer', color: '#84cc16' },
+    { value: CandidateStatus.OFFER_EXTENDED, label: 'Offer Extended', color: '#d946ef' },
+    { value: CandidateStatus.HIRED, label: 'Hired', color: '#10b981', requiresReason: false },
+    { value: CandidateStatus.REJECTED, label: 'Rejected', color: '#ef4444', requiresReason: true },
+    { value: CandidateStatus.WITHDRAWN, label: 'Withdrawn', color: '#6b7280', requiresReason: true },
+    { value: CandidateStatus.ON_HOLD, label: 'On Hold', color: '#eab308', requiresReason: true },
+  ];
+
   useEffect(() => {
     fetchCandidateData();
+    fetchStatusHistory();
   }, [id]);
 
   const handleDownload = (
@@ -693,7 +757,7 @@ const Profile: React.FC = () => {
       editedResumeData.skills.forEach((skill) => {
         if (skill.candidateSkillId) {
           const original = candidate.skills?.find(
-            (s) => s.skillId === skill.candidateSkillId
+            (s: any) => (s.candidateSkillId || s.skillId) === skill.candidateSkillId
           );
           if (
             original &&
@@ -708,12 +772,13 @@ const Profile: React.FC = () => {
         }
       });
 
-      candidate.skills?.forEach((original) => {
+      candidate.skills?.forEach((original: any) => {
+        const candidateSkillId = original.candidateSkillId || original.skillId;
         const exists = editedResumeData.skills.find(
-          (s) => s.candidateSkillId === original.skillId
+          (s) => s.candidateSkillId === candidateSkillId
         );
-        if (!exists && original.skillId) {
-          promises.push(resumeEditApi.deleteSkill(id, original.skillId));
+        if (!exists && candidateSkillId) {
+          promises.push(resumeEditApi.deleteSkill(id, candidateSkillId));
         }
       });
 
@@ -858,8 +923,15 @@ const Profile: React.FC = () => {
       await fetchCandidateData();
     } catch (error) {
       console.error("Error saving resume changes:", error);
-      setToastMessage("Failed to save resume changes");
-      setTimeout(() => setToastMessage(null), 3000);
+      
+      // Check if it's a 404/500 error indicating missing endpoints
+      const axiosError = error as any;
+      if (axiosError?.response?.status === 500 || axiosError?.response?.status === 404) {
+        setToastMessage("Resume editing is currently unavailable. The backend endpoints for individual skill/experience editing have not been implemented yet.");
+      } else {
+        setToastMessage("Failed to save resume changes");
+      }
+      setTimeout(() => setToastMessage(null), 5000);
     }
   };
 
@@ -986,79 +1058,173 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      <div className="profile-content">
-        <CandidateInfoSection
-          candidate={candidate}
-          isEditing={isEditing}
-          editedData={editedData}
-          uploadingTranscript={uploadingTranscript}
-          uploadingInterviewVideo={uploadingInterviewVideo}
-          uploadingIntroductionVideo={uploadingIntroductionVideo}
-          processingVideo={processingVideo}
-          deletingFile={deletingFile}
-          onEditToggle={handleEditToggle}
-          onCancelEdit={handleCancelEdit}
-          onEditedDataChange={setEditedData}
-          onTranscriptUpload={handleTranscriptUpload}
-          onInterviewVideoUpload={handleInterviewVideoUpload}
-          onIntroductionVideoUpload={handleIntroductionVideoUpload}
-          onProcessVideo={handleProcessVideo}
-          onDeleteVideo={handleDeleteVideo}
-          onDeleteResume={handleDeleteResume}
-          onDownload={handleDownload}
-        />
+      {/* Tab Navigation */}
+      <div className="profile-tabs">
+        <button 
+          className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}
+          onClick={() => setActiveTab('info')}
+        >
+          Candidate Information
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'score' ? 'active' : ''}`}
+          onClick={() => setActiveTab('score')}
+        >
+          Predictive Success Score
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'resume' ? 'active' : ''}`}
+          onClick={() => setActiveTab('resume')}
+        >
+          Resume & Interview Analysis
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Status History
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'comments' ? 'active' : ''}`}
+          onClick={() => setActiveTab('comments')}
+        >
+          Comments
+        </button>
       </div>
 
-      {/* Predictive Success Score Section */}
-      <CandidateScoreSection candidateId={id!} candidateName={candidate.name} />
-
-      <div className="parsed-sections-container">
-        <ResumeParsedSection
-          skills={resumeParsed.skills}
-          experience={resumeParsed.experience}
-          education={resumeParsed.education}
-          certification={resumeParsed.certification}
-          strength={resumeParsed.strength}
-          weaknesses={resumeParsed.weaknesses}
-          isEditing={isEditingResume}
-          editedResumeData={editedResumeData}
-          onEditToggle={handleResumeEditToggle}
-          onCancelEdit={handleCancelResumeEdit}
-          onResumeDataChange={setEditedResumeData}
-          onItemClick={openDetailModal}
-        />
-
-        {/* Introduction Video Analysis */}
-        {candidate.introductionVideos &&
-          candidate.introductionVideos.length > 0 && (
-            <VideoAnalysisSection
-              videos={candidate.introductionVideos}
-              videoType="introduction"
+      {/* Tab Content */}
+      <div className="tab-content">
+        {activeTab === 'info' && (
+          <div className="profile-content">
+            <CandidateInfoSection
+              candidate={candidate}
+              isEditing={isEditing}
+              editedData={editedData}
+              uploadingTranscript={uploadingTranscript}
+              uploadingInterviewVideo={uploadingInterviewVideo}
+              uploadingIntroductionVideo={uploadingIntroductionVideo}
+              processingVideo={processingVideo}
+              deletingFile={deletingFile}
+              onEditToggle={handleEditToggle}
+              onCancelEdit={handleCancelEdit}
+              onEditedDataChange={setEditedData}
+              onTranscriptUpload={handleTranscriptUpload}
+              onInterviewVideoUpload={handleInterviewVideoUpload}
+              onIntroductionVideoUpload={handleIntroductionVideoUpload}
+              onProcessVideo={handleProcessVideo}
+              onDeleteVideo={handleDeleteVideo}
+              onDeleteResume={handleDeleteResume}
+              onDownload={handleDownload}
+              onStatusChangeClick={() => {
+                console.log('onStatusChangeClick called from Profile');
+                console.log('showStatusDialog before:', showStatusDialog);
+                setShowStatusDialog(true);
+                console.log('setShowStatusDialog(true) called');
+              }}
             />
-          )}
-
-        {/* Interview Video Analysis */}
-        {candidate.interviewVideos && candidate.interviewVideos.length > 0 && (
-          <VideoAnalysisSection
-            videos={candidate.interviewVideos}
-            videoType="interview"
-          />
+          </div>
         )}
 
-        <PersonalitySection
-          personality={personality}
-          radarData={radarData}
-          isEditing={isEditing}
-          onEditToggle={handleEditToggle}
-        />
+        {activeTab === 'score' && (
+          <CandidateScoreSection candidateId={id!} candidateName={candidate.name} />
+        )}
 
-        <Comments entityType={CommentEntityType.CANDIDATE} entityId={id!} />
+        {activeTab === 'resume' && (
+          <div className="parsed-sections-container">
+            <ResumeParsedSection
+              skills={resumeParsed.skills}
+              experience={resumeParsed.experience}
+              education={resumeParsed.education}
+              certification={resumeParsed.certification}
+              strength={resumeParsed.strength}
+              weaknesses={resumeParsed.weaknesses}
+              isEditing={isEditingResume}
+              editedResumeData={editedResumeData}
+              onEditToggle={handleResumeEditToggle}
+              onCancelEdit={handleCancelResumeEdit}
+              onResumeDataChange={setEditedResumeData}
+              onItemClick={openDetailModal}
+            />
+
+            {/* Introduction Video Analysis */}
+            {candidate.introductionVideos &&
+              candidate.introductionVideos.length > 0 && (
+                <VideoAnalysisSection
+                  videos={candidate.introductionVideos}
+                  videoType="introduction"
+                />
+              )}
+
+            {/* Interview Video Analysis */}
+            {candidate.interviewVideos && candidate.interviewVideos.length > 0 && (
+              <VideoAnalysisSection
+                videos={candidate.interviewVideos}
+                videoType="interview"
+              />
+            )}
+
+            <PersonalitySection
+              personality={personality}
+              radarData={radarData}
+              isEditing={isEditing}
+              onEditToggle={handleEditToggle}
+            />
+          </div>
+        )}
+
+        {activeTab === 'history' && (
+          <div className="status-history-container">
+            <div className="status-history-header">
+              <div>
+                <h2 className="status-history-title">Recruitment Journey Timeline</h2>
+                <p className="status-history-subtitle">
+                  Track the candidate's progression through the hiring pipeline
+                </p>
+              </div>
+              {statusHistory.length > 0 && (
+                <div className="status-history-stats">
+                  <div className="stat-item">
+                    <span className="stat-label">Total Changes</span>
+                    <span className="stat-value">{statusHistory.length}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Current Status</span>
+                    <span className="stat-value status-badge">{candidate.status}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            {loadingHistory ? (
+              <div className="loading-history">
+                <p>Loading status history...</p>
+              </div>
+            ) : (
+              <StatusHistoryTimeline statusHistory={statusHistory} />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'comments' && (
+          <Comments entityType={CommentEntityType.CANDIDATE} entityId={id!} />
+        )}
       </div>
 
       {showDetailModal && (
         <ProfileDetailModal
           selectedItem={selectedItem}
           onClose={closeDetailModal}
+        />
+      )}
+
+      {showStatusDialog && candidate && (
+        <StatusChangeDialog
+          isOpen={showStatusDialog}
+          onClose={() => setShowStatusDialog(false)}
+          onStatusChange={handleStatusChange}
+          currentStatus={candidate.status}
+          candidateName={candidate.name}
+          availableStatuses={availableStatuses}
+          loading={statusChanging}
         />
       )}
     </main>

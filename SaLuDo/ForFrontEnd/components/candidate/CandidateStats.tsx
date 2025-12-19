@@ -37,21 +37,51 @@ const CandidateStats: React.FC<CandidateStatsProps> = ({ candidates, loading = f
       icon: '👥'
     },
     {
-      label: 'Applied',
-      value: candidates.filter(c => c.status === CandidateStatus.APPLIED).length,
+      label: 'For Review',
+      value: candidates.filter(c => c.status === CandidateStatus.FOR_REVIEW).length,
       color: 'bg-blue-500',
       icon: '📝'
     },
     {
-      label: 'Reference Check',
-      value: candidates.filter(c => c.status === CandidateStatus.REFERENCE_CHECK).length,
-      color: 'bg-yellow-500',
-      icon: '🔍'
+      label: 'Paper Screening',
+      value: candidates.filter(c => c.status === CandidateStatus.PAPER_SCREENING).length,
+      color: 'bg-indigo-500',
+      icon: '📄'
     },
     {
-      label: 'Offer',
-      value: candidates.filter(c => c.status === CandidateStatus.OFFER).length,
+      label: 'Exam',
+      value: candidates.filter(c => c.status === CandidateStatus.EXAM).length,
+      color: 'bg-cyan-500',
+      icon: '📝'
+    },
+    {
+      label: 'HR Interview',
+      value: candidates.filter(c => c.status === CandidateStatus.HR_INTERVIEW).length,
+      color: 'bg-sky-500',
+      icon: '👔'
+    },
+    {
+      label: 'Technical Interview',
+      value: candidates.filter(c => c.status === CandidateStatus.TECHNICAL_INTERVIEW).length,
+      color: 'bg-blue-600',
+      icon: '💻'
+    },
+    {
+      label: 'Final Interview',
+      value: candidates.filter(c => c.status === CandidateStatus.FINAL_INTERVIEW).length,
+      color: 'bg-violet-500',
+      icon: '🎯'
+    },
+    {
+      label: 'For Job Offer',
+      value: candidates.filter(c => c.status === CandidateStatus.FOR_JOB_OFFER).length,
       color: 'bg-purple-500',
+      icon: '📋'
+    },
+    {
+      label: 'Offer Extended',
+      value: candidates.filter(c => c.status === CandidateStatus.OFFER_EXTENDED).length,
+      color: 'bg-fuchsia-500',
       icon: '💼'
     },
     {

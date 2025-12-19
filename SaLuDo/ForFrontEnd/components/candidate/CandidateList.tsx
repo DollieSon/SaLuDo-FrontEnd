@@ -50,9 +50,13 @@ const CandidateList: React.FC<CandidateListProps> = ({
     }
   };
 
-  const handleStatusChange = async (candidateId: string, newStatus: CandidateStatus) => {
+  const handleStatusChange = async (candidateId: string, newStatus: CandidateStatus, reason?: string) => {
     try {
-      await candidateClient.updateCandidate(candidateId, { status: newStatus });
+      await candidateClient.updateCandidate(candidateId, { 
+        status: newStatus,
+        statusChangeReason: reason,
+        statusChangeSource: 'manual'
+      });
       
       // Update local state
       setCandidates(prev => 

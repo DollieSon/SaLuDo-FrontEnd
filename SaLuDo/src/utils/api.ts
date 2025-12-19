@@ -110,8 +110,15 @@ export const skillsApi = {
 
   // Search skills by name - AVAILABLE: GET /api/skills/search/:skillName
   searchSkills: async (skillName: string) => {
+    const headers: HeadersInit = {};
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(
-      `${apiUrl}skills/search/${encodeURIComponent(skillName)}`
+      `${apiUrl}skills/search/${encodeURIComponent(skillName)}`,
+      { headers }
     );
     if (!response.ok) throw new Error("Failed to search skills");
     return response.json();
@@ -1382,6 +1389,36 @@ export const notificationsApi = {
       } catch (e) {
         // If response is not JSON, use status text
         errorMessage = `Failed to update preferences: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  // Reset preferences to defaults
+  resetPreferences: async (accessToken: string) => {
+    const response = await fetch(
+      `${apiUrl}notifications/preferences/reset`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      let errorMessage = "Failed to reset preferences";
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        errorMessage = `Failed to reset preferences: ${response.statusText}`;
       }
       throw new Error(errorMessage);
     }

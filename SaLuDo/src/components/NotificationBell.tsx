@@ -67,23 +67,33 @@ export const NotificationBell: React.FC = () => {
       await handleMarkAsRead(notification.notificationId);
     }
 
-    // Extract entityId and entityType from notification.data or metadata
-    const data = (notification as any).data || notification.metadata;
-    const entityId = data?.entityId;
-    const entityType = data?.entityType;
-
     // Navigate based on notification data
+    // First check if actionUrl is set
     if (notification.actionUrl) {
       navigate(notification.actionUrl);
-    } else if (entityId && entityType) {
+      setIsOpen(false);
+      return;
+    }
+
+    // Check action.url from backend
+    const notificationWithAction = notification as any;
+    if (notificationWithAction.action?.url) {
+      navigate(notificationWithAction.action.url);
+      setIsOpen(false);
+      return;
+    }
+
+    // Fallback: Extract entityId and entityType from notification.data or metadata
+    const data = notificationWithAction.data || notification.metadata;
+    const entityId = data?.entityId || data?.candidateId;
+    const entityType = data?.entityType;
+
+    if (entityId && entityType) {
       if (entityType === "CANDIDATE") {
         navigate(`/profile/${entityId}`);
       } else if (entityType === "JOB") {
         navigate(`/job/${entityId}`);
       }
-    } else if ((notification as any).action?.url) {
-      // Fallback to action.url if available
-      navigate((notification as any).action.url);
     }
 
     setIsOpen(false);
@@ -111,7 +121,7 @@ export const NotificationBell: React.FC = () => {
   };
 
   return (
-    <div className="notification-bell-container" ref={dropdownRef}>
+    <div className="notification-bell-container" ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
       <button
         className="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}
