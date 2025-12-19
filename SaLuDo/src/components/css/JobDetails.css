@@ -89,6 +89,13 @@
   cursor: pointer;
   color: #0369a1;
   font-size: 12px;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.btn-edit:hover {
+  background-color: #bae6fd;
 }
 
 .btn-delete {
@@ -99,6 +106,13 @@
   cursor: pointer;
   color: #dc2626;
   font-size: 12px;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.btn-delete:hover {
+  background-color: #fecaca;
 }
 
 /* View Toggle */
@@ -195,12 +209,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+  gap: 12px;
 }
 
 .skill-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
 }
 
 .skill-card-title h4 {
@@ -234,6 +250,8 @@
 .skill-card-actions {
   display: flex;
   gap: 8px;
+  position: relative;
+  z-index: 10;
 }
 
 .skill-level {

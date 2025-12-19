@@ -70,6 +70,8 @@ const JobDetails: React.FC = () => {
       try {
         const response = await skillsApi.getAllMasterSkills();
         if (response.success && response.data) {
+          console.log('Master skills loaded:', response.data.length, 'skills');
+          console.log('Sample master skill:', response.data[0]);
           setMasterSkillsList(response.data);
         }
       } catch (error) {
@@ -124,7 +126,7 @@ const JobDetails: React.FC = () => {
         if (!skill.skillName && skill.skillId) {
           // Try to find the skill in master skills
           const masterSkill = masterSkills.find((ms: any) => 
-            ms.skillId === skill.skillId || ms._id === skill.skillId
+            ms.skillId === skill.skillId
           );
           
           if (masterSkill) {
@@ -186,7 +188,7 @@ const JobDetails: React.FC = () => {
               const enrichedSkills = candidateData.skills.map((skill: any) => {
                 if (!skill.skillName && skill.skillId) {
                   const masterSkill = masterSkills.find((ms: any) => 
-                    ms.skillId === skill.skillId || ms._id === skill.skillId
+                    ms.skillId === skill.skillId
                   );
                   if (masterSkill) {
                     skill.skillName = masterSkill.skillName;
@@ -442,7 +444,21 @@ const JobDetails: React.FC = () => {
               >
                 Edit
               </button>
-              <button className="btn-danger">
+              <button 
+                onClick={async () => {
+                  if (window.confirm(`Are you sure you want to delete the job "${job.jobName}"? This action cannot be undone.`)) {
+                    try {
+                      await jobsApi.deleteJob(jobId!);
+                      alert('Job deleted successfully!');
+                      navigate('/job-list');
+                    } catch (error) {
+                      console.error('Error deleting job:', error);
+                      alert('Failed to delete job. Please try again.');
+                    }
+                  }
+                }}
+                className="btn-danger"
+              >
                 Delete
               </button>
             </div>
@@ -636,9 +652,26 @@ const JobDetails: React.FC = () => {
                         onClick={async () => {
                           if (window.confirm(`Are you sure you want to delete "${skill.skillName}"?`)) {
                             try {
-                              const updatedSkills = job.skills.filter((_, i) => i !== index);
-                              await jobsApi.updateJob(jobId!, { skills: updatedSkills });
-                              setJob({ ...job, skills: updatedSkills });
+                              const updatedSkillsForDisplay = job.skills.filter((_, i) => i !== index);
+                              
+                              // Validate that skill IDs exist in master skills
+                              const validSkillIds = new Set(masterSkillsList.map((s: any) => s.skillId));
+                              const updatedSkillsForBackend = updatedSkillsForDisplay
+                                .filter(s => {
+                                  const isValid = validSkillIds.has(s.skillId);
+                                  if (!isValid) {
+                                    console.warn('Removing invalid skill ID:', s.skillId, s.skillName);
+                                  }
+                                  return isValid;
+                                })
+                                .map(s => ({
+                                  skillId: s.skillId,
+                                  requiredLevel: s.requiredLevel,
+                                  evidence: s.evidence || undefined
+                                }));
+                              
+                              await jobsApi.updateJob(jobId!, { skills: updatedSkillsForBackend });
+                              setJob({ ...job, skills: updatedSkillsForDisplay });
                               alert('Skill deleted successfully!');
                             } catch (error) {
                               console.error('Error deleting skill:', error);
@@ -1060,15 +1093,32 @@ const JobDetails: React.FC = () => {
               <button
                 onClick={async () => {
                   try {
-                    const updatedSkills = [...job.skills];
-                    updatedSkills[editingSkillIndex] = {
-                      ...updatedSkills[editingSkillIndex],
+                    const updatedSkillsForDisplay = [...job.skills];
+                    updatedSkillsForDisplay[editingSkillIndex] = {
+                      ...updatedSkillsForDisplay[editingSkillIndex],
                       skillName: editSkillData.skillName,
                       requiredLevel: editSkillData.requiredLevel,
                       evidence: editSkillData.evidence
                     };
-                    await jobsApi.updateJob(jobId!, { skills: updatedSkills });
-                    setJob({ ...job, skills: updatedSkills });
+                    
+                    // Send only backend-compatible fields and filter out invalid skill IDs
+                    const validSkillIds = new Set(masterSkillsList.map((s: any) => s.skillId));
+                    const updatedSkillsForBackend = updatedSkillsForDisplay
+                      .filter(s => {
+                        const isValid = validSkillIds.has(s.skillId);
+                        if (!isValid) {
+                          console.warn('Removing invalid skill ID:', s.skillId, s.skillName);
+                        }
+                        return isValid;
+                      })
+                      .map(s => ({
+                        skillId: s.skillId,
+                        requiredLevel: s.requiredLevel,
+                        evidence: s.evidence || undefined
+                      }));
+                    
+                    await jobsApi.updateJob(jobId!, { skills: updatedSkillsForBackend });
+                    setJob({ ...job, skills: updatedSkillsForDisplay });
                     setShowEditSkillModal(false);
                     setEditingSkillIndex(null);
                     alert('Skill updated successfully!');
@@ -1110,20 +1160,32 @@ const JobDetails: React.FC = () => {
                       skill.skillName.toLowerCase().includes(value.toLowerCase())
                     ).slice(0, 10); // Limit to 10 suggestions
                     setSkillSuggestions(filtered);
-                    setShowSuggestions(true);
+                    setShowSuggestions(filtered.length > 0);
                   } else {
-                    setSkillSuggestions([]);
-                    setShowSuggestions(false);
+                    // Show all skills when input is empty
+                    const allSkills = masterSkillsList.slice(0, 10);
+                    setSkillSuggestions(allSkills);
+                    setShowSuggestions(allSkills.length > 0);
                   }
                 }}
                 onFocus={() => {
-                  if (newSkill.skillName.trim().length > 0 && skillSuggestions.length > 0) {
-                    setShowSuggestions(true);
+                  // Show suggestions on focus
+                  if (newSkill.skillName.trim().length > 0) {
+                    const filtered = masterSkillsList.filter((skill: any) =>
+                      skill.skillName.toLowerCase().includes(newSkill.skillName.toLowerCase())
+                    ).slice(0, 10);
+                    setSkillSuggestions(filtered);
+                    setShowSuggestions(filtered.length > 0);
+                  } else {
+                    // Show first 10 skills if input is empty
+                    const allSkills = masterSkillsList.slice(0, 10);
+                    setSkillSuggestions(allSkills);
+                    setShowSuggestions(allSkills.length > 0);
                   }
                 }}
                 onBlur={() => {
                   // Delay to allow click on suggestion
-                  setTimeout(() => setShowSuggestions(false), 200);
+                  setTimeout(() => setShowSuggestions(false), 300);
                 }}
                 placeholder="Enter or search for a skill"
                 className="modal-input"
@@ -1131,7 +1193,13 @@ const JobDetails: React.FC = () => {
               
               {/* Autocomplete suggestions dropdown */}
               {showSuggestions && skillSuggestions.length > 0 && (
-                <div className="autocomplete-dropdown">
+                <div 
+                  className="autocomplete-dropdown"
+                  onMouseDown={(e) => {
+                    // Prevent blur event when clicking on dropdown
+                    e.preventDefault();
+                  }}
+                >
                   {skillSuggestions.map((skill: any, index: number) => (
                     <div
                       key={index}
@@ -1190,11 +1258,79 @@ const JobDetails: React.FC = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // TODO: Implement add skill functionality
-                  console.log('Adding skill:', newSkill);
-                  setShowAddSkillModal(false);
-                  setNewSkill({ skillName: '', requiredLevel: 5, evidence: '' });
+                onClick={async () => {
+                  try {
+                    // Find the skill in master skills list to get the skillId
+                    const masterSkill = masterSkillsList.find(
+                      (skill: any) => skill.skillName === newSkill.skillName
+                    );
+                    
+                    if (!masterSkill) {
+                      alert('Please select a skill from the suggestions list.');
+                      return;
+                    }
+
+                    console.log('Master skill found:', masterSkill);
+                    console.log('Master skill skillId:', masterSkill.skillId);
+                    
+                    if (!masterSkill.skillId) {
+                      alert('Selected skill does not have a valid skillId. Please try another skill.');
+                      console.error('Invalid master skill:', masterSkill);
+                      return;
+                    }
+
+                    // Prepare skills for backend - only include skills with valid IDs
+                    // Validate that existing skill IDs exist in master skills
+                    const validSkillIds = new Set(masterSkillsList.map((s: any) => s.skillId));
+                    
+                    const backendSkills = job.skills
+                      .filter(skill => {
+                        const isValid = validSkillIds.has(skill.skillId);
+                        if (!isValid) {
+                          console.warn('Removing invalid skill ID from job:', skill.skillId, skill.skillName);
+                        }
+                        return isValid;
+                      })
+                      .map(skill => ({
+                        skillId: skill.skillId,
+                        requiredLevel: skill.requiredLevel,
+                        evidence: skill.evidence || undefined
+                      }));
+
+                    // Add new skill
+                    const newSkillData = {
+                      skillId: masterSkill.skillId,
+                      requiredLevel: newSkill.requiredLevel,
+                      evidence: newSkill.evidence || undefined
+                    };
+                    
+                    console.log('Adding skill to job:', newSkillData);
+                    backendSkills.push(newSkillData);
+                    
+                    console.log('All valid skills being sent:', backendSkills);
+
+                    await jobsApi.updateJob(jobId!, { skills: backendSkills });
+                    
+                    // Update local state with enriched data for display
+                    const enrichedSkills = [
+                      ...job.skills,
+                      {
+                        skillId: masterSkill.skillId,
+                        skillName: newSkill.skillName,
+                        requiredLevel: newSkill.requiredLevel,
+                        evidence: newSkill.evidence,
+                        isAccepted: masterSkill.isAccepted
+                      }
+                    ];
+                    
+                    setJob({ ...job, skills: enrichedSkills });
+                    setShowAddSkillModal(false);
+                    setNewSkill({ skillName: '', requiredLevel: 5, evidence: '' });
+                    alert('Skill added successfully!');
+                  } catch (error) {
+                    console.error('Error adding skill:', error);
+                    alert('Failed to add skill. Please try again.');
+                  }
                 }}
                 disabled={!newSkill.skillName.trim()}
                 className="modal-btn-submit"

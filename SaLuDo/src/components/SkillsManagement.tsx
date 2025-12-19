@@ -168,10 +168,25 @@ const SkillsManagement: React.FC = () => {
     e.preventDefault();
     if (!newSkillName.trim()) return;
 
-    setError(
-      "Direct skill creation is not available through this interface. Skills are automatically created when they are added to candidates through the candidate management system. To add a new skill to the master database, please add it to a candidate first."
-    );
-    setIsSubmitting(false);
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      const result = await skillsApi.createSkillMaster(newSkillName.trim());
+
+      if (result.success) {
+        setNewSkillName("");
+        setShowAddModal(false);
+        fetchSkills(); // Refresh the list
+      } else {
+        throw new Error(result.message || "Failed to create skill");
+      }
+    } catch (err) {
+      console.error("Error creating skill:", err);
+      setError(err instanceof Error ? err.message : "Failed to create skill");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Edit skill

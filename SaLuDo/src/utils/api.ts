@@ -78,6 +78,26 @@ export const skillsApi = {
     return response.json();
   },
 
+  // Create new skill master - AVAILABLE: POST /api/skills/master
+  createSkillMaster: async (skillName: string) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${apiUrl}skills/master`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ skillName }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to create skill");
+    }
+    return response.json();
+  },
+
   // Accept/Approve skill - Available via update endpoint
   acceptSkill: async (skillId: string) => {
     return skillsApi.updateSkillMaster(skillId, { isAccepted: true });
@@ -153,9 +173,15 @@ export const jobsApi = {
 
   // Create new job
   createJob: async (jobData: any) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(jobData),
     });
     if (!response.ok) throw new Error("Failed to create job");
@@ -164,9 +190,15 @@ export const jobsApi = {
 
   // Update job
   updateJob: async (jobId: string, updates: any) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(updates),
     });
     if (!response.ok) throw new Error("Failed to update job");
@@ -175,8 +207,15 @@ export const jobsApi = {
 
   // Delete job
   deleteJob: async (jobId: string) => {
+    const headers: HeadersInit = {};
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}`, {
       method: "DELETE",
+      headers,
     });
     if (!response.ok) throw new Error("Failed to delete job");
     return response.json();
@@ -187,9 +226,15 @@ export const jobsApi = {
     jobId: string,
     skillData: { skillId: string; requiredLevel: number; evidence?: string }
   ) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}/skills`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(skillData),
     });
     if (!response.ok) throw new Error("Failed to add skill to job");
@@ -198,8 +243,15 @@ export const jobsApi = {
 
   // Remove skill from job
   removeSkillFromJob: async (jobId: string, skillId: string) => {
+    const headers: HeadersInit = {};
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}/skills/${skillId}`, {
       method: "DELETE",
+      headers,
     });
     if (!response.ok) throw new Error("Failed to remove skill from job");
     return response.json();

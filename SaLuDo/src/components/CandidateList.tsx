@@ -393,7 +393,7 @@ const CandidateList: React.FC = () => {
           <div className="search-candidate">
             <input
               type="text"
-              placeholder="Search candidates, skills, or positions..."
+              placeholder="Search candidates"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

@@ -5,7 +5,7 @@ import {
   NotificationChannel,
   DigestFrequency
 } from '../types/notification';
-import { notificationsApi } from '../utils/api';
+import { notificationsApi, usersApi } from '../utils/api';
 import './css/ProfileSettings.css';
 
 interface ProfileSettingsProps {
@@ -23,6 +23,17 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userId, accessToken }
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
 
   useEffect(() => {
     fetchPreferences();
@@ -86,6 +97,63 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userId, accessToken }
       setToast({ message: errorMessage, type: 'error' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setToast({ message: 'All password fields are required', type: 'error' });
+      return;
+    }
+    
+    // Password strength validation
+    if (newPassword.length < 8) {
+      setToast({ message: 'Password must be at least 8 characters long', type: 'error' });
+      return;
+    }
+    
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasLowercase = /[a-z]/.test(newPassword);
+    const hasNumber = /\d/.test(newPassword);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(newPassword);
+    
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecialChar) {
+      setToast({ 
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character', 
+        type: 'error' 
+      });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setToast({ message: 'New passwords do not match', type: 'error' });
+      return;
+    }
+    
+    if (currentPassword === newPassword) {
+      setToast({ message: 'New password must be different from current password', type: 'error' });
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      await usersApi.changePassword(accessToken, currentPassword, newPassword);
+      
+      // Clear the form
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      setToast({ message: 'Password changed successfully', type: 'success' });
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
+      setToast({ message: errorMessage, type: 'error' });
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -498,6 +566,200 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userId, accessToken }
             Show browser desktop notifications (requires browser permission)
           </p>
         </div>
+      </div>
+
+      {/* Event Overrides */}
+      <div className="settings-section">
+        <h3>Event Overrides</h3>
+        <p className="setting-description">Customize channels and priority for specific events</p>
+        <div className="event-overrides">
+          {[NotificationType.INTERVIEW_REMINDER, NotificationType.INTERVIEW_SCHEDULED, NotificationType.CANDIDATE_ASSIGNED, NotificationType.JOB_UPDATED, NotificationType.SECURITY_ALERT, NotificationType.ADMIN_ANNOUNCEMENT].map(type => {
+            const current = getEventOverride(type);
+            const enabled = current?.enabled ?? false;
+            const channels = current?.channels ?? [];
+            const priority = current?.priority ?? undefined;
+            return (
+              <div key={type} className="event-override-item">
+                <div className="setting-row">
+                  <label className="setting-label">
+                    <input
+                      type="checkbox"
+                      checked={enabled}
+                      onChange={(e) => upsertEventOverride({ type, enabled: e.target.checked, channels, priority })}
+                      disabled={!preferences.enabled}
+                    />
+                    <span>{type.replace(/_/g, ' ')}</span>
+                  </label>
+                </div>
+                {enabled && (
+                  <div className="setting-row">
+                    <label>Channels</label>
+                    <div className="channels-grid">
+                      {[NotificationChannel.IN_APP, NotificationChannel.EMAIL, NotificationChannel.PUSH, NotificationChannel.SMS].map(ch => (
+                        <label key={ch} className="channel-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={channels.includes(ch)}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...channels, ch]
+                                : channels.filter(c => c !== ch);
+                              upsertEventOverride({ type, enabled: true, channels: next, priority });
+                            }}
+                            disabled={!preferences.enabled}
+                          />
+                          <span>{getChannelLabel(ch)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {enabled && (
+                  <div className="setting-row">
+                    <label>Priority (optional)</label>
+                    <select
+                      value={priority || ''}
+                      onChange={(e) => {
+                        const val = e.target.value as NotificationPriority;
+                        upsertEventOverride({ type, enabled: true, channels, priority: val });
+                      }}
+                      disabled={!preferences.enabled}
+                    >
+                      <option value="">Default</option>
+                      {[NotificationPriority.LOW, NotificationPriority.MEDIUM, NotificationPriority.HIGH, NotificationPriority.CRITICAL].map(p => (
+                        <option key={p} value={p}>{getPriorityLabel(p)}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => removeEventOverride(type)}
+                      disabled={!preferences.enabled}
+                    >
+                      Remove Override
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Password Change Section */}
+      <div className="settings-section">
+        <h3>Change Password</h3>
+        <p className="password-requirements">
+          Password must be at least 8 characters and include: uppercase, lowercase, number, and special character.
+        </p>
+        <form onSubmit={handlePasswordChange} className="password-change-form">
+          <div className="password-field">
+            <label htmlFor="current-password">Current Password</label>
+            <div className="password-input-wrapper">
+              <input
+                type={showPasswords.current ? "text" : "password"}
+                id="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                disabled={changingPassword}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
+                disabled={changingPassword}
+                aria-label={showPasswords.current ? "Hide password" : "Show password"}
+              >
+                {showPasswords.current ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="password-field">
+            <label htmlFor="new-password">New Password</label>
+            <div className="password-input-wrapper">
+              <input
+                type={showPasswords.new ? "text" : "password"}
+                id="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Must include: A-Z, a-z, 0-9, special char"
+                disabled={changingPassword}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                disabled={changingPassword}
+                aria-label={showPasswords.new ? "Hide password" : "Show password"}
+              >
+                {showPasswords.new ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="password-field">
+            <label htmlFor="confirm-password">Confirm New Password</label>
+            <div className="password-input-wrapper">
+              <input
+                type={showPasswords.confirm ? "text" : "password"}
+                id="confirm-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                disabled={changingPassword}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                disabled={changingPassword}
+                aria-label={showPasswords.confirm ? "Hide password" : "Show password"}
+              >
+                {showPasswords.confirm ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="change-password-button"
+            disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+          >
+            {changingPassword ? 'Changing Password...' : 'Change Password'}
+          </button>
+        </form>
       </div>
 
       {/* Save Button */}

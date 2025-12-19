@@ -157,18 +157,13 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
                     placeholder="Please provide a reason for this status change..."
                     disabled={loading}
                   />
-                </div>
-              )}
-
-              {/* Error Message */}
-              {error && (
-                <div className="rounded-md bg-red-50 p-4">
-                  <div className="flex">
-                    <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-red-800">{error}</p>
+                  <div className="status-dialog-option-content">
+                    <div 
+                      className="status-dialog-option-indicator" 
+                      style={{ backgroundColor: status.color }}
+                    ></div>
+                    <div className="status-dialog-option-text">
+                      <span className="status-dialog-option-label">{status.label}</span>
                     </div>
                   </div>
                 </div>
@@ -176,25 +171,57 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading || !selectedStatus}
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-            >
-              {loading ? 'Updating...' : 'Update Status'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
-            >
-              Cancel
-            </button>
-          </div>
+          {/* Reason Input - Always show, but only required for certain statuses */}
+          {selectedStatus && (
+            <div className="status-dialog-reason">
+              <label htmlFor="reason" className="status-dialog-label">
+                Reason for Change {selectedStatusInfo?.requiresReason && <span className="required">*</span>}
+              </label>
+              <textarea
+                id="reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                className="status-dialog-textarea"
+                placeholder={
+                  selectedStatusInfo?.requiresReason
+                    ? "Please provide a detailed reason for this status change..."
+                    : "Optionally provide a reason for this status change..."
+                }
+                disabled={loading}
+              />
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="status-dialog-error">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="status-dialog-footer">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="status-dialog-btn status-dialog-btn-cancel"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading || !selectedStatus}
+            className="status-dialog-btn status-dialog-btn-submit"
+          >
+            {loading ? 'Updating...' : 'Update Status'}
+          </button>
         </div>
       </div>
     </div>
