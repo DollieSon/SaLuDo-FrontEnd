@@ -359,6 +359,12 @@ const Profile: React.FC = () => {
     
     setStatusChanging(true);
     try {
+      // Optimistically update the UI immediately
+      if (candidate) {
+        setCandidate({ ...candidate, status: newStatus });
+        setEditedData(prev => ({ ...prev, status: newStatus }));
+      }
+      
       await candidatesApi.updateCandidate(id, {
         status: newStatus,
         statusChangeReason: reason,
@@ -366,11 +372,13 @@ const Profile: React.FC = () => {
       });
       
       setToastMessage("Status updated successfully");
-      await fetchCandidateData();
-      await fetchStatusHistory();
+      // Fetch fresh data to ensure consistency
+      await Promise.all([fetchCandidateData(), fetchStatusHistory()]);
       setTimeout(() => setToastMessage(null), 3000);
     } catch (error) {
       console.error("Error updating status:", error);
+      // Revert optimistic update on error
+      await fetchCandidateData();
       setToastMessage("Failed to update status");
       setTimeout(() => setToastMessage(null), 3000);
       throw error;

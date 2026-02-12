@@ -196,7 +196,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           body: notification.message,
           icon: '/logo.png',
           tag: notification.notificationId,
-          requireInteraction: notification.priority === 'HIGH' || notification.priority === 'URGENT',
+          requireInteraction: notification.priority === 'HIGH' || notification.priority === 'CRITICAL',
         });
       } catch (err) {
         console.warn('[NotificationContext] Failed to show browser notification:', err);

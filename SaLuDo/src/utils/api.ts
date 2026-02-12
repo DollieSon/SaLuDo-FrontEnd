@@ -308,7 +308,11 @@ export const candidatesApi = {
 
   // Get single candidate by ID
   getCandidateById: async (candidateId: string, accessToken?: string) => {
-    const headers: HeadersInit = {};
+    const headers: HeadersInit = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
@@ -318,8 +322,9 @@ export const candidatesApi = {
       }
     }
 
-    const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+    const response = await fetch(`${apiUrl}candidates/${candidateId}?_=${Date.now()}`, {
       headers,
+      cache: 'no-store'
     });
     if (!response.ok) throw new Error("Failed to fetch candidate");
     return response.json();

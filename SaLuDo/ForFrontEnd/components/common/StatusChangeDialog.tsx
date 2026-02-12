@@ -124,35 +124,6 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
               ))}
           </div>
 
-          {/* Reason Input */}
-          {selectedStatusInfo?.requiresReason && (
-            <div className="status-dialog-reason">
-              <label htmlFor="reason" className="status-dialog-label">
-                Reason for Change <span className="required">*</span>
-              </label>
-              <textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                className="status-dialog-textarea"
-                placeholder="Please provide a detailed reason for this status change..."
-                disabled={loading}
-              />
-            </div>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <div className="status-dialog-error">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
-        </div>
-
           {/* Reason Input - Always show, but only required for certain statuses */}
           {selectedStatus && (
             <div className="status-dialog-reason">

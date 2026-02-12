@@ -9,6 +9,7 @@ interface JobSkillRequirement {
   evidence?: string;
   skillName?: string;
   isAccepted?: boolean;
+  addedBy?: string;
 }
 
 interface Job {
