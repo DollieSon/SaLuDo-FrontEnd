@@ -23,6 +23,25 @@ interface EnhancedCandidate extends CandidateProfile {
   missingSkills?: string[];
 }
 
+const getStatusColor = (status: string): string => {
+  switch (status) {
+    case "Applied":
+      return "#2563eb"; // blue
+    case "Reference Check":
+      return "#7c3aed"; // purple
+    case "Offer":
+      return "#0ea5e9"; // sky
+    case "Hired":
+      return "#10b981"; // green
+    case "Rejected":
+      return "#ef4444"; // red
+    case "Withdrawn":
+      return "#6b7280"; // gray
+    default:
+      return "#f59e0b"; // amber fallback
+  }
+};
+
 const CandidateList: React.FC = () => {
   const navigate = useNavigate();
 
@@ -68,7 +87,7 @@ const CandidateList: React.FC = () => {
             if (!skill.skillName && skill.skillId) {
               const masterSkill = masterSkills.find(
                 (ms: any) =>
-                  ms.skillId === skill.skillId || ms._id === skill.skillId
+                  ms.skillId === skill.skillId || ms._id === skill.skillId,
               );
 
               if (masterSkill) {
@@ -94,7 +113,7 @@ const CandidateList: React.FC = () => {
             const enrichedJob = { ...job };
             await enrichJobSkillsWithNames(enrichedJob);
             return enrichedJob;
-          })
+          }),
         );
         setJobs(jobsWithSkillNames);
       } else {
@@ -112,7 +131,7 @@ const CandidateList: React.FC = () => {
   // Calculate job match score for candidates
   const calculateJobMatchScore = (
     candidate: CandidateProfile,
-    job: Job
+    job: Job,
   ): EnhancedCandidate => {
     if (!job.skills || job.skills.length === 0) {
       return {
@@ -132,7 +151,8 @@ const CandidateList: React.FC = () => {
     job.skills.forEach((jobSkill) => {
       const candidateSkill = candidate.skills?.find(
         (cs) =>
-          cs.skillId === jobSkill.skillId || cs.skillName === jobSkill.skillName
+          cs.skillId === jobSkill.skillId ||
+          cs.skillName === jobSkill.skillName,
       );
 
       if (candidateSkill && candidateSkill.score !== undefined) {
@@ -172,11 +192,11 @@ const CandidateList: React.FC = () => {
 
   // Calculate average score from skills
   const calculateAverageScore = (
-    skills: CandidateProfile["skills"]
+    skills: CandidateProfile["skills"],
   ): number | undefined => {
     if (!skills || skills.length === 0) return undefined;
     const validScores = skills.filter(
-      (s) => s.score !== undefined && !isNaN(s.score)
+      (s) => s.score !== undefined && !isNaN(s.score),
     );
     if (validScores.length === 0) return undefined;
     const total = validScores.reduce((sum, s) => sum + (s.score || 0), 0);
@@ -192,7 +212,7 @@ const CandidateList: React.FC = () => {
       const selectedJobData = jobs.find((job) => job._id === selectedJob);
       if (selectedJobData) {
         processedCandidates = candidates.map((candidate) =>
-          calculateJobMatchScore(candidate, selectedJobData)
+          calculateJobMatchScore(candidate, selectedJobData),
         );
       }
     }
@@ -289,18 +309,21 @@ const CandidateList: React.FC = () => {
 
   // Most common job role (convert IDs to names, exclude candidates with no role)
   const candidatesWithRoles = candidates.filter(
-    (candidate) => candidate.roleApplied
+    (candidate) => candidate.roleApplied,
   );
-  const roleCount = candidatesWithRoles.reduce((acc, candidate) => {
-    const roleName = getJobNameById(candidate.roleApplied);
-    acc[roleName] = (acc[roleName] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const roleCount = candidatesWithRoles.reduce(
+    (acc, candidate) => {
+      const roleName = getJobNameById(candidate.roleApplied);
+      acc[roleName] = (acc[roleName] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   const mostCommonRole =
     Object.keys(roleCount).length > 0
       ? Object.entries(roleCount).reduce((a, b) =>
-          roleCount[a[0]] > roleCount[b[0]] ? a : b
+          roleCount[a[0]] > roleCount[b[0]] ? a : b,
         )[0]
       : "No Roles Available";
 
@@ -323,11 +346,11 @@ const CandidateList: React.FC = () => {
   // Handle candidate deletion
   const handleDeleteCandidate = async (
     candidateId: string,
-    candidateName: string
+    candidateName: string,
   ) => {
     if (
       !window.confirm(
-        `Are you sure you want to delete ${candidateName}? This action cannot be undone.`
+        `Are you sure you want to delete ${candidateName}? This action cannot be undone.`,
       )
     ) {
       return;
@@ -337,7 +360,7 @@ const CandidateList: React.FC = () => {
       await candidatesApi.deleteCandidate(candidateId);
       // Remove the candidate from the list
       setCandidates((prev) =>
-        prev.filter((c) => c.candidateId !== candidateId)
+        prev.filter((c) => c.candidateId !== candidateId),
       );
       alert("Candidate deleted successfully");
     } catch (err) {
@@ -428,8 +451,8 @@ const CandidateList: React.FC = () => {
                 ? `${topCandidateForJob.name.substring(0, 15)}...`
                 : topCandidateForJob.name
               : mostCommonRole.length > 15
-              ? `${mostCommonRole.substring(0, 15)}...`
-              : mostCommonRole}
+                ? `${mostCommonRole.substring(0, 15)}...`
+                : mostCommonRole}
           </div>
           <div className="detail">
             {selectedJob !== "all" && topCandidateForJob
@@ -479,9 +502,12 @@ const CandidateList: React.FC = () => {
           onClick={() => setActiveFilter("status")}
         >
           <option value="all">All Statuses</option>
-          <option value="Approved">Approved</option>
+          <option value="Applied">Applied</option>
+          <option value="Reference Check">Reference Check</option>
+          <option value="Offer">Offer</option>
+          <option value="Hired">Hired</option>
           <option value="Rejected">Rejected</option>
-          <option value="Pending">Pending</option>
+          <option value="Withdrawn">Withdrawn</option>
         </select>
 
         <select
@@ -528,7 +554,7 @@ const CandidateList: React.FC = () => {
         </div>
       )}
 
-      <div className="table-wrapper" style={{maxHeight: "50%"}}>
+      <div className="table-wrapper" style={{ maxHeight: "50%" }}>
         <table>
           <thead>
             <tr>
@@ -653,18 +679,21 @@ const CandidateList: React.FC = () => {
                                   <span className="missing-skills-indicator">
                                     !
                                   </span>
-                                  <div 
+                                  <div
                                     className={`missing-skills-tooltip ${
-                                      isTopHalf ? 'tooltip-below' : ''
+                                      isTopHalf ? "tooltip-below" : ""
                                     }`}
                                   >
                                     <div className="tooltip-title">
-                                      Missing Skills ({enhancedCandidate.missingSkills.length})
+                                      Missing Skills (
+                                      {enhancedCandidate.missingSkills.length})
                                     </div>
                                     <ul className="missing-skills-list">
-                                      {enhancedCandidate.missingSkills.slice(0, 3).map((skill, idx) => (
-                                        <li key={idx}>{skill}</li>
-                                      ))}
+                                      {enhancedCandidate.missingSkills
+                                        .slice(0, 3)
+                                        .map((skill, idx) => (
+                                          <li key={idx}>{skill}</li>
+                                        ))}
                                       <li>...</li>
                                     </ul>
                                   </div>
@@ -681,12 +710,7 @@ const CandidateList: React.FC = () => {
                     <td>
                       <span
                         style={{
-                          color:
-                            c.status === "Approved"
-                              ? "#10b981"
-                              : c.status === "Rejected"
-                              ? "#ef4444"
-                              : "#f59e0b",
+                          color: getStatusColor(c.status),
                           fontWeight: "bold",
                         }}
                       >
@@ -711,7 +735,7 @@ const CandidateList: React.FC = () => {
                             e.stopPropagation();
                             handleDeleteCandidate(
                               c.candidateId,
-                              c.name || "this candidate"
+                              c.name || "this candidate",
                             );
                           }}
                           title="Delete candidate"

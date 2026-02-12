@@ -15,9 +15,11 @@ export const NotificationBell: React.FC = () => {
     markAsRead,
     markAllAsRead,
   } = useNotifications();
-  
+
   const [isOpen, setIsOpen] = useState(false);
-  const [displayNotifications, setDisplayNotifications] = useState<Notification[]>([]);
+  const [displayNotifications, setDisplayNotifications] = useState<
+    Notification[]
+  >([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Update display notifications when dropdown opens or notifications change
@@ -111,7 +113,11 @@ export const NotificationBell: React.FC = () => {
   };
 
   return (
-    <div className="notification-bell-container" ref={dropdownRef}>
+    <div
+      className="notification-bell-container"
+      ref={dropdownRef}
+      onClick={(e) => e.stopPropagation()} // prevent parent card navigation when opening notifications
+    >
       <button
         className="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}
@@ -137,7 +143,10 @@ export const NotificationBell: React.FC = () => {
           </span>
         )}
         {isConnected && (
-          <span className="connection-indicator connected" title="Live updates active"></span>
+          <span
+            className="connection-indicator connected"
+            title="Live updates active"
+          ></span>
         )}
       </button>
 
@@ -147,7 +156,9 @@ export const NotificationBell: React.FC = () => {
             <div>
               <h3>Notifications</h3>
               {!isConnected && (
-                <span className="connection-status offline">Reconnecting...</span>
+                <span className="connection-status offline">
+                  Reconnecting...
+                </span>
               )}
             </div>
             {unreadCount > 0 && (

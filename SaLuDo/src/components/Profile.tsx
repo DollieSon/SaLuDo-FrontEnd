@@ -79,7 +79,7 @@ const Profile: React.FC = () => {
       | "education"
       | "certification"
       | "strength"
-      | "weakness"
+      | "weakness",
   ) => {
     setSelectedItem({ data: item, section, type });
     setShowDetailModal(true);
@@ -91,7 +91,7 @@ const Profile: React.FC = () => {
   };
 
   const enrichSkillsWithNames = async (
-    candidateData: CandidateProfile
+    candidateData: CandidateProfile,
   ): Promise<CandidateProfile> => {
     try {
       const skillResponse = await skillsApi.getAllMasterSkills();
@@ -115,13 +115,13 @@ const Profile: React.FC = () => {
           ) {
             const masterSkill = masterSkills.find(
               (ms: any) =>
-                ms.skillId === skill.skillId || ms._id === skill.skillId
+                ms.skillId === skill.skillId || ms._id === skill.skillId,
             );
 
             if (masterSkill) {
               console.log(
                 `✅ Found master skill for ${skill.skillId}:`,
-                masterSkill
+                masterSkill,
               );
               return {
                 ...skill,
@@ -134,7 +134,7 @@ const Profile: React.FC = () => {
                 .replace(/^./, (str: string) => str.toUpperCase())
                 .trim();
               console.warn(
-                `⚠️ Could not find skill name for ID: ${skill.skillId}, using fallback: ${readableName}`
+                `⚠️ Could not find skill name for ID: ${skill.skillId}, using fallback: ${readableName}`,
               );
               return {
                 ...skill,
@@ -144,7 +144,7 @@ const Profile: React.FC = () => {
           }
           console.log(`✨ Skill already has name, keeping as-is:`, skill);
           return skill;
-        }
+        },
       );
 
       console.log("🎉 Final enriched skills:", enrichedSkills);
@@ -197,14 +197,14 @@ const Profile: React.FC = () => {
         console.log("📊 Raw Candidate Data:", candidateData);
         console.log(
           "🎯 Candidate Skills (before enrichment):",
-          candidateData.skills
+          candidateData.skills,
         );
 
         if (candidateData.skills && candidateData.skills.length > 0) {
           candidateData = await enrichSkillsWithNames(candidateData);
           console.log(
             "✨ Candidate Skills (after enrichment):",
-            candidateData.skills
+            candidateData.skills,
           );
         }
 
@@ -229,8 +229,8 @@ const Profile: React.FC = () => {
                 s.addedBy === "AI"
                   ? "ai"
                   : s.addedBy === "HUMAN"
-                  ? "manual"
-                  : s.source || "ai",
+                    ? "manual"
+                    : s.source || "ai",
               isAccepted: s.isAccepted,
             })) || [],
           experience:
@@ -245,8 +245,8 @@ const Profile: React.FC = () => {
                 e.addedBy === "AI"
                   ? "ai"
                   : e.addedBy === "HUMAN"
-                  ? "manual"
-                  : e.source || "ai",
+                    ? "manual"
+                    : e.source || "ai",
             })) || [],
           education:
             candidateData.education?.map((e: any) => ({
@@ -259,8 +259,8 @@ const Profile: React.FC = () => {
                 e.addedBy === "AI"
                   ? "ai"
                   : e.addedBy === "HUMAN"
-                  ? "manual"
-                  : e.source || "ai",
+                    ? "manual"
+                    : e.source || "ai",
             })) || [],
           certification:
             candidateData.certification?.map((c: any) => ({
@@ -273,8 +273,8 @@ const Profile: React.FC = () => {
                 c.addedBy === "AI"
                   ? "ai"
                   : c.addedBy === "HUMAN"
-                  ? "manual"
-                  : c.source || "ai",
+                    ? "manual"
+                    : c.source || "ai",
             })) || [],
           strengths:
             candidateData.strengths?.map((s: any) => ({
@@ -286,8 +286,8 @@ const Profile: React.FC = () => {
                 s.addedBy === "AI"
                   ? "ai"
                   : s.addedBy === "HUMAN"
-                  ? "manual"
-                  : s.source || "ai",
+                    ? "manual"
+                    : s.source || "ai",
             })) || [],
           weaknesses:
             candidateData.weaknesses?.map((w: any) => ({
@@ -299,8 +299,8 @@ const Profile: React.FC = () => {
                 w.addedBy === "AI"
                   ? "ai"
                   : w.addedBy === "HUMAN"
-                  ? "manual"
-                  : w.source || "ai",
+                    ? "manual"
+                    : w.source || "ai",
             })) || [],
         });
       } else {
@@ -309,9 +309,8 @@ const Profile: React.FC = () => {
       }
 
       try {
-        const personalityResponse = await candidatesApi.getCandidatePersonality(
-          id
-        );
+        const personalityResponse =
+          await candidatesApi.getCandidatePersonality(id);
         console.log("🧠 Personality API Response:", personalityResponse);
 
         if (personalityResponse.success) {
@@ -324,7 +323,7 @@ const Profile: React.FC = () => {
     } catch (err) {
       console.error("Error fetching candidate data:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to load candidate profile"
+        err instanceof Error ? err.message : "Failed to load candidate profile",
       );
     } finally {
       setIsLoading(false);
@@ -337,7 +336,7 @@ const Profile: React.FC = () => {
 
   const handleDownload = (
     filename: string,
-    type: "resume" | "transcript" | "interview-video" | "introduction-video"
+    type: "resume" | "transcript" | "interview-video" | "introduction-video",
   ) => {
     console.log(`Downloading ${type}: ${filename}`);
     setToastMessage(`Downloading ${filename}...`);
@@ -384,7 +383,7 @@ const Profile: React.FC = () => {
   };
 
   const handleTranscriptUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file || !id) return;
@@ -410,7 +409,7 @@ const Profile: React.FC = () => {
   };
 
   const handleInterviewVideoUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file || !id) return;
@@ -436,7 +435,7 @@ const Profile: React.FC = () => {
   };
 
   const handleIntroductionVideoUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file || !id) return;
@@ -463,12 +462,12 @@ const Profile: React.FC = () => {
 
   const handleProcessVideo = async (
     videoId: string,
-    type: "interview" | "introduction"
+    type: "interview" | "introduction",
   ) => {
     if (!id) return;
     if (
       !confirm(
-        "Process this video with AI? This may take a few moments and will use API credits."
+        "Process this video with AI? This may take a few moments and will use API credits.",
       )
     ) {
       return;
@@ -495,12 +494,12 @@ const Profile: React.FC = () => {
 
   const handleDeleteVideo = async (
     videoId: string,
-    type: "interview" | "introduction"
+    type: "interview" | "introduction",
   ) => {
     if (!id) return;
     if (
       !confirm(
-        "Are you sure you want to delete this video? This cannot be undone."
+        "Are you sure you want to delete this video? This cannot be undone.",
       )
     ) {
       return;
@@ -528,7 +527,7 @@ const Profile: React.FC = () => {
     if (!id) return;
     if (
       !confirm(
-        "Are you sure you want to delete the resume? This cannot be undone."
+        "Are you sure you want to delete the resume? This cannot be undone.",
       )
     ) {
       return;
@@ -543,6 +542,31 @@ const Profile: React.FC = () => {
     } catch (error) {
       console.error("Error deleting resume:", error);
       setToastMessage("Failed to delete resume");
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
+      setDeletingFile(null);
+    }
+  };
+
+  const handleDeleteTranscript = async (transcriptId: string) => {
+    if (!id) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this transcript? This cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setDeletingFile(transcriptId);
+      await candidatesApi.deleteTranscript(id, transcriptId);
+      setToastMessage("Transcript deleted successfully!");
+      await fetchCandidateData();
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (error) {
+      console.error("Error deleting transcript:", error);
+      setToastMessage("Failed to delete transcript");
       setTimeout(() => setToastMessage(null), 3000);
     } finally {
       setDeletingFile(null);
@@ -606,8 +630,8 @@ const Profile: React.FC = () => {
               s.addedBy === "AI"
                 ? "ai"
                 : s.addedBy === "HUMAN"
-                ? "manual"
-                : s.source || "ai",
+                  ? "manual"
+                  : s.source || "ai",
             isAccepted: s.isAccepted,
           })) || [],
         experience:
@@ -622,8 +646,8 @@ const Profile: React.FC = () => {
               e.addedBy === "AI"
                 ? "ai"
                 : e.addedBy === "HUMAN"
-                ? "manual"
-                : e.source || "ai",
+                  ? "manual"
+                  : e.source || "ai",
           })) || [],
         education:
           candidate.education?.map((e) => ({
@@ -636,8 +660,8 @@ const Profile: React.FC = () => {
               e.addedBy === "AI"
                 ? "ai"
                 : e.addedBy === "HUMAN"
-                ? "manual"
-                : e.source || "ai",
+                  ? "manual"
+                  : e.source || "ai",
           })) || [],
         certification:
           candidate.certification?.map((c) => ({
@@ -650,8 +674,8 @@ const Profile: React.FC = () => {
               c.addedBy === "AI"
                 ? "ai"
                 : c.addedBy === "HUMAN"
-                ? "manual"
-                : c.source || "ai",
+                  ? "manual"
+                  : c.source || "ai",
           })) || [],
         strengths:
           candidate.strengths?.map((s) => ({
@@ -663,8 +687,8 @@ const Profile: React.FC = () => {
               s.addedBy === "AI"
                 ? "ai"
                 : s.addedBy === "HUMAN"
-                ? "manual"
-                : s.source || "ai",
+                  ? "manual"
+                  : s.source || "ai",
           })) || [],
         weaknesses:
           candidate.weaknesses?.map((w) => ({
@@ -676,8 +700,8 @@ const Profile: React.FC = () => {
               w.addedBy === "AI"
                 ? "ai"
                 : w.addedBy === "HUMAN"
-                ? "manual"
-                : w.source || "ai",
+                  ? "manual"
+                  : w.source || "ai",
           })) || [],
       });
     }
@@ -693,7 +717,7 @@ const Profile: React.FC = () => {
       editedResumeData.skills.forEach((skill) => {
         if (skill.candidateSkillId) {
           const original = candidate.skills?.find(
-            (s) => s.skillId === skill.candidateSkillId
+            (s) => s.skillId === skill.candidateSkillId,
           );
           if (
             original &&
@@ -710,7 +734,7 @@ const Profile: React.FC = () => {
 
       candidate.skills?.forEach((original) => {
         const exists = editedResumeData.skills.find(
-          (s) => s.candidateSkillId === original.skillId
+          (s) => s.candidateSkillId === original.skillId,
         );
         if (!exists && original.skillId) {
           promises.push(resumeEditApi.deleteSkill(id, original.skillId));
@@ -721,7 +745,7 @@ const Profile: React.FC = () => {
       editedResumeData.experience.forEach((exp) => {
         if (exp.experienceId) {
           const original = candidate.experience?.find(
-            (e) => e.experienceId === exp.experienceId
+            (e) => e.experienceId === exp.experienceId,
           );
           if (original) {
             promises.push(resumeEditApi.updateExperience(id, exp));
@@ -733,11 +757,11 @@ const Profile: React.FC = () => {
 
       candidate.experience?.forEach((original) => {
         const exists = editedResumeData.experience.find(
-          (e) => e.experienceId === original.experienceId
+          (e) => e.experienceId === original.experienceId,
         );
         if (!exists && original.experienceId) {
           promises.push(
-            resumeEditApi.deleteExperience(id, original.experienceId)
+            resumeEditApi.deleteExperience(id, original.experienceId),
           );
         }
       });
@@ -746,7 +770,7 @@ const Profile: React.FC = () => {
       editedResumeData.education.forEach((edu) => {
         if (edu.educationId) {
           const original = candidate.education?.find(
-            (e) => e.educationId === edu.educationId
+            (e) => e.educationId === edu.educationId,
           );
           if (original) {
             promises.push(resumeEditApi.updateEducation(id, edu));
@@ -758,11 +782,11 @@ const Profile: React.FC = () => {
 
       candidate.education?.forEach((original) => {
         const exists = editedResumeData.education.find(
-          (e) => e.educationId === original.educationId
+          (e) => e.educationId === original.educationId,
         );
         if (!exists && original.educationId) {
           promises.push(
-            resumeEditApi.deleteEducation(id, original.educationId)
+            resumeEditApi.deleteEducation(id, original.educationId),
           );
         }
       });
@@ -771,7 +795,7 @@ const Profile: React.FC = () => {
       editedResumeData.certification.forEach((cert) => {
         if (cert.certificationId) {
           const original = candidate.certification?.find(
-            (c) => c.certificationId === cert.certificationId
+            (c) => c.certificationId === cert.certificationId,
           );
           if (original) {
             promises.push(resumeEditApi.updateCertification(id, cert));
@@ -783,11 +807,11 @@ const Profile: React.FC = () => {
 
       candidate.certification?.forEach((original) => {
         const exists = editedResumeData.certification.find(
-          (c) => c.certificationId === original.certificationId
+          (c) => c.certificationId === original.certificationId,
         );
         if (!exists && original.certificationId) {
           promises.push(
-            resumeEditApi.deleteCertification(id, original.certificationId)
+            resumeEditApi.deleteCertification(id, original.certificationId),
           );
         }
       });
@@ -796,7 +820,7 @@ const Profile: React.FC = () => {
       editedResumeData.strengths.forEach((item) => {
         if (item.strengthWeaknessId) {
           const original = candidate.strengths?.find(
-            (s) => s.strengthWeaknessId === item.strengthWeaknessId
+            (s) => s.strengthWeaknessId === item.strengthWeaknessId,
           );
           if (original) {
             promises.push(resumeEditApi.updateStrengthWeakness(id, item));
@@ -808,15 +832,15 @@ const Profile: React.FC = () => {
 
       candidate.strengths?.forEach((original) => {
         const exists = editedResumeData.strengths.find(
-          (s) => s.strengthWeaknessId === original.strengthWeaknessId
+          (s) => s.strengthWeaknessId === original.strengthWeaknessId,
         );
         if (!exists && original.strengthWeaknessId) {
           promises.push(
             resumeEditApi.deleteStrengthWeakness(
               id,
               original.strengthWeaknessId,
-              "strength"
-            )
+              "strength",
+            ),
           );
         }
       });
@@ -825,7 +849,7 @@ const Profile: React.FC = () => {
       editedResumeData.weaknesses.forEach((item) => {
         if (item.strengthWeaknessId) {
           const original = candidate.weaknesses?.find(
-            (w) => w.strengthWeaknessId === item.strengthWeaknessId
+            (w) => w.strengthWeaknessId === item.strengthWeaknessId,
           );
           if (original) {
             promises.push(resumeEditApi.updateStrengthWeakness(id, item));
@@ -837,15 +861,15 @@ const Profile: React.FC = () => {
 
       candidate.weaknesses?.forEach((original) => {
         const exists = editedResumeData.weaknesses.find(
-          (w) => w.strengthWeaknessId === original.strengthWeaknessId
+          (w) => w.strengthWeaknessId === original.strengthWeaknessId,
         );
         if (!exists && original.strengthWeaknessId) {
           promises.push(
             resumeEditApi.deleteStrengthWeakness(
               id,
               original.strengthWeaknessId,
-              "weakness"
-            )
+              "weakness",
+            ),
           );
         }
       });
@@ -931,32 +955,32 @@ const Profile: React.FC = () => {
     skills: transformToProfileItems(
       candidate.skills || [],
       "skillName",
-      "skill"
+      "skill",
     ),
     experience: transformToProfileItems(
       candidate.experience || [],
       "description",
-      "experience"
+      "experience",
     ),
     education: transformToProfileItems(
       candidate.education || [],
       "description",
-      "education"
+      "education",
     ),
     certification: transformToProfileItems(
       candidate.certification || [],
       "description",
-      "certification"
+      "certification",
     ),
     strength: transformToProfileItems(
       candidate.strengths || [],
       "description",
-      "strength"
+      "strength",
     ),
     weaknesses: transformToProfileItems(
       candidate.weaknesses || [],
       "description",
-      "weakness"
+      "weakness",
     ),
   };
 
@@ -968,7 +992,7 @@ const Profile: React.FC = () => {
         <div
           className="back-label"
           data-text={`Comprehensive profile analysis powered by AI • Last updated ${formatDate(
-            candidate.dateUpdated
+            candidate.dateUpdated,
           )}`}
         >
           <div className="left-section">
@@ -1003,6 +1027,7 @@ const Profile: React.FC = () => {
           onInterviewVideoUpload={handleInterviewVideoUpload}
           onIntroductionVideoUpload={handleIntroductionVideoUpload}
           onProcessVideo={handleProcessVideo}
+          onDeleteTranscript={handleDeleteTranscript}
           onDeleteVideo={handleDeleteVideo}
           onDeleteResume={handleDeleteResume}
           onDownload={handleDownload}
