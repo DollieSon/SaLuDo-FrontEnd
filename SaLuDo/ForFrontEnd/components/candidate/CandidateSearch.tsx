@@ -84,12 +84,18 @@ const CandidateSearch: React.FC<CandidateSearchProps> = ({
             className="block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
             <option value="ALL">All Statuses</option>
-            <option value={CandidateStatus.APPLIED}>Applied</option>
-            <option value={CandidateStatus.REFERENCE_CHECK}>Reference Check</option>
-            <option value={CandidateStatus.OFFER}>Offer</option>
+            <option value={CandidateStatus.FOR_REVIEW}>For Review</option>
+            <option value={CandidateStatus.PAPER_SCREENING}>Paper Screening</option>
+            <option value={CandidateStatus.EXAM}>Exam</option>
+            <option value={CandidateStatus.HR_INTERVIEW}>HR Interview</option>
+            <option value={CandidateStatus.TECHNICAL_INTERVIEW}>Technical Interview</option>
+            <option value={CandidateStatus.FINAL_INTERVIEW}>Final Interview</option>
+            <option value={CandidateStatus.FOR_JOB_OFFER}>For Job Offer</option>
+            <option value={CandidateStatus.OFFER_EXTENDED}>Offer Extended</option>
             <option value={CandidateStatus.HIRED}>Hired</option>
             <option value={CandidateStatus.REJECTED}>Rejected</option>
             <option value={CandidateStatus.WITHDRAWN}>Withdrawn</option>
+            <option value={CandidateStatus.ON_HOLD}>On Hold</option>
           </select>
         </div>
 

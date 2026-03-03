@@ -78,6 +78,26 @@ export const skillsApi = {
     return response.json();
   },
 
+  // Create new skill master - AVAILABLE: POST /api/skills/master
+  createSkillMaster: async (skillName: string) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${apiUrl}skills/master`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ skillName }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to create skill");
+    }
+    return response.json();
+  },
+
   // Accept/Approve skill - Available via update endpoint
   acceptSkill: async (skillId: string) => {
     return skillsApi.updateSkillMaster(skillId, { isAccepted: true });
@@ -90,8 +110,15 @@ export const skillsApi = {
 
   // Search skills by name - AVAILABLE: GET /api/skills/search/:skillName
   searchSkills: async (skillName: string) => {
+    const headers: HeadersInit = {};
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(
       `${apiUrl}skills/search/${encodeURIComponent(skillName)}`,
+      { headers }
     );
     if (!response.ok) throw new Error("Failed to search skills");
     return response.json();
@@ -153,9 +180,15 @@ export const jobsApi = {
 
   // Create new job
   createJob: async (jobData: any) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(jobData),
     });
     if (!response.ok) throw new Error("Failed to create job");
@@ -164,9 +197,15 @@ export const jobsApi = {
 
   // Update job
   updateJob: async (jobId: string, updates: any) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(updates),
     });
     if (!response.ok) throw new Error("Failed to update job");
@@ -175,8 +214,15 @@ export const jobsApi = {
 
   // Delete job
   deleteJob: async (jobId: string) => {
+    const headers: HeadersInit = {};
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}`, {
       method: "DELETE",
+      headers,
     });
     if (!response.ok) throw new Error("Failed to delete job");
     return response.json();
@@ -187,9 +233,15 @@ export const jobsApi = {
     jobId: string,
     skillData: { skillId: string; requiredLevel: number; evidence?: string },
   ) => {
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}/skills`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(skillData),
     });
     if (!response.ok) throw new Error("Failed to add skill to job");
@@ -198,8 +250,15 @@ export const jobsApi = {
 
   // Remove skill from job
   removeSkillFromJob: async (jobId: string, skillId: string) => {
+    const headers: HeadersInit = {};
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${apiUrl}jobs/${jobId}/skills/${skillId}`, {
       method: "DELETE",
+      headers,
     });
     if (!response.ok) throw new Error("Failed to remove skill from job");
     return response.json();
@@ -249,7 +308,11 @@ export const candidatesApi = {
 
   // Get single candidate by ID
   getCandidateById: async (candidateId: string, accessToken?: string) => {
-    const headers: HeadersInit = {};
+    const headers: HeadersInit = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
@@ -259,8 +322,9 @@ export const candidatesApi = {
       }
     }
 
-    const response = await fetch(`${apiUrl}candidates/${candidateId}`, {
+    const response = await fetch(`${apiUrl}candidates/${candidateId}?_=${Date.now()}`, {
       headers,
+      cache: 'no-store'
     });
     if (!response.ok) throw new Error("Failed to fetch candidate");
     return response.json();
@@ -1357,6 +1421,36 @@ export const notificationsApi = {
       } catch (e) {
         // If response is not JSON, use status text
         errorMessage = `Failed to update preferences: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  // Reset preferences to defaults
+  resetPreferences: async (accessToken: string) => {
+    const response = await fetch(
+      `${apiUrl}notifications/preferences/reset`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      let errorMessage = "Failed to reset preferences";
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        errorMessage = `Failed to reset preferences: ${response.statusText}`;
       }
       throw new Error(errorMessage);
     }

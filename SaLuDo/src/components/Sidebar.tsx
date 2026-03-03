@@ -155,6 +155,19 @@ const Sidebar = () => {
             </div>
           </NavLink>
         )}
+
+        {/* Show Time Analytics for HR Managers and Admins */}
+        {(user?.role === "admin" || user?.role === "hr_manager") && (
+          <NavLink
+            to="/analytics/time-tracking"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="nav-link-content">
+              <img src="/images/analytics.png" alt="Time Analytics" />
+              Time Analytics
+            </div>
+          </NavLink>
+        )}
       </div>
 
       {/* User Profile Section */}

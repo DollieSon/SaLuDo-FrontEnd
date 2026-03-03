@@ -38,6 +38,7 @@ import Dashboard from "./components/Dashboard.tsx";
 import UserProfile from "./components/UserProfile.tsx";
 import { ScoringSettings } from "./components/scoring/ScoringSettings.tsx";
 import AIMetricsDashboard from "./components/AIMetricsDashboard.tsx";
+import TimeAnalyticsDashboard from "../ForFrontEnd/pages/TimeAnalyticsDashboard.tsx";
 
 // ✅ LOGIN PAGE AS A COMPONENT:
 function AuthPage() {
@@ -370,6 +371,16 @@ function AIMetricsPage() {
   );
 }
 
+function TimeAnalyticsPage() {
+  return (
+    <ProtectedRoute requiredRole="hr_manager">
+      <DashboardLayout>
+        <TimeAnalyticsDashboard />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   const [data, setData] = useState<Data | null>(null);
 
@@ -411,6 +422,7 @@ function App() {
         <Route path="/scoring-settings" element={<ScoringSettingsPage />} />
         <Route path="/jobs/:jobId/scoring-settings" element={<JobScoringSettingsPage />} />
         <Route path="/ai-metrics" element={<AIMetricsPage />} />
+        <Route path="/analytics/time-tracking" element={<TimeAnalyticsPage />} />
       </Routes>
     </Router>
   );

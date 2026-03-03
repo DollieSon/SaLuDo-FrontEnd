@@ -254,7 +254,7 @@ export const usePredictiveScore = ({
           // Use effective settings if available (for job-specific queries)
           const effectiveSettings = 'effectiveSettings' in result 
             ? (result as { effectiveSettings: ScoringPreferences }).effectiveSettings 
-            : result.settings;
+            : result.data;
           setSettings(effectiveSettings);
         } else {
           setSettingsError('Failed to fetch settings');

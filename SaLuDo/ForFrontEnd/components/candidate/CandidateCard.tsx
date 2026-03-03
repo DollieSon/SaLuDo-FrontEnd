@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CandidateData, CandidateStatus } from '../../CandidateApiTypes';
+import { formatTimeInStage, getTimeColor } from '../../utils/timeFormatters';
 
 interface CandidateCardProps {
   candidate: CandidateData;
@@ -9,12 +10,18 @@ interface CandidateCardProps {
 }
 
 const statusColors = {
-  [CandidateStatus.APPLIED]: 'bg-blue-100 text-blue-800',
-  [CandidateStatus.REFERENCE_CHECK]: 'bg-yellow-100 text-yellow-800',
-  [CandidateStatus.OFFER]: 'bg-purple-100 text-purple-800',
+  [CandidateStatus.FOR_REVIEW]: 'bg-blue-100 text-blue-800',
+  [CandidateStatus.PAPER_SCREENING]: 'bg-indigo-100 text-indigo-800',
+  [CandidateStatus.EXAM]: 'bg-cyan-100 text-cyan-800',
+  [CandidateStatus.HR_INTERVIEW]: 'bg-sky-100 text-sky-800',
+  [CandidateStatus.TECHNICAL_INTERVIEW]: 'bg-blue-100 text-blue-900',
+  [CandidateStatus.FINAL_INTERVIEW]: 'bg-violet-100 text-violet-800',
+  [CandidateStatus.FOR_JOB_OFFER]: 'bg-purple-100 text-purple-800',
+  [CandidateStatus.OFFER_EXTENDED]: 'bg-fuchsia-100 text-fuchsia-800',
   [CandidateStatus.HIRED]: 'bg-green-100 text-green-800',
   [CandidateStatus.REJECTED]: 'bg-red-100 text-red-800',
   [CandidateStatus.WITHDRAWN]: 'bg-gray-100 text-gray-800',
+  [CandidateStatus.ON_HOLD]: 'bg-yellow-100 text-yellow-800',
 };
 
 const CandidateCard: React.FC<CandidateCardProps> = ({
@@ -35,6 +42,33 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // Calculate time in current stage
+  const timeInCurrentStage = useMemo(() => {
+    if (!candidate.statusHistory || candidate.statusHistory.length === 0) {
+      return null;
+    }
+
+    // Get the latest status change (current stage)
+    const latestChange = candidate.statusHistory[candidate.statusHistory.length - 1];
+    const timeInStageMs = Date.now() - new Date(latestChange.changedAt).getTime();
+    
+    return {
+      duration: formatTimeInStage(timeInStageMs),
+      color: getTimeColor(timeInStageMs),
+      ms: timeInStageMs
+    };
+  }, [candidate.statusHistory]);
+
+  // Get color classes for time badge
+  const getTimeBadgeClasses = (color: 'success' | 'warning' | 'danger') => {
+    const colorMap = {
+      success: 'bg-green-100 text-green-700 border-green-200',
+      warning: 'bg-amber-100 text-amber-700 border-amber-200',
+      danger: 'bg-red-100 text-red-700 border-red-200'
+    };
+    return colorMap[color];
   };
 
   return (
@@ -58,6 +92,14 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[candidate.status]}`}>
             {candidate.status}
           </span>
+          {timeInCurrentStage && (
+            <span 
+              className={`px-2 py-1 rounded text-xs font-medium border ${getTimeBadgeClasses(timeInCurrentStage.color)}`}
+              title={`Time in ${candidate.status}`}
+            >
+              🕐 {timeInCurrentStage.duration}
+            </span>
+          )}
           <span className="text-xs text-gray-500">
             Applied: {formatDate(candidate.dateCreated)}
           </span>

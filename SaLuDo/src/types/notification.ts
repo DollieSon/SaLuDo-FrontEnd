@@ -101,6 +101,7 @@ export interface EmailDigestPreferences {
   timezone?: string;
   includeCategories?: NotificationCategory[];
   minPriority?: NotificationPriority;
+  dayOfWeek?: number; // 0-6 (Sunday-Saturday) for weekly digests
 }
 
 export interface QuietHoursPreferences {
@@ -129,6 +130,14 @@ export interface NotificationPreferences {
   batchNotifications: boolean;
   soundEnabled: boolean;
   desktopNotifications: boolean;
+  eventOverrides?: EventOverride[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface EventOverride {
+  type: NotificationType;
+  enabled: boolean;
+  channels: NotificationChannel[];
+  priority?: NotificationPriority;
 }

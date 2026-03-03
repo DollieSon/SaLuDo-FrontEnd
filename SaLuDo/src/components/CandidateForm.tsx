@@ -171,6 +171,7 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
       email: "",
       resume: null,
       introductionVideo: null,
+      socialLinks: [],
     });
     // Refresh the page to fully reset everything
     window.location.reload();

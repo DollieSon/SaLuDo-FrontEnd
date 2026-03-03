@@ -279,7 +279,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                   <div className="action-buttons">
                     <button
                       className="action-btn edit btn-reset-password"
-                      onClick={(e) => openResetPasswordModal(user, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openResetPasswordModal(user, e);
+                      }}
                       title="Reset user password - set custom or generate random"
                     >
                       Reset Password
@@ -288,16 +291,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                       className={`action-btn edit ${
                         user.isActive ? "btn-deactivate" : "btn-activate"
                       }`}
-                      onClick={() =>
-                        handleToggleStatus(user.userId, user.isActive)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleStatus(user.userId, user.isActive);
+                      }}
                       title={user.isActive ? "Deactivate" : "Activate"}
                     >
                       {user.isActive ? "Deactivate" : "Activate"}
                     </button>
                     <button
                       className="delete-candidate"
-                      onClick={() => handleDeleteUser(user.userId, user.fullName)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteUser(user.userId, user.fullName);
+                      }}
                       title="Delete"
                     >
                       Delete

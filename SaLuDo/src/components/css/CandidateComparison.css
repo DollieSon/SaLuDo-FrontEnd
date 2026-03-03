@@ -289,10 +289,12 @@
   display: flex;
   flex-direction: column;
   max-width: 100%;
+  overflow: visible;
 }
 
 .chart-container > div {
   max-width: 100%;
+  overflow: visible;
 }
 
 .chart-container h3 {
@@ -301,6 +303,11 @@
   color: #1f2937;
   margin: 0 0 20px 0;
   text-align: center;
+}
+
+.chart-container.personality-chart {
+  min-height: 550px;
+  padding: 30px 40px;
 }
 
 /* Skills Analysis */

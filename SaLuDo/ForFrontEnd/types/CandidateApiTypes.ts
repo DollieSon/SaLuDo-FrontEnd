@@ -7,17 +7,106 @@
 // ===========================================
 
 export enum CandidateStatus {
-    APPLIED = 'Applied',
-    REFERENCE_CHECK = 'Reference Check', 
-    OFFER = 'Offer',
+    FOR_REVIEW = 'For Review',
+    PAPER_SCREENING = 'Paper Screening',
+    EXAM = 'Exam',
+    HR_INTERVIEW = 'HR Interview',
+    TECHNICAL_INTERVIEW = 'Technical Interview',
+    FINAL_INTERVIEW = 'Final Interview',
+    FOR_JOB_OFFER = 'For Job Offer',
+    OFFER_EXTENDED = 'Offer Extended',
+    // Terminal statuses
     HIRED = 'Hired',
     REJECTED = 'Rejected',
-    WITHDRAWN = 'Withdrawn'
+    WITHDRAWN = 'Withdrawn',
+    ON_HOLD = 'On Hold'
 }
 
 export enum AddedBy {
     AI = 'AI',
     HUMAN = 'HUMAN'
+}
+
+// ===========================================
+// STATUS HISTORY INTERFACES
+// ===========================================
+
+export interface StatusHistoryEntry {
+    historyId: string;
+    status: CandidateStatus;
+    previousStatus: CandidateStatus | null;
+    changedAt: Date;
+    changedBy: string;
+    changedByName?: string;
+    changedByEmail?: string;
+    reason?: string;
+    notes?: string;
+    isAutomated?: boolean;
+    source?: 'manual' | 'automation' | 'bulk_action' | 'api' | 'migration';
+}
+
+export interface TimeInStage {
+    status: CandidateStatus;
+    durationMs: number;
+    durationDays: number;
+    startDate: Date;
+    endDate: Date | null;
+}
+
+export interface CandidateTimeAnalytics {
+    candidateId: string;
+    candidateName: string;
+    currentStatus: CandidateStatus;
+    timeInCurrentStage: {
+        durationMs: number;
+        durationDays: number;
+        durationHours: number;
+        startDate: Date;
+    };
+    stageBreakdown: TimeInStage[];
+    totalTimeInProcess: {
+        durationMs: number;
+        durationDays: number;
+        startDate: Date;
+    };
+    totalStatusChanges: number;
+    isStuck: boolean;
+    stuckThresholdDays: number;
+}
+
+export interface SystemWideTimeAnalytics {
+    averageTimePerStage: Record<CandidateStatus, number>;
+    medianTimePerStage: Record<CandidateStatus, number>;
+    bottleneckStages: Array<{
+        status: CandidateStatus;
+        averageDays: number;
+        medianDays: number;
+        candidatesAffected: number;
+    }>;
+    stuckCandidates: Array<{
+        candidateId: string;
+        candidateName: string;
+        status: CandidateStatus;
+        daysInStage: number;
+    }>;
+    conversionFunnel: Array<{
+        status: CandidateStatus;
+        candidateCount: number;
+        conversionRate: number;
+        dropOffRate: number;
+        averageDaysInStage: number;
+    }>;
+    totalCandidates: number;
+    averageTimeToHire: number;
+    totalStatusChanges: number;
+}
+
+export interface StatusHistoryResponse {
+    candidateId: string;
+    candidateName: string;
+    currentStatus: CandidateStatus;
+    statusHistory: StatusHistoryEntry[];
+    totalChanges: number;
 }
 
 // ===========================================
@@ -214,6 +303,7 @@ export interface CandidateData {
     transcripts: TranscriptMetadata[];
     personality: PersonalityData;
     interviewAssessment?: string;
+    statusHistory?: StatusHistoryEntry[];
 }
 
 export interface PersonalInfoData {
@@ -348,3 +438,7 @@ export type UpdatePersonalityResponse = ApiResponse<null>;
 export type UploadTranscriptResponse = ApiResponse<null>;
 export type GetTranscriptsResponse = ApiResponse<TranscriptMetadata[]>;
 export type DeleteTranscriptResponse = ApiResponse<null>;
+
+export type GetStatusHistoryResponse = ApiResponse<StatusHistoryResponse>;
+export type GetCandidateTimeAnalyticsResponse = ApiResponse<CandidateTimeAnalytics>;
+export type GetSystemWideTimeAnalyticsResponse = ApiResponse<SystemWideTimeAnalytics>;

@@ -502,10 +502,10 @@ const CandidateComparison: React.FC = () => {
 
       {/* Charts Section */}
       <div className="charts-section">
-        <div className="chart-container">
+        <div className="chart-container personality-chart">
           <h3>Personality Comparison</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <RadarChart data={personalityRadarData}>
+          <ResponsiveContainer width="100%" height={500}>
+            <RadarChart data={personalityRadarData} margin={{ top: 40, right: 80, bottom: 40, left: 80 }}>
               <PolarGrid />
               <PolarAngleAxis dataKey="category" />
               <PolarRadiusAxis angle={30} domain={[0, 10]} />

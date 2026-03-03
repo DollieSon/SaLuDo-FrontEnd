@@ -79,13 +79,13 @@ export const PipelineAutomation: React.FC<PipelineAutomationProps> = ({
           isActive: true,
           trigger: {
             type: 'status_change',
-            fromStatus: CandidateStatus.APPLIED,
-            toStatus: CandidateStatus.REFERENCE_CHECK
+            fromStatus: CandidateStatus.FOR_REVIEW,
+            toStatus: CandidateStatus.PAPER_SCREENING
           },
           actions: [
             {
               type: 'change_status',
-              targetStatus: CandidateStatus.OFFER,
+              targetStatus: CandidateStatus.OFFER_EXTENDED,
               delay: 1,
               delayUnit: 'hours'
             },
@@ -362,8 +362,8 @@ const AutomationRuleForm: React.FC<AutomationRuleFormProps> = ({
     isActive: rule?.isActive ?? true,
     trigger: {
       type: 'status_change' as const,
-      fromStatus: CandidateStatus.APPLIED,
-      toStatus: CandidateStatus.REFERENCE_CHECK
+      fromStatus: CandidateStatus.FOR_REVIEW,
+      toStatus: CandidateStatus.PAPER_SCREENING
     },
     actions: rule?.actions || [],
     conditions: rule?.conditions || []

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { candidatesApi, usersApi } from "../utils/api";
+import { candidatesApi, usersApi, jobsApi } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import "./css/AssignCandidate.css";
 
@@ -17,6 +17,14 @@ interface Candidate {
   name: string;
   email: string[];
   assignedHRUserIds?: string[];
+  status: string;
+  roleApplied: string | null;
+  dateCreated: string;
+}
+
+interface Job {
+  _id: string;
+  jobName: string;
 }
 
 interface AssignedUser {
@@ -31,6 +39,7 @@ const AssignCandidate: React.FC = () => {
   const { accessToken } = useAuth();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +49,13 @@ const AssignCandidate: React.FC = () => {
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [assignedUsers, setAssignedUsers] = useState<AssignedUser[]>([]);
+  
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [assignmentFilter, setAssignmentFilter] = useState<string>("all");
+  const [jobFilter, setJobFilter] = useState<string>("all");
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("all");
+  const [sortOption, setSortOption] = useState<string>("name-asc");
 
   useEffect(() => {
     fetchData();
@@ -54,9 +70,10 @@ const AssignCandidate: React.FC = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [candidatesRes, usersRes] = await Promise.all([
+      const [candidatesRes, usersRes, jobsRes] = await Promise.all([
         candidatesApi.getAllCandidates(accessToken!),
         usersApi.getAllUsers(accessToken!, { page: 1, limit: 100 }),
+        jobsApi.getAllJobs(accessToken!),
       ]);
 
       if (candidatesRes.success) {
@@ -71,6 +88,10 @@ const AssignCandidate: React.FC = () => {
             user.isActive
         );
         setUsers(assignableUsers);
+      }
+
+      if (jobsRes && jobsRes.success && jobsRes.data) {
+        setJobs(jobsRes.data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -164,13 +185,68 @@ const AssignCandidate: React.FC = () => {
     }
   };
 
-  const filteredCandidates = candidates.filter(
-    (candidate) =>
-      candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.email.some((e) =>
-        e.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-  );
+  const filteredCandidates = candidates
+    .filter((candidate) => {
+      // Search filter
+      const matchesSearch =
+        (candidate.name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+        (candidate.email?.some((e) =>
+          e?.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ?? false);
+      
+      if (!matchesSearch) return false;
+
+      // Status filter
+      if (statusFilter !== "all" && candidate.status !== statusFilter) {
+        return false;
+      }
+
+      // Assignment filter
+      if (assignmentFilter !== "all") {
+        const isAssigned = candidate.assignedHRUserIds && candidate.assignedHRUserIds.length > 0;
+        if (assignmentFilter === "assigned" && !isAssigned) return false;
+        if (assignmentFilter === "unassigned" && isAssigned) return false;
+      }
+
+      // Job filter
+      if (jobFilter !== "all") {
+        if (jobFilter === "general") {
+          // General application (no job)
+          if (candidate.roleApplied !== null) return false;
+        } else {
+          // Specific job
+          if (candidate.roleApplied !== jobFilter) return false;
+        }
+      }
+
+      // Date range filter
+      if (dateRangeFilter !== "all") {
+        const candidateDate = new Date(candidate.dateCreated);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - candidateDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (dateRangeFilter === "7d" && daysDiff > 7) return false;
+        if (dateRangeFilter === "30d" && daysDiff > 30) return false;
+        if (dateRangeFilter === "90d" && daysDiff > 90) return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort logic
+      switch (sortOption) {
+        case "name-asc":
+          return (a.name || "").localeCompare(b.name || "");
+        case "name-desc":
+          return (b.name || "").localeCompare(a.name || "");
+        case "date-desc":
+          return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
+        case "date-asc":
+          return new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime();
+        default:
+          return 0;
+      }
+    });
 
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
@@ -210,6 +286,89 @@ const AssignCandidate: React.FC = () => {
           <button onClick={() => setMessage(null)}>×</button>
         </div>
       )}
+
+      {/* Filters Section - Outside panels */}
+      <div className="filters-container">
+        <h3>Filters</h3>
+        <div className="filters-section">
+          <div className="filter-row">
+            <div className="filter-group">
+              <label>Status:</label>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="all">All Statuses</option>
+                <option value="Applied">Applied</option>
+                <option value="Reference Check">Reference Check</option>
+                <option value="Offer">Offer</option>
+                <option value="Hired">Hired</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Withdrawn">Withdrawn</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label>Assignment:</label>
+              <select value={assignmentFilter} onChange={(e) => setAssignmentFilter(e.target.value)}>
+                <option value="all">All Candidates</option>
+                <option value="assigned">Assigned</option>
+                <option value="unassigned">Unassigned</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label>Job:</label>
+              <select value={jobFilter} onChange={(e) => setJobFilter(e.target.value)}>
+                <option value="all">All Jobs</option>
+                <option value="general">General Application</option>
+                {jobs.map((job) => (
+                  <option key={job._id} value={job._id}>
+                    {job.jobName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label>Date Range:</label>
+              <select value={dateRangeFilter} onChange={(e) => setDateRangeFilter(e.target.value)}>
+                <option value="all">All Time</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="90d">Last 90 Days</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label>Sort By:</label>
+              <select value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <button 
+                className="btn-clear-filters"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setAssignmentFilter("all");
+                  setJobFilter("all");
+                  setDateRangeFilter("all");
+                  setSortOption("name-asc");
+                }}
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
+          <div className="results-count">
+            Showing {filteredCandidates.length} of {candidates.length} candidates
+          </div>
+        </div>
+      </div>
 
       <div className="assign-content">
         {/* Left Panel - Candidate Selection */}

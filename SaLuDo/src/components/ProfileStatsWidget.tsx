@@ -33,25 +33,21 @@ const ProfileStatsWidget: React.FC<ProfileStatsWidgetProps> = ({ stats }) => {
     {
       label: "Total Candidates",
       value: stats.totalCandidatesAssigned,
-      icon: "👥",
       color: "#3b82f6",
     },
     {
       label: "Active",
       value: stats.activeCandidatesCount,
-      icon: "🟢",
       color: "#10b981",
     },
     {
       label: "Hired",
       value: stats.candidatesHired,
-      icon: "✅",
       color: "#22c55e",
     },
     {
       label: "Rejected",
       value: stats.candidatesRejected,
-      icon: "❌",
       color: "#ef4444",
     },
   ];
@@ -74,7 +70,6 @@ const ProfileStatsWidget: React.FC<ProfileStatsWidgetProps> = ({ stats }) => {
             className="stat-card"
             style={{ borderLeftColor: stat.color }}
           >
-            <div className="stat-icon">{stat.icon}</div>
             <div className="stat-content">
               <div className="stat-value">{stat.value}</div>
               <div className="stat-label">{stat.label}</div>
