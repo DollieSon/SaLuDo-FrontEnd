@@ -67,7 +67,7 @@ export const skillsApi = {
   // Update skill master data - AVAILABLE: PUT /api/skills/master/:skillId
   updateSkillMaster: async (
     skillId: string,
-    updates: { skillName?: string; isAccepted?: boolean }
+    updates: { skillName?: string; isAccepted?: boolean },
   ) => {
     const response = await fetch(`${apiUrl}skills/master/${skillId}`, {
       method: "PUT",
@@ -127,7 +127,7 @@ export const skillsApi = {
   // Get candidates with specific skill - AVAILABLE: GET /api/skills/candidates/:skillName
   getCandidatesWithSkill: async (skillName: string) => {
     const response = await fetch(
-      `${apiUrl}skills/candidates/${encodeURIComponent(skillName)}`
+      `${apiUrl}skills/candidates/${encodeURIComponent(skillName)}`,
     );
     if (!response.ok) throw new Error("Failed to get candidates with skill");
     return response.json();
@@ -172,7 +172,7 @@ export const jobsApi = {
   // Get single job with skill names
   getJob: async (jobId: string, includeSkillNames: boolean = true) => {
     const response = await fetch(
-      `${apiUrl}jobs/${jobId}?includeSkillNames=${includeSkillNames}`
+      `${apiUrl}jobs/${jobId}?includeSkillNames=${includeSkillNames}`,
     );
     if (!response.ok) throw new Error("Failed to fetch job");
     return response.json();
@@ -231,7 +231,7 @@ export const jobsApi = {
   // Add skill to job
   addSkillToJob: async (
     jobId: string,
-    skillData: { skillId: string; requiredLevel: number; evidence?: string }
+    skillData: { skillId: string; requiredLevel: number; evidence?: string },
   ) => {
     const headers: HeadersInit = { "Content-Type": "application/json" };
     const token = localStorage.getItem("accessToken");
@@ -333,7 +333,7 @@ export const candidatesApi = {
   // Get candidate personality data
   getCandidatePersonality: async (
     candidateId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -347,7 +347,7 @@ export const candidatesApi = {
 
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/personality`,
-      { headers }
+      { headers },
     );
     if (!response.ok) throw new Error("Failed to fetch candidate personality");
     return response.json();
@@ -357,7 +357,7 @@ export const candidatesApi = {
   updateCandidate: async (
     candidateId: string,
     updates: any,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = { "Content-Type": "application/json" };
     if (accessToken) {
@@ -402,7 +402,7 @@ export const candidatesApi = {
   uploadTranscript: async (
     candidateId: string,
     formData: FormData,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -420,9 +420,36 @@ export const candidatesApi = {
         method: "POST",
         headers,
         body: formData,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to upload transcript");
+    return response.json();
+  },
+
+  // Delete transcript file
+  deleteTranscript: async (
+    candidateId: string,
+    transcriptId: string,
+    accessToken?: string,
+  ) => {
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    } else {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(
+      `${apiUrl}candidates/${candidateId}/transcripts/${transcriptId}`,
+      {
+        method: "DELETE",
+        headers,
+      },
+    );
+    if (!response.ok) throw new Error("Failed to delete transcript");
     return response.json();
   },
 
@@ -430,7 +457,7 @@ export const candidatesApi = {
   uploadInterviewVideo: async (
     candidateId: string,
     formData: FormData,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -448,7 +475,7 @@ export const candidatesApi = {
         method: "POST",
         headers,
         body: formData,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to upload interview video");
     return response.json();
@@ -458,7 +485,7 @@ export const candidatesApi = {
   uploadIntroductionVideo: async (
     candidateId: string,
     formData: FormData,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -476,7 +503,7 @@ export const candidatesApi = {
         method: "POST",
         headers,
         body: formData,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to upload introduction video");
     return response.json();
@@ -486,7 +513,7 @@ export const candidatesApi = {
   processIntroductionVideo: async (
     candidateId: string,
     videoId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -503,7 +530,7 @@ export const candidatesApi = {
       {
         method: "POST",
         headers,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to process introduction video");
     return response.json();
@@ -513,7 +540,7 @@ export const candidatesApi = {
   processInterviewVideo: async (
     candidateId: string,
     videoId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -530,7 +557,7 @@ export const candidatesApi = {
       {
         method: "POST",
         headers,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to process interview video");
     return response.json();
@@ -550,7 +577,7 @@ export const candidatesApi = {
 
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/videos/introduction`,
-      { headers }
+      { headers },
     );
     if (!response.ok) throw new Error("Failed to fetch introduction videos");
     return response.json();
@@ -560,7 +587,7 @@ export const candidatesApi = {
   deleteIntroductionVideo: async (
     candidateId: string,
     videoId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -577,7 +604,7 @@ export const candidatesApi = {
       {
         method: "DELETE",
         headers,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to delete introduction video");
     return response.json();
@@ -617,7 +644,7 @@ export const candidatesApi = {
   compareCandidates: async (
     candidateId1: string,
     candidateId2: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -631,7 +658,7 @@ export const candidatesApi = {
 
     const response = await fetch(
       `${apiUrl}candidates/${candidateId1}/compare/${candidateId2}`,
-      { headers }
+      { headers },
     );
     if (!response.ok) throw new Error("Failed to compare candidates");
     return response.json();
@@ -641,7 +668,7 @@ export const candidatesApi = {
   assignUserToCandidate: async (
     candidateId: string,
     userId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {
       "Content-Type": "application/json",
@@ -660,7 +687,7 @@ export const candidatesApi = {
       {
         method: "POST",
         headers,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to assign user");
     return response.json();
@@ -670,7 +697,7 @@ export const candidatesApi = {
   unassignUserFromCandidate: async (
     candidateId: string,
     userId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -687,7 +714,7 @@ export const candidatesApi = {
       {
         method: "DELETE",
         headers,
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to unassign user");
     return response.json();
@@ -696,7 +723,7 @@ export const candidatesApi = {
   // Get candidate assignments
   getCandidateAssignments: async (
     candidateId: string,
-    accessToken?: string
+    accessToken?: string,
   ) => {
     const headers: HeadersInit = {};
     if (accessToken) {
@@ -710,7 +737,7 @@ export const candidatesApi = {
 
     const response = await fetch(
       `${apiUrl}candidates/${candidateId}/assignments`,
-      { headers }
+      { headers },
     );
     if (!response.ok) throw new Error("Failed to get assignments");
     return response.json();
@@ -734,7 +761,7 @@ export const usersApi = {
   logout: async (
     accessToken: string,
     refreshToken?: string,
-    revokeAllSessions: boolean = false
+    revokeAllSessions: boolean = false,
   ) => {
     const response = await fetch(`${apiUrl}users/auth/logout`, {
       method: "POST",
@@ -763,7 +790,7 @@ export const usersApi = {
   changePassword: async (
     accessToken: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ) => {
     const response = await fetch(`${apiUrl}users/auth/change-password`, {
       method: "POST",
@@ -786,7 +813,7 @@ export const usersApi = {
       role?: string;
       isActive?: boolean;
       search?: string;
-    }
+    },
   ) => {
     const params = new URLSearchParams();
     if (options?.page) params.append("page", options.page.toString());
@@ -823,7 +850,7 @@ export const usersApi = {
       middleName?: string;
       title: string;
       role: string;
-    }
+    },
   ) => {
     const response = await fetch(`${apiUrl}users`, {
       method: "POST",
@@ -854,7 +881,7 @@ export const usersApi = {
       bio?: string;
       availability?: any;
       roleSpecificData?: any;
-    }
+    },
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/profile`, {
       method: "PUT",
@@ -872,7 +899,7 @@ export const usersApi = {
   uploadProfilePhoto: async (
     accessToken: string,
     userId: string,
-    photoFile: File
+    photoFile: File,
   ) => {
     const formData = new FormData();
     formData.append("photo", photoFile);
@@ -917,13 +944,13 @@ export const usersApi = {
   getProfileActivity: async (
     accessToken: string,
     userId: string,
-    limit: number = 10
+    limit: number = 10,
   ) => {
     const response = await fetch(
       `${apiUrl}users/${userId}/profile/activity?limit=${limit}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to fetch profile activity");
     return response.json();
@@ -933,7 +960,7 @@ export const usersApi = {
   setUserActiveStatus: async (
     accessToken: string,
     userId: string,
-    isActive: boolean
+    isActive: boolean,
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/status`, {
       method: "PUT",
@@ -951,7 +978,7 @@ export const usersApi = {
   resetUserPassword: async (
     accessToken: string,
     userId: string,
-    newPassword: string
+    newPassword: string,
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
       method: "PUT",
@@ -970,7 +997,7 @@ export const usersApi = {
     accessToken: string,
     userId: string,
     reason?: string,
-    customPassword?: string
+    customPassword?: string,
   ) => {
     const response = await fetch(`${apiUrl}users/${userId}/reset-password`, {
       method: "POST",
@@ -1011,7 +1038,7 @@ export const auditLogsApi = {
       success?: boolean;
       startDate?: string;
       endDate?: string;
-    }
+    },
   ): Promise<AuditLogResponse> => {
     const params = new URLSearchParams();
     params.append("page", String(options?.page ?? 1));
@@ -1055,7 +1082,7 @@ export const auditLogsApi = {
 
   getAlerts: async (
     accessToken: string,
-    hours?: number
+    hours?: number,
   ): Promise<{
     success: boolean;
     data: SecurityAlert[];
@@ -1073,7 +1100,7 @@ export const auditLogsApi = {
       }`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
 
     if (!response.ok) throw new Error("Failed to fetch security alerts");
@@ -1082,7 +1109,7 @@ export const auditLogsApi = {
 
   getStats: async (
     accessToken: string,
-    days?: number
+    days?: number,
   ): Promise<{
     success: boolean;
     data: AuditStatistics;
@@ -1099,7 +1126,7 @@ export const auditLogsApi = {
       }`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
 
     if (!response.ok) throw new Error("Failed to fetch audit statistics");
@@ -1117,7 +1144,7 @@ export const commentsApi = {
       entityType: string;
       entityId: string;
       parentCommentId?: string | null;
-    }
+    },
   ) => {
     const response = await fetch(`${apiUrl}comments`, {
       method: "POST",
@@ -1141,7 +1168,7 @@ export const commentsApi = {
       limit?: number;
       sortBy?: string;
       sortOrder?: string;
-    }
+    },
   ) => {
     const params = new URLSearchParams();
     if (options?.page) params.append("page", String(options.page));
@@ -1155,7 +1182,7 @@ export const commentsApi = {
       }`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to fetch comments");
     return response.json();
@@ -1171,7 +1198,7 @@ export const commentsApi = {
       limit?: number;
       sortBy?: string;
       sortOrder?: string;
-    }
+    },
   ) => {
     const params = new URLSearchParams();
     if (options?.page) params.append("page", String(options.page));
@@ -1185,7 +1212,7 @@ export const commentsApi = {
       }`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to fetch top-level comments");
     return response.json();
@@ -1204,7 +1231,7 @@ export const commentsApi = {
   updateComment: async (
     accessToken: string,
     commentId: string,
-    text: string
+    text: string,
   ) => {
     const response = await fetch(`${apiUrl}comments/${commentId}`, {
       method: "PUT",
@@ -1232,13 +1259,13 @@ export const commentsApi = {
   getStats: async (
     accessToken: string,
     entityType: string,
-    entityId: string
+    entityId: string,
   ) => {
     const response = await fetch(
       `${apiUrl}comments/stats/${entityType}/${entityId}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to fetch comment stats");
     return response.json();
@@ -1253,14 +1280,14 @@ export const commentsApi = {
       `${apiUrl}comments/autocomplete/users?${params.toString()}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("❌ Search users API error:", response.status, errorText);
       throw new Error(
-        `Failed to search users: ${response.status} - ${errorText}`
+        `Failed to search users: ${response.status} - ${errorText}`,
       );
     }
     return response.json();
@@ -1279,7 +1306,7 @@ export const notificationsApi = {
       type?: string;
       limit?: number;
       page?: number;
-    }
+    },
   ) => {
     const params = new URLSearchParams();
     if (options?.isRead !== undefined)
@@ -1297,7 +1324,7 @@ export const notificationsApi = {
       }`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to fetch notifications");
     return response.json();
@@ -1328,7 +1355,7 @@ export const notificationsApi = {
       {
         method: "PUT",
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to mark notification as read");
     return response.json();
@@ -1361,7 +1388,7 @@ export const notificationsApi = {
       `${apiUrl}notifications/preferences/settings`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
-      }
+      },
     );
     if (!response.ok) throw new Error("Failed to fetch preferences");
     return response.json();
@@ -1378,7 +1405,7 @@ export const notificationsApi = {
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(preferences),
-      }
+      },
     );
 
     if (!response.ok) {

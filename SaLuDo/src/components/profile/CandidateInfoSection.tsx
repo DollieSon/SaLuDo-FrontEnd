@@ -28,16 +28,17 @@ interface CandidateInfoSectionProps {
   onCancelEdit: () => void;
   onEditedDataChange: (data: any) => void;
   onTranscriptUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDeleteTranscript: (transcriptId: string) => void;
   onInterviewVideoUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onIntroductionVideoUpload: (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => void;
   onProcessVideo: (videoId: string, type: "interview" | "introduction") => void;
   onDeleteVideo: (videoId: string, type: "interview" | "introduction") => void;
   onDeleteResume: () => void;
   onDownload: (
     filename: string,
-    type: "resume" | "transcript" | "interview-video" | "introduction-video"
+    type: "resume" | "transcript" | "interview-video" | "introduction-video",
   ) => void;
   onStatusChangeClick?: () => void;
 }
@@ -55,6 +56,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
   onCancelEdit,
   onEditedDataChange,
   onTranscriptUpload,
+  onDeleteTranscript,
   onInterviewVideoUpload,
   onIntroductionVideoUpload,
   onProcessVideo,
@@ -227,7 +229,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                       type="button"
                       onClick={() => {
                         const newLinks = editedData.socialLinks.filter(
-                          (_, i) => i !== index
+                          (_, i) => i !== index,
                         );
                         onEditedDataChange({
                           ...editedData,
@@ -331,7 +333,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
               >
                 <a
                   href={getFileDownloadUrl(
-                    (candidate.resumeMetadata || candidate.resume)!.fileId
+                    (candidate.resumeMetadata || candidate.resume)!.fileId,
                   )}
                   target="_blank"
                   rel="noreferrer"
@@ -342,7 +344,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                       candidate.resumeMetadata || candidate.resume;
                     window.open(
                       getFileDownloadUrl(resumeData!.fileId),
-                      "_blank"
+                      "_blank",
                     );
                     onDownload(resumeData!.filename, "resume");
                   }}
@@ -384,7 +386,14 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
             {candidate.transcripts && candidate.transcripts.length > 0 ? (
               <p>
                 {candidate.transcripts.map((transcript: any, idx: number) => (
-                  <span key={idx}>
+                  <span
+                    key={idx}
+                    style={{
+                      display: "inline-flex",
+                      gap: "8px",
+                      alignItems: "center",
+                    }}
+                  >
                     <a
                       href={getTranscriptDownloadUrl(transcript.fileId)}
                       target="_blank"
@@ -394,13 +403,33 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                         e.preventDefault();
                         window.open(
                           getTranscriptDownloadUrl(transcript.fileId),
-                          "_blank"
+                          "_blank",
                         );
                         onDownload(transcript.filename, "transcript");
                       }}
                     >
                       {transcript.filename} ↓
                     </a>
+                    {isEditing && (
+                      <button
+                        onClick={() => onDeleteTranscript(transcript.fileId)}
+                        disabled={deletingFile === transcript.fileId}
+                        style={{
+                          padding: "4px 8px",
+                          backgroundColor: "#dc2626",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          opacity: deletingFile === transcript.fileId ? 0.5 : 1,
+                        }}
+                      >
+                        {deletingFile === transcript.fileId
+                          ? "Deleting..."
+                          : "Delete"}
+                      </button>
+                    )}
                     {idx < candidate.transcripts!.length - 1 && ", "}
                   </span>
                 ))}
@@ -463,7 +492,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                     <a
                       href={getInterviewVideoDownloadUrl(
                         candidate.candidateId,
-                        video.fileId
+                        video.fileId,
                       )}
                       target="_blank"
                       rel="noreferrer"
@@ -473,9 +502,9 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                         window.open(
                           getInterviewVideoDownloadUrl(
                             candidate.candidateId,
-                            video.fileId
+                            video.fileId,
                           ),
-                          "_blank"
+                          "_blank",
                         );
                         onDownload(video.filename, "interview-video");
                       }}
@@ -592,7 +621,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                     <a
                       href={getIntroductionVideoDownloadUrl(
                         candidate.candidateId,
-                        video.fileId
+                        video.fileId,
                       )}
                       target="_blank"
                       rel="noreferrer"
@@ -602,9 +631,9 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                         window.open(
                           getIntroductionVideoDownloadUrl(
                             candidate.candidateId,
-                            video.fileId
+                            video.fileId,
                           ),
-                          "_blank"
+                          "_blank",
                         );
                         onDownload(video.filename, "introduction-video");
                       }}
