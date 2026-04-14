@@ -1090,28 +1090,42 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      <div className="profile-content">
-        <CandidateInfoSection
-          candidate={candidate}
-          isEditing={isEditing}
-          editedData={editedData}
-          uploadingTranscript={uploadingTranscript}
-          uploadingInterviewVideo={uploadingInterviewVideo}
-          uploadingIntroductionVideo={uploadingIntroductionVideo}
-          processingVideo={processingVideo}
-          deletingFile={deletingFile}
-          onEditToggle={handleEditToggle}
-          onCancelEdit={handleCancelEdit}
-          onEditedDataChange={setEditedData}
-          onTranscriptUpload={handleTranscriptUpload}
-          onInterviewVideoUpload={handleInterviewVideoUpload}
-          onIntroductionVideoUpload={handleIntroductionVideoUpload}
-          onProcessVideo={handleProcessVideo}
-          onDeleteTranscript={handleDeleteTranscript}
-          onDeleteVideo={handleDeleteVideo}
-          onDeleteResume={handleDeleteResume}
-          onDownload={handleDownload}
-        />
+      <div className="profile-tabs">
+        <button
+          className={`tab-button ${activeTab === "info" ? "active" : ""}`}
+          onClick={() => setActiveTab("info")}
+          type="button"
+        >
+          Info
+        </button>
+        <button
+          className={`tab-button ${activeTab === "score" ? "active" : ""}`}
+          onClick={() => setActiveTab("score")}
+          type="button"
+        >
+          Score
+        </button>
+        <button
+          className={`tab-button ${activeTab === "resume" ? "active" : ""}`}
+          onClick={() => setActiveTab("resume")}
+          type="button"
+        >
+          Resume
+        </button>
+        <button
+          className={`tab-button ${activeTab === "history" ? "active" : ""}`}
+          onClick={() => setActiveTab("history")}
+          type="button"
+        >
+          History
+        </button>
+        <button
+          className={`tab-button ${activeTab === "comments" ? "active" : ""}`}
+          onClick={() => setActiveTab("comments")}
+          type="button"
+        >
+          Comments
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -1134,6 +1148,7 @@ const Profile: React.FC = () => {
               onInterviewVideoUpload={handleInterviewVideoUpload}
               onIntroductionVideoUpload={handleIntroductionVideoUpload}
               onProcessVideo={handleProcessVideo}
+              onDeleteTranscript={handleDeleteTranscript}
               onDeleteVideo={handleDeleteVideo}
               onDeleteResume={handleDeleteResume}
               onDownload={handleDownload}
