@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import "./css/Sidebar.css";
 import { useAuth } from "../context/AuthContext";
 import { NotificationBell } from "./NotificationBell";
+import { buildApiUrl } from "../utils/backendUrl";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -182,7 +183,7 @@ const Sidebar = () => {
             {user?.photoMetadata ? (
               <img 
                 key={new Date(user.photoMetadata.uploadedAt).getTime()}
-                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/'}users/${user.userId}/profile/photo?thumbnail=true&t=${new Date(user.photoMetadata.uploadedAt).getTime()}`}
+                src={buildApiUrl(`users/${user.userId}/profile/photo?thumbnail=true&t=${new Date(user.photoMetadata.uploadedAt).getTime()}`)}
                 alt={user.fullName}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                 onError={(e) => {

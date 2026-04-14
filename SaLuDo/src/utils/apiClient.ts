@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import { buildApiUrl, getApiBaseUrl } from './backendUrl';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/';
+const API_BASE_URL = getApiBaseUrl();
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -125,7 +126,7 @@ apiClient.interceptors.response.use(
       
       // Call refresh endpoint
       const response = await axios.post(
-        `${API_BASE_URL}users/auth/refresh`,
+        buildApiUrl('users/auth/refresh'),
         { refreshToken },
         {
           headers: { 'Content-Type': 'application/json' },

@@ -1,4 +1,5 @@
 import { ProfileItem, PersonalityTrait } from "../../types/profile";
+import { buildApiUrl } from "../../utils/backendUrl";
 
 export const transformToProfileItems = (
   items: any[],
@@ -183,17 +184,17 @@ export const formatDate = (dateString: string) => {
 };
 
 export const getFileDownloadUrl = (fileId: string) => {
-  return `http://localhost:3000/api/candidates/files/${fileId}/download`;
+  return buildApiUrl(`candidates/files/${fileId}/download`);
 };
 
 export const getTranscriptDownloadUrl = (fileId: string) => {
-  return `http://localhost:3000/api/candidates/transcripts/${fileId}/download`;
+  return buildApiUrl(`candidates/transcripts/${fileId}/download`);
 };
 
 export const getInterviewVideoDownloadUrl = (id: string, fileId: string) => {
-  return `http://localhost:3000/api/candidates/${id}/videos/interview/${fileId}/download`;
+  return buildApiUrl(`candidates/${id}/videos/interview/${fileId}/download`);
 };
 
 export const getIntroductionVideoDownloadUrl = (id: string, fileId: string) => {
-  return `http://localhost:3000/api/candidates/${id}/videos/introduction/${fileId}/download`;
+  return buildApiUrl(`candidates/${id}/videos/introduction/${fileId}/download`);
 };

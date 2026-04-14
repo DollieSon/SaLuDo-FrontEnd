@@ -23,12 +23,13 @@ import {
     GetCandidateTimeAnalyticsResponse,
     GetSystemWideTimeAnalyticsResponse
 } from '../types/CandidateApiTypes';
+import { getApiBaseUrl } from './backendUrl';
 
 // ===========================================
 // API CLIENT CONFIGURATION
 // ===========================================
 
-const API_BASE_URL = 'http://localhost:3000/api'; // Adjust as needed
+const API_BASE_URL = getApiBaseUrl();
 
 // Generic API client function
 async function apiCall<T>(

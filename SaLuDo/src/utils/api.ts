@@ -6,11 +6,11 @@ import {
   AuditStatistics,
   SecurityAlert,
 } from "../types/audit";
+import { getApiBaseUrl } from "./backendUrl";
 
 // Get API URL from environment variables with fallback
 const getApiUrl = (): string => {
-  const envApiUrl = import.meta.env.VITE_API_URL;
-  return envApiUrl || "http://localhost:3000/api/";
+  return getApiBaseUrl();
 };
 
 export async function fetchApiData(): Promise<Data | null> {

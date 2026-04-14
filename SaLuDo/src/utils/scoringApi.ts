@@ -4,6 +4,7 @@
  */
 
 import apiClient from './apiClient';
+import { getApiBaseUrl } from './backendUrl';
 import {
   ScoringPreferences,
   ScoringWeights,
@@ -16,8 +17,7 @@ import {
 
 // Get API URL for direct fetch calls if needed
 const getApiUrl = (): string => {
-  const envApiUrl = import.meta.env.VITE_API_URL;
-  return envApiUrl || 'http://localhost:3000/api/';
+  return getApiBaseUrl();
 };
 
 export const apiUrl = getApiUrl();
