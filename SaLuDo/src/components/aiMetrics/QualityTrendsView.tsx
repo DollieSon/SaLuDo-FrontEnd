@@ -63,7 +63,7 @@ export const QualityTrendsView = ({ dateRange }: QualityTrendsViewProps) => {
   return (
     <div className="quality-trends-view">
       {/* Service Filter */}
-      <div style={{ marginBottom: "1.5rem" }}>
+      <div className="basic-tabs" style={{ marginBottom: "1.5rem" }}>
         <label style={{ display: "flex", flexDirection: "column", fontSize: "0.85rem", color: "#5f6c80", gap: "0.25rem", maxWidth: "300px" }}>
           Service Filter
           <select
@@ -107,7 +107,7 @@ export const QualityTrendsView = ({ dateRange }: QualityTrendsViewProps) => {
               }}
             >
               <p className="label">{SERVICE_DISPLAY_NAMES[service as AIServiceType]}</p>
-              <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <div className="quality-score-div">
                 <h3 className="value" style={{ margin: 0 }}>
                   {score.score.toFixed(0)}
                 </h3>

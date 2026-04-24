@@ -129,11 +129,8 @@ const AIMetricsDashboard = () => {
   return (
     <div className="candidate-list">
       {/* Header */}
-      <div className="ai-metrics-header">
-        <div>
-          <h2>AI Performance Metrics</h2>
-          <p>Monitor Gemini API usage, costs, and performance</p>
-        </div>
+      <div className="candidate-list-header" data-text="Monitor Gemini API usage, costs, and performance">
+        <h2>AI Performance Metrics</h2>
         <div className="header-controls">
           <div className="auto-refresh-indicator">
             <span className="dot" />
@@ -170,7 +167,7 @@ const AIMetricsDashboard = () => {
       )}
 
       {/* Tabs */}
-      <div className="metrics-tabs">
+      <div className="profile-tabs" style={{ top: '125px' }}>
         <button
           className={`metrics-tab ${activeTab === "overview" ? "active" : ""}`}
           onClick={() => setActiveTab("overview")}

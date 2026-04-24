@@ -24,8 +24,8 @@ export const QualityScoreCard = ({
       style={{ borderLeft: `4px solid ${color}` }}
     >
       <p className="label">{title}</p>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem" }}>
-        <h3 className="value" style={{ margin: 0, color }}>
+      <div className="quality-score-div">
+        <h3 className="value" style={{ margin: 0, color,  }}>
           {score.toFixed(0)}
         </h3>
         <span

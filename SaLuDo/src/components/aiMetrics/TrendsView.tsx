@@ -92,7 +92,7 @@ export const TrendsView = ({ dateRange }: TrendsViewProps) => {
   return (
     <div className="trends-view">
       {/* Comparison Toggle */}
-      <div className="trend-controls" style={{ marginBottom: "1.5rem" }}>
+      <div className="basic-tabs" style={{ alignItems: "center", marginBottom: "1.5rem"}}>
         <label style={{ fontSize: "0.9rem", color: "#6b7280", marginRight: "0.75rem" }}>
           Compare with:
         </label>

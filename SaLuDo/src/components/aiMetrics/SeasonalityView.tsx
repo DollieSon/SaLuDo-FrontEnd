@@ -63,7 +63,7 @@ export const SeasonalityView = ({ dateRange }: SeasonalityViewProps) => {
   return (
     <div className="seasonality-view">
       {/* Controls */}
-      <div className="seasonality-controls" style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+      <div className="basic-tabs" style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
         <label style={{ display: "flex", flexDirection: "column", fontSize: "0.85rem", color: "#5f6c80", gap: "0.25rem" }}>
           Service Filter
           <select

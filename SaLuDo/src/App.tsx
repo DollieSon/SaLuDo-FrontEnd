@@ -321,7 +321,7 @@ function ScoringSettingsPage() {
   return (
     <ProtectedRoute requiredRole="hr_manager">
       <DashboardLayout>
-        <div style={{ padding: '2rem' }}>
+        <div>
           <ScoringSettings />
         </div>
       </DashboardLayout>

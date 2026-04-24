@@ -353,6 +353,20 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
   }
 
   return (
+    <div className='candidate-list-container'>
+      <div className="candidate-list-header" data-text={jobId || selectedJobId
+              ? isJobSpecific
+                ? 'These settings override the global defaults for this job.'
+                : 'Using global defaults. Make changes to create job-specific overrides.'
+              : 'Configure how candidate success scores are calculated across all jobs.'}>
+        <h2>
+          {jobId 
+            ? 'Job-Specific Scoring Settings' 
+            : selectedJobId 
+              ? jobs.find(j => j.jobId === selectedJobId)?.title + ' - Scoring Settings'
+              : 'Global Scoring Settings'}
+        </h2>
+      </div>
     <div className="scoring-settings-container">
       {toast && (
         <div className={`settings-toast ${toast.type}`}>
@@ -401,19 +415,9 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
       <div className="scoring-settings">
         {/* Header */}
         <div className="scoring-settings-header">
-          <h2>
-            {jobId 
-              ? 'Job-Specific Scoring Settings' 
-              : selectedJobId 
-                ? jobs.find(j => j.jobId === selectedJobId)?.title + ' - Scoring Settings'
-                : 'Global Scoring Settings'}
-          </h2>
+          
           <p>
-            {jobId || selectedJobId
-              ? isJobSpecific
-                ? 'These settings override the global defaults for this job.'
-                : 'Using global defaults. Make changes to create job-specific overrides.'
-              : 'Configure how candidate success scores are calculated across all jobs.'}
+            
           </p>
         </div>
 
@@ -594,6 +598,7 @@ export const ScoringSettings: React.FC<ScoringSettingsProps> = ({
         </button>
       </div>
       </div>
+    </div>
     </div>
   );
 };

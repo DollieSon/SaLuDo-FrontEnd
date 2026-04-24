@@ -963,6 +963,7 @@ tbody tr td[style*="color: #6b7280"] {
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .action-btn {

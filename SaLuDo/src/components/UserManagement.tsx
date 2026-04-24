@@ -276,7 +276,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ accessToken }) => {
                     : "No logins yet"}
                 </td>
                 <td>
-                  <div className="action-buttons">
+                  <div className="action-buttons-stack">
                     <button
                       className="action-btn edit btn-reset-password"
                       onClick={(e) => {
