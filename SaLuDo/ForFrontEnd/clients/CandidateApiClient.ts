@@ -23,13 +23,11 @@ import {
     GetCandidateTimeAnalyticsResponse,
     GetSystemWideTimeAnalyticsResponse
 } from '../types/CandidateApiTypes';
-import { getApiBaseUrl } from './backendUrl';
+import { buildApiUrl } from './backendUrl';
 
 // ===========================================
 // API CLIENT CONFIGURATION
 // ===========================================
-
-const API_BASE_URL = getApiBaseUrl();
 
 // Generic API client function
 async function apiCall<T>(
@@ -38,7 +36,7 @@ async function apiCall<T>(
     data?: any,
     isFormData: boolean = false
 ): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const url = buildApiUrl(endpoint);
     
     // Get auth token from localStorage
     const token = localStorage.getItem("accessToken");
