@@ -87,6 +87,21 @@ export interface SocialLink {
   url: string;
 }
 
+export interface CandidateScoreHistoryEntry {
+  historyId?: string;
+  candidateId?: string;
+  overallScore: number;
+  confidence?: number;
+  calculatedAt: string;
+}
+
+export interface CandidateStatusHistoryEntry {
+  historyId?: string;
+  status: string;
+  previousStatus?: string | null;
+  changedAt: string;
+}
+
 export interface CandidateProfile {
   candidateId: string;
   name: string;
@@ -97,6 +112,9 @@ export interface CandidateProfile {
   roleApplied: string | null;
   status: string;
   isDeleted: boolean;
+  assignedHRUserIds?: string[];
+  lastAssignedAt?: string | null;
+  lastAssignedBy?: string | null;
   socialLinks?: SocialLink[];
   resume?: ResumeMetadata; // Backend returns this as 'resume'
   resumeMetadata?: ResumeMetadata; // For backward compatibility
@@ -167,6 +185,8 @@ export interface CandidateProfile {
 
   resumeAssessment?: string;
   interviewAssessment?: string;
+  scoreHistory?: CandidateScoreHistoryEntry[];
+  statusHistory?: CandidateStatusHistoryEntry[];
   // Add these optional job matching properties
   jobMatchScore?: number;
   matchedSkills?: number;

@@ -71,6 +71,44 @@
   filter: brightness(0) invert(1);
 }
 
+.filter-popup-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: #0f172a;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-popup-btn:hover {
+  border-color: #e30022;
+  color: #e30022;
+}
+
+.table-toolbar {
+  margin: 0 2rem 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.table-toolbar .search-candidate {
+  margin: 0;
+  width: 100%;
+  max-width: 460px;
+}
+
+.table-toolbar .search-candidate input {
+  width: 100%;
+}
+
 .candidate-list-header h2 {
   font-size: 2rem;
   font-weight: 700;
@@ -590,6 +628,16 @@ tbody tr td[style*="color: #6b7280"] {
     gap: 0.75rem;
   }
 
+  .table-toolbar {
+    margin: 0 1rem 1rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-toolbar .search-candidate {
+    max-width: none;
+  }
+
   .card {
     padding: 1.25rem;
   }
@@ -1056,6 +1104,32 @@ tbody tr td[style*="color: #6b7280"] {
   gap: 16px;
   margin-bottom: 32px;
   flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filters-modal .job-filter {
+  margin-left: 1rem;
+  margin-bottom: 0;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.filter-item-wide {
+  min-width: 280px;
+}
+
+.filter-item-large {
+  min-width: 280px;
 }
 
 .filter-tab {
@@ -1072,6 +1146,245 @@ tbody tr td[style*="color: #6b7280"] {
   appearance: none;
   outline: none;
   min-width: 160px;
+  min-height: 44px;
+}
+
+.filter-input {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #5a6c7d;
+  min-width: 160px;
+  min-height: 44px;
+}
+
+.filter-input:focus {
+  border-color: #c41e3a;
+  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+  outline: none;
+}
+
+.multi-select-wrapper {
+  position: relative;
+  min-width: 160px;
+}
+
+.multi-trigger {
+  width: 100%;
+  text-align: left;
+}
+
+.multi-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 220px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  z-index: 40;
+  padding: 6px;
+}
+
+.multi-search-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #334155;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.multi-search-input:focus {
+  outline: none;
+  border-color: #c41e3a;
+  box-shadow: 0 0 0 2px rgba(196, 30, 58, 0.12);
+}
+
+.multi-dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.multi-dropdown-option:hover {
+  background: #f8fafc;
+}
+
+.filter-multi {
+  min-height: 110px;
+  background-image: none;
+  padding-right: 20px;
+}
+
+.reset-filters-btn {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 16px;
+  min-width: 160px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-filters-btn:hover {
+  border-color: #c41e3a;
+  color: #c41e3a;
+  box-shadow: 0 2px 8px rgba(196, 30, 58, 0.1);
+}
+
+.reset-filters-btn:focus {
+  outline: none;
+  border-color: #c41e3a;
+  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+}
+
+.filters-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+
+.filters-modal {
+  width: min(1180px, 100%);
+  min-height: 50vh;
+  max-height: 94vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.filters-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.filters-modal-header h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.filters-modal-close {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 8px;
+  color: #334155;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.filter-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.filter-grid-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-grid-column label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.filter-grid-column .filter-input {
+  min-width: auto;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.grid-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px;
+  background: #ffffff;
+}
+
+.grid-item-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.grid-item-option:hover {
+  background: #f1f5f9;
+}
+
+.grid-item-option input[type="checkbox"],
+.grid-item-option input[type="radio"] {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.grid-items-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grid-items-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.grid-items-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.grid-items-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.filters-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .filter-tab:hover {

@@ -1,7 +1,8 @@
 import "./css/CandidateList.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { candidatesApi, jobsApi, skillsApi } from "../utils/api";
+import { candidatesApi, jobsApi, skillsApi, usersApi } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 import { CandidateProfile } from "../types/profile";
 import { CandidateStatus as CandidateStatusEnum } from "../../ForFrontEnd/types/CandidateApiTypes";
 
@@ -15,6 +16,14 @@ interface Job {
   _id: string;
   jobName: string;
   skills: JobSkillRequirement[];
+}
+
+interface AssignmentUser {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
 }
 
 interface EnhancedCandidate extends CandidateProfile {
@@ -45,16 +54,29 @@ const getStatusColor = (status: string): string => {
 
 const CandidateList: React.FC = () => {
   const navigate = useNavigate();
+  const { accessToken } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [candidates, setCandidates] = useState<CandidateProfile[]>([]);
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [assignmentUsers, setAssignmentUsers] = useState<AssignmentUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedJob, setSelectedJob] = useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedAssignments, setSelectedAssignments] = useState<string[]>([]);
+  const [appliedDateStart, setAppliedDateStart] = useState<string>("");
+  const [appliedDateEnd, setAppliedDateEnd] = useState<string>("");
+  const [predictiveScoreFilter, setPredictiveScoreFilter] = useState<string>("all");
+  const [timeInStageFilter, setTimeInStageFilter] = useState<string>("all");
   const [sortOption, setSortOption] = useState<string>("score_desc");
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false);
+  const [openMultiSelect, setOpenMultiSelect] = useState<"status" | "role" | "assignment" | null>(null);
+  const [jobSearchTerm, setJobSearchTerm] = useState<string>("");
+  const [roleSearchTerm, setRoleSearchTerm] = useState<string>("");
+  const [assignmentSearchTerm, setAssignmentSearchTerm] = useState<string>("");
 
   // Fetch candidates and jobs from API
   const fetchData = async () => {
@@ -62,17 +84,39 @@ const CandidateList: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
+      const token = accessToken || localStorage.getItem("accessToken") || undefined;
+
+      const usersRequest = token
+        ? usersApi.getAllUsers(token, {
+            page: 1,
+            limit: 100,
+            isActive: true,
+          })
+        : Promise.resolve(null);
+
       // Fetch candidates and jobs in parallel
-      const [candidatesResponse, jobsResponse] = await Promise.all([
+      const [candidatesResult, jobsResult, usersResult] = await Promise.allSettled([
         candidatesApi.getAllCandidates(),
         jobsApi.getAllJobs(),
+        usersRequest,
       ]);
+
+      if (candidatesResult.status !== "fulfilled") {
+        throw new Error("Failed to fetch candidates");
+      }
+
+      const candidatesResponse = candidatesResult.value;
 
       if (candidatesResponse.success) {
         setCandidates(candidatesResponse.data);
       } else {
         throw new Error("Failed to fetch candidates");
       }
+
+      const jobsResponse =
+        jobsResult.status === "fulfilled"
+          ? jobsResult.value
+          : { success: false, data: [] as Job[] };
 
       // Enrich job skills with proper names
       const enrichJobSkillsWithNames = async (job: Job) => {
@@ -120,6 +164,16 @@ const CandidateList: React.FC = () => {
       } else {
         console.warn("Failed to fetch jobs:", jobsResponse);
         setJobs([]);
+      }
+
+      if (usersResult.status === "fulfilled" && usersResult.value && usersResult.value.success) {
+        const assignableRoles = ["hr_user", "recruiter", "interviewer", "hr_manager", "admin"];
+        const users = (usersResult.value.data || []).filter(
+          (user: AssignmentUser) => assignableRoles.includes(user.role) && user.isActive,
+        );
+        setAssignmentUsers(users);
+      } else {
+        setAssignmentUsers([]);
       }
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -181,7 +235,7 @@ const CandidateList: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [accessToken]);
 
   // Update sort option when job selection changes
   useEffect(() => {
@@ -204,6 +258,114 @@ const CandidateList: React.FC = () => {
     return total / validScores.length;
   };
 
+  const NO_ROLE_FILTER_KEY = "__NO_ROLE__";
+  const UNASSIGNED_ASSIGNMENT_KEY = "__UNASSIGNED__";
+
+  const toggleMultiValue = (
+    values: string[],
+    value: string,
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+  ) => {
+    if (values.includes(value)) {
+      setter(values.filter((item) => item !== value));
+      return;
+    }
+    setter([...values, value]);
+  };
+
+  function getJobNameById(jobId: string | null): string {
+    if (!jobId) return "No Role Applied";
+    const job = jobs.find((candidateJob) => candidateJob._id === jobId);
+    return job ? job.jobName : jobId;
+  }
+
+  const getLatestPredictiveScore = (candidate: CandidateProfile): number | null => {
+    const history = candidate.scoreHistory;
+    if (!history || history.length === 0) {
+      return null;
+    }
+
+    const latestEntry = [...history].sort(
+      (a, b) =>
+        new Date(b.calculatedAt).getTime() - new Date(a.calculatedAt).getTime(),
+    )[0];
+
+    if (!latestEntry || Number.isNaN(Number(latestEntry.overallScore))) {
+      return null;
+    }
+
+    return Number(latestEntry.overallScore);
+  };
+
+  const getCurrentStageDays = (candidate: CandidateProfile): number => {
+    const latestHistory = candidate.statusHistory && candidate.statusHistory.length > 0
+      ? [...candidate.statusHistory].sort(
+          (a, b) =>
+            new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime(),
+        )[0]
+      : null;
+
+    const stageStart = latestHistory
+      ? new Date(latestHistory.changedAt)
+      : new Date(candidate.dateUpdated || candidate.dateCreated);
+
+    const diffMs = Date.now() - stageStart.getTime();
+    return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  };
+
+  const getAssignedUserIds = (candidate: CandidateProfile): string[] => {
+    return Array.isArray(candidate.assignedHRUserIds)
+      ? candidate.assignedHRUserIds.filter(Boolean)
+      : [];
+  };
+
+  const availableRoleFilters = React.useMemo(() => {
+    const roleMap = new Map<string, string>();
+
+    candidates.forEach((candidate) => {
+      const roleValue = candidate.roleApplied;
+      if (roleValue && !roleMap.has(roleValue)) {
+        roleMap.set(roleValue, getJobNameById(roleValue));
+      }
+    });
+
+    return Array.from(roleMap.entries()).map(([value, label]) => ({
+      value,
+      label,
+    }));
+  }, [candidates, jobs]);
+
+  const filteredJobs = React.useMemo(() => {
+    const searchLower = jobSearchTerm.trim().toLowerCase();
+    if (!searchLower) {
+      return jobs;
+    }
+    return jobs.filter((job) =>
+      job.jobName.toLowerCase().includes(searchLower),
+    );
+  }, [jobs, jobSearchTerm]);
+
+  const filteredRoleOptions = React.useMemo(() => {
+    const searchLower = roleSearchTerm.trim().toLowerCase();
+    if (!searchLower) {
+      return availableRoleFilters;
+    }
+    return availableRoleFilters.filter((roleOption) =>
+      roleOption.label.toLowerCase().includes(searchLower),
+    );
+  }, [availableRoleFilters, roleSearchTerm]);
+
+  const filteredAssignmentUsers = React.useMemo(() => {
+    const searchLower = assignmentSearchTerm.trim().toLowerCase();
+    if (!searchLower) {
+      return assignmentUsers;
+    }
+    return assignmentUsers.filter((user) => {
+      const fullName = `${user.firstName} ${user.lastName}`.trim().toLowerCase();
+      return fullName.includes(searchLower);
+    });
+  }, [assignmentUsers, assignmentSearchTerm]);
+
   // Enhanced filtering and sorting with job matching
   const filteredCandidates = React.useMemo(() => {
     let processedCandidates = [...candidates];
@@ -220,28 +382,81 @@ const CandidateList: React.FC = () => {
 
     // Apply filters
     const filtered = processedCandidates.filter((c) => {
+      const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
-        c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.roleApplied?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.status?.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Job role filter - now just for display filtering, not matching
-      let matchesJob = selectedJob === "all";
-      if (!matchesJob && c.roleApplied) {
-        matchesJob = c.roleApplied === selectedJob;
-
-        if (!matchesJob) {
-          const selectedJobData = jobs.find((job) => job._id === selectedJob);
-          if (selectedJobData) {
-            matchesJob = c.roleApplied === selectedJobData.jobName;
-          }
-        }
-      }
+        c.name?.toLowerCase().includes(searchLower) ||
+        c.roleApplied?.toLowerCase().includes(searchLower) ||
+        c.status?.toLowerCase().includes(searchLower);
 
       const matchesStatus =
-        selectedStatus === "all" || c.status === selectedStatus;
+        selectedStatuses.length === 0 || selectedStatuses.includes(c.status);
 
-      return matchesSearch && matchesStatus; // Remove job filter for matching
+      const roleKey = c.roleApplied || NO_ROLE_FILTER_KEY;
+      const matchesRole =
+        selectedRoles.length === 0 || selectedRoles.includes(roleKey);
+
+      const createdDate = new Date(c.dateCreated);
+      const matchesAppliedStart =
+        !appliedDateStart ||
+        createdDate >= new Date(`${appliedDateStart}T00:00:00`);
+      const matchesAppliedEnd =
+        !appliedDateEnd ||
+        createdDate <= new Date(`${appliedDateEnd}T23:59:59`);
+
+      const assignedUserIds = getAssignedUserIds(c);
+      const matchesAssignment =
+        selectedAssignments.length === 0 ||
+        selectedAssignments.some((selectedAssignment) => {
+          if (selectedAssignment === UNASSIGNED_ASSIGNMENT_KEY) {
+            return assignedUserIds.length === 0;
+          }
+          return assignedUserIds.includes(selectedAssignment);
+        });
+
+      const latestPredictiveScore = getLatestPredictiveScore(c);
+      let matchesPredictiveScore = true;
+      if (predictiveScoreFilter === "uncalculated") {
+        matchesPredictiveScore = latestPredictiveScore === null;
+      } else if (predictiveScoreFilter === "0-39") {
+        matchesPredictiveScore =
+          latestPredictiveScore !== null && latestPredictiveScore < 40;
+      } else if (predictiveScoreFilter === "40-59") {
+        matchesPredictiveScore =
+          latestPredictiveScore !== null &&
+          latestPredictiveScore >= 40 &&
+          latestPredictiveScore < 60;
+      } else if (predictiveScoreFilter === "60-79") {
+        matchesPredictiveScore =
+          latestPredictiveScore !== null &&
+          latestPredictiveScore >= 60 &&
+          latestPredictiveScore < 80;
+      } else if (predictiveScoreFilter === "80-100") {
+        matchesPredictiveScore =
+          latestPredictiveScore !== null && latestPredictiveScore >= 80;
+      }
+
+      const stageDays = getCurrentStageDays(c);
+      let matchesTimeInStage = true;
+      if (timeInStageFilter === "0-2") {
+        matchesTimeInStage = stageDays <= 2;
+      } else if (timeInStageFilter === "3-7") {
+        matchesTimeInStage = stageDays >= 3 && stageDays <= 7;
+      } else if (timeInStageFilter === "8-14") {
+        matchesTimeInStage = stageDays >= 8 && stageDays <= 14;
+      } else if (timeInStageFilter === "15+") {
+        matchesTimeInStage = stageDays >= 15;
+      }
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesRole &&
+        matchesAppliedStart &&
+        matchesAppliedEnd &&
+        matchesAssignment &&
+        matchesPredictiveScore &&
+        matchesTimeInStage
+      );
     });
 
     // Apply sorting
@@ -284,7 +499,20 @@ const CandidateList: React.FC = () => {
 
       return 0;
     });
-  }, [candidates, jobs, selectedJob, selectedStatus, searchTerm, sortOption]);
+  }, [
+    candidates,
+    jobs,
+    selectedJob,
+    selectedStatuses,
+    selectedRoles,
+    selectedAssignments,
+    appliedDateStart,
+    appliedDateEnd,
+    predictiveScoreFilter,
+    timeInStageFilter,
+    searchTerm,
+    sortOption,
+  ]);
 
   // Get top candidate for selected job
   const topCandidateForJob = React.useMemo(() => {
@@ -300,13 +528,6 @@ const CandidateList: React.FC = () => {
 
   // Calculate summary statistics
   const totalCandidates = candidates.length;
-
-  // Helper function to get job name from job ID
-  const getJobNameById = (jobId: string | null): string => {
-    if (!jobId) return "No Role Applied";
-    const job = jobs.find((job) => job._id === jobId);
-    return job ? job.jobName : jobId; // Fallback to ID if job not found
-  };
 
   // Most common job role (convert IDs to names, exclude candidates with no role)
   const candidatesWithRoles = candidates.filter(
@@ -402,15 +623,58 @@ const CandidateList: React.FC = () => {
     navigate("/compare-candidates");
   };
 
-  const selectedJobName =
-    selectedJob !== "all" ? getJobNameById(selectedJob) : "All Roles";
-  const [activeFilter, setActiveFilter] = useState("job");
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedJob("all");
+    setSelectedStatuses([]);
+    setSelectedRoles([]);
+    setSelectedAssignments([]);
+    setAppliedDateStart("");
+    setAppliedDateEnd("");
+    setPredictiveScoreFilter("all");
+    setTimeInStageFilter("all");
+    setSortOption("score_desc");
+    setOpenMultiSelect(null);
+  };
 
   // Canonical candidate statuses (aligned with backend)
   const STATUS_OPTIONS: string[] = React.useMemo(
     () => Object.values(CandidateStatusEnum),
     []
   );
+
+  const getStatusLabel = () => {
+    if (selectedStatuses.length === 0) {
+      return "All Statuses";
+    }
+    return `${selectedStatuses.length} selected`;
+  };
+
+  const getRoleLabel = () => {
+    if (selectedRoles.length === 0) {
+      return "All Roles";
+    }
+    return `${selectedRoles.length} selected`;
+  };
+
+  const getAssignmentLabel = () => {
+    if (selectedAssignments.length === 0) {
+      return "All Assignments";
+    }
+    return `${selectedAssignments.length} selected`;
+  };
+
+  const activeFilterCount = [
+    selectedJob !== "all",
+    selectedStatuses.length > 0,
+    selectedRoles.length > 0,
+    selectedAssignments.length > 0,
+    Boolean(appliedDateStart),
+    Boolean(appliedDateEnd),
+    predictiveScoreFilter !== "all",
+    timeInStageFilter !== "all",
+    sortOption !== "score_desc",
+  ].filter(Boolean).length;
 
   return (
     <main className="candidate-list">
@@ -420,15 +684,6 @@ const CandidateList: React.FC = () => {
       >
         <h2>Candidate Management</h2>
         <div className="header-actions">
-          <div className="search-candidate">
-            <input
-              type="text"
-              placeholder="Search candidates"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <img src="/images/search.png" alt="Search" />
-          </div>
           <button
             className="compare-candidates-btn"
             onClick={handleCompareClick}
@@ -486,56 +741,294 @@ const CandidateList: React.FC = () => {
         </div>
       </div>
 
-      <div className="job-filter">
-        <select
-          className={`filter-tab ${activeFilter === "job" ? "active" : ""}`}
-          value={selectedJob}
-          onChange={(e) => setSelectedJob(e.target.value)}
-          onClick={() => setActiveFilter("job")}
+      {isFilterModalOpen && (
+        <div
+          className="filters-modal-overlay"
+          onClick={() => {
+            setIsFilterModalOpen(false);
+            setOpenMultiSelect(null);
+          }}
         >
-          <option value="all">All Jobs</option>
-          {jobs.map((job) => (
-            <option key={job._id} value={job._id}>
-              {job.jobName}
-            </option>
-          ))}
-        </select>
+          <div
+            className="filters-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="filters-modal-header">
+              <h3>Candidate Filters</h3>
+              <button
+                type="button"
+                className="filters-modal-close"
+                onClick={() => {
+                  setIsFilterModalOpen(false);
+                  setOpenMultiSelect(null);
+                }}
+              >
+                Close
+              </button>
+            </div>
 
-        {/* 🔹 Status filter */}
-        <select
-          className={`filter-tab ${activeFilter === "status" ? "active" : ""}`}
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          onClick={() => setActiveFilter("status")}
-        >
-          <option value="all">All Statuses</option>
-          {STATUS_OPTIONS.map((status) => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </select>
+            <div className="job-filter">
+              <div className="filter-item">
+                <label>Applied Date From</label>
+                <input
+                  type="date"
+                  className="filter-input"
+                  value={appliedDateStart}
+                  onChange={(e) => setAppliedDateStart(e.target.value)}
+                />
+              </div>
 
-        <select
-          className={`filter-tab ${activeFilter === "order" ? "active" : ""}`}
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value)}
-          onClick={() => setActiveFilter("order")}
-        >
-          <option value="score_desc">
-            {selectedJob !== "all"
-              ? "Best Job Match First"
-              : "Highest Avg Score"}
-          </option>
-          <option value="score_asc">
-            {selectedJob !== "all"
-              ? "Worst Job Match First"
-              : "Lowest Avg Score"}
-          </option>
-          <option value="date_desc">Newest First</option>
-          <option value="date_asc">Oldest First</option>
-          <option value="alpha_asc">A → Z</option>
-          <option value="alpha_desc">Z → A</option>
-        </select>
-      </div>
+              <div className="filter-item">
+                <label>Applied Date To</label>
+                <input
+                  type="date"
+                  className="filter-input"
+                  value={appliedDateEnd}
+                  onChange={(e) => setAppliedDateEnd(e.target.value)}
+                />
+              </div>
+
+              <div className="filter-item">
+                <label>Status</label>
+                <div className="multi-select-wrapper">
+                  <button
+                    type="button"
+                    className="filter-tab multi-trigger"
+                    onClick={() =>
+                      setOpenMultiSelect(
+                        openMultiSelect === "status" ? null : "status",
+                      )
+                    }
+                  >
+                    {getStatusLabel()}
+                  </button>
+                  {openMultiSelect === "status" && (
+                    <div className="multi-dropdown-panel">
+                      {STATUS_OPTIONS.map((status) => (
+                        <label key={status} className="multi-dropdown-option">
+                          <input
+                            type="checkbox"
+                            checked={selectedStatuses.includes(status)}
+                            onChange={() =>
+                              toggleMultiValue(
+                                selectedStatuses,
+                                status,
+                                setSelectedStatuses,
+                              )
+                            }
+                          />
+                          <span>{status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="filter-item">
+                <label>Predictive Success Score</label>
+                <select
+                  className="filter-tab"
+                  value={predictiveScoreFilter}
+                  onChange={(e) => setPredictiveScoreFilter(e.target.value)}
+                >
+                  <option value="all">All Scores</option>
+                  <option value="uncalculated">Uncalculated</option>
+                  <option value="80-100">80 - 100</option>
+                  <option value="60-79">60 - 79</option>
+                  <option value="40-59">40 - 59</option>
+                  <option value="0-39">0 - 39</option>
+                </select>
+              </div>
+
+              <div className="filter-item">
+                <label>Time In Current Stage</label>
+                <select
+                  className="filter-tab"
+                  value={timeInStageFilter}
+                  onChange={(e) => setTimeInStageFilter(e.target.value)}
+                >
+                  <option value="all">Any Duration</option>
+                  <option value="0-2">0 - 2 days</option>
+                  <option value="3-7">3 - 7 days</option>
+                  <option value="8-14">8 - 14 days</option>
+                  <option value="15+">15+ days</option>
+                </select>
+              </div>
+
+              <div className="filter-item">
+                <label>Sort</label>
+                <select
+                  className="filter-tab"
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  <option value="score_desc">
+                    {selectedJob !== "all"
+                      ? "Best Job Match First"
+                      : "Highest Avg Score"}
+                  </option>
+                  <option value="score_asc">
+                    {selectedJob !== "all"
+                      ? "Worst Job Match First"
+                      : "Lowest Avg Score"}
+                  </option>
+                  <option value="date_desc">Newest First</option>
+                  <option value="date_asc">Oldest First</option>
+                  <option value="alpha_asc">A -&gt; Z</option>
+                  <option value="alpha_desc">Z -&gt; A</option>
+                </select>
+              </div>
+
+              <div className="filter-grid-row">
+                <div className="filter-grid-column">
+                  <label>Score Context Job</label>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Search jobs"
+                    value={jobSearchTerm}
+                    onChange={(e) => setJobSearchTerm(e.target.value)}
+                  />
+                  <div className="grid-items-list">
+                    <label className="grid-item-option">
+                      <input
+                        type="radio"
+                        name="jobSelect"
+                        checked={selectedJob === "all"}
+                        onChange={(e) => setSelectedJob("all")}
+                      />
+                      <span>All Jobs</span>
+                    </label>
+                    {filteredJobs.map((job) => (
+                      <label key={job._id} className="grid-item-option">
+                        <input
+                          type="radio"
+                          name="jobSelect"
+                          checked={selectedJob === job._id}
+                          onChange={(e) => setSelectedJob(job._id)}
+                        />
+                        <span>{job.jobName}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-grid-column">
+                  <label>Role Applied</label>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Search roles"
+                    value={roleSearchTerm}
+                    onChange={(e) => setRoleSearchTerm(e.target.value)}
+                  />
+                  <div className="grid-items-list">
+                    <label className="grid-item-option">
+                      <input
+                        type="checkbox"
+                        checked={selectedRoles.includes(NO_ROLE_FILTER_KEY)}
+                        onChange={() =>
+                          toggleMultiValue(
+                            selectedRoles,
+                            NO_ROLE_FILTER_KEY,
+                            setSelectedRoles,
+                          )
+                        }
+                      />
+                      <span>No Role Applied</span>
+                    </label>
+                    {filteredRoleOptions.map((roleOption) => (
+                      <label key={roleOption.value} className="grid-item-option">
+                        <input
+                          type="checkbox"
+                          checked={selectedRoles.includes(roleOption.value)}
+                          onChange={() =>
+                            toggleMultiValue(
+                              selectedRoles,
+                              roleOption.value,
+                              setSelectedRoles,
+                            )
+                          }
+                        />
+                        <span>{roleOption.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-grid-column">
+                  <label>Assignment</label>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Search assignees"
+                    value={assignmentSearchTerm}
+                    onChange={(e) => setAssignmentSearchTerm(e.target.value)}
+                  />
+                  <div className="grid-items-list">
+                    <label className="grid-item-option">
+                      <input
+                        type="checkbox"
+                        checked={selectedAssignments.includes(
+                          UNASSIGNED_ASSIGNMENT_KEY,
+                        )}
+                        onChange={() =>
+                          toggleMultiValue(
+                            selectedAssignments,
+                            UNASSIGNED_ASSIGNMENT_KEY,
+                            setSelectedAssignments,
+                          )
+                        }
+                      />
+                      <span>Unassigned</span>
+                    </label>
+                    {filteredAssignmentUsers.map((user) => {
+                      const userLabel = `${user.firstName} ${user.lastName}`.trim();
+                      return (
+                        <label key={user.userId} className="grid-item-option">
+                          <input
+                            type="checkbox"
+                            checked={selectedAssignments.includes(user.userId)}
+                            onChange={() =>
+                              toggleMultiValue(
+                                selectedAssignments,
+                                user.userId,
+                                setSelectedAssignments,
+                              )
+                            }
+                          />
+                          <span>{userLabel}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="filters-modal-actions">
+              <button
+                type="button"
+                className="reset-filters-btn"
+                onClick={handleResetFilters}
+              >
+                Reset All Filters
+              </button>
+              <button
+                type="button"
+                className="compare-candidates-btn"
+                onClick={() => {
+                  setIsFilterModalOpen(false);
+                  setOpenMultiSelect(null);
+                }}
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedJob !== "all" && topCandidateForJob && (
         <div
@@ -557,6 +1050,28 @@ const CandidateList: React.FC = () => {
           </button>
         </div>
       )}
+
+      <div className="table-toolbar">
+        <div className="search-candidate">
+          <input
+            type="text"
+            placeholder="Search candidates"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <img src="/images/search.png" alt="Search" />
+        </div>
+        <button
+          className="filter-popup-btn"
+          onClick={() => {
+            setIsFilterModalOpen(true);
+            setOpenMultiSelect(null);
+          }}
+          title="Open Filters"
+        >
+          Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+        </button>
+      </div>
 
       <div className="table-wrapper" style={{ maxHeight: "50%" }}>
         <table>
