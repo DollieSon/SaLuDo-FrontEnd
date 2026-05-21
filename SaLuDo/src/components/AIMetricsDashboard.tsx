@@ -14,6 +14,12 @@ import {
   fetchActiveAlerts,
   acknowledgeAlert,
 } from "../utils/aiMetricsApi";
+import {
+  fetchGeminiSettings,
+  updateGeminiSettings,
+  resetGeminiSettings,
+} from "../utils/geminiSettingsApi";
+import { useAuth } from "../context/AuthContext";
 import type {
   DashboardData,
   LatencyStatsData,
@@ -39,6 +45,15 @@ const AIMetricsDashboard = () => {
   // Auto-refresh state
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [nextRefreshIn, setNextRefreshIn] = useState(60);
+  // Gemini settings state (admin only)
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [allowedModels, setAllowedModels] = useState<string[]>([]);
+  const [geminiMapping, setGeminiMapping] = useState<Record<string, string>>({});
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const { user } = useAuth();
 
   // Fetch all data
   const loadData = useCallback(async () => {
@@ -155,6 +170,29 @@ const AIMetricsDashboard = () => {
           >
             {loading ? "Refreshing..." : "Refresh"}
           </button>
+          {user?.role === "admin" && (
+            <button
+              className="ai-control-trigger-btn"
+              onClick={async () => {
+                setShowAIModal(true);
+                if (Object.keys(geminiMapping).length === 0) {
+                  setSettingsLoading(true);
+                  try {
+                    const settings = await fetchGeminiSettings();
+                    setGeminiMapping(settings.mapping || {});
+                    setAllowedModels(settings.allowedModels || []);
+                  } catch (err) {
+                    console.error('Failed to load Gemini settings', err);
+                    setSettingsError('Failed to load AI settings');
+                  } finally {
+                    setSettingsLoading(false);
+                  }
+                }
+              }}
+            >
+              AI Controls
+            </button>
+          )}
         </div>
       </div>
 
@@ -163,6 +201,98 @@ const AIMetricsDashboard = () => {
         <div className="error-state">
           <p>{error}</p>
           <button onClick={loadData}>Retry</button>
+        </div>
+      )}
+
+      {/* AI Controls Modal (Admin) */}
+      {showAIModal && (
+        <div className="modal-overlay ai-control-modal-overlay">
+          <div className="modal-content ai-control-modal-content">
+            <div className="ai-control-modal-header">
+              <div>
+                <h3>AI Controls</h3>
+                <p>Assign a Gemini model to each AI feature. Changes are audit-logged.</p>
+              </div>
+              <button
+                className="ai-control-close-btn"
+                onClick={() => setShowAIModal(false)}
+                aria-label="Close AI Controls"
+              >
+                Close
+              </button>
+            </div>
+
+            {settingsLoading ? (
+              <div className="ai-control-status">Loading settings...</div>
+            ) : settingsError ? (
+              <div className="error-state ai-control-status">{settingsError}</div>
+            ) : (
+              <div className="ai-control-modal-body">
+                <div className="ai-control-grid">
+                  {Object.keys(geminiMapping).map((feature) => (
+                    <div key={feature} className="ai-control-row">
+                      <div className="ai-control-feature-name">
+                        <strong>{feature}</strong>
+                      </div>
+                      <select
+                        className="ai-control-select"
+                        value={geminiMapping[feature]}
+                        onChange={(e) => setGeminiMapping((prev) => ({ ...prev, [feature]: e.target.value }))}
+                      >
+                        {allowedModels.map((m) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="ai-control-actions">
+                  <button
+                    className="ai-control-save-btn"
+                    disabled={saving}
+                    onClick={async () => {
+                      setSaving(true);
+                      setSettingsError(null);
+                      try {
+                        // Send only changed keys
+                        await updateGeminiSettings(geminiMapping);
+                        // Refresh dashboard data to reflect any metric changes
+                        await loadData();
+                        setShowAIModal(false);
+                      } catch (err) {
+                        console.error('Failed to save settings', err);
+                        setSettingsError('Failed to save settings');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+
+                  <button
+                    className="ai-control-reset-btn"
+                    onClick={async () => {
+                      setSaving(true);
+                      setSettingsError(null);
+                      try {
+                        const reset = await resetGeminiSettings();
+                        setGeminiMapping(reset.mapping || {});
+                      } catch (err) {
+                        console.error('Failed to reset settings', err);
+                        setSettingsError('Failed to reset to defaults');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                  >
+                    Reset To Defaults
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

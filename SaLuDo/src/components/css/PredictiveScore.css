@@ -447,6 +447,44 @@
   letter-spacing: 0.5px;
 }
 
+.score-history-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.score-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.8125rem;
+}
+
+.score-history-table th,
+.score-history-table td {
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+}
+
+.score-history-table th {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.score-history-table th:last-child,
+.score-history-table td:last-child {
+  text-align: right;
+}
+
+.score-history-table .history-item-job {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .history-item {
   display: flex;
   align-items: center;

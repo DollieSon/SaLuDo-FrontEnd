@@ -319,6 +319,60 @@ const CandidateList: React.FC = () => {
       : [];
   };
 
+  const getAssignedUserNameById = (userId: string): string => {
+    const foundUser = assignmentUsers.find((user) => user.userId === userId);
+    if (!foundUser) {
+      return userId;
+    }
+
+    const fullName = `${foundUser.firstName} ${foundUser.lastName}`.trim();
+    return fullName || userId;
+  };
+
+  const getAssignedUserSummary = (candidate: CandidateProfile): {
+    text: string;
+    title: string;
+  } => {
+    const assignedUserIds = getAssignedUserIds(candidate);
+    if (assignedUserIds.length === 0) {
+      return { text: "Unassigned", title: "Unassigned" };
+    }
+
+    const names = assignedUserIds.map(getAssignedUserNameById);
+    const title = names.join(", ");
+
+    if (names.length <= 2) {
+      return { text: title, title };
+    }
+
+    return {
+      text: `${names.slice(0, 2).join(", ")} +${names.length - 2} more`,
+      title,
+    };
+  };
+
+  const formatTimeInStatus = (candidate: CandidateProfile): string => {
+    const stageDays = getCurrentStageDays(candidate);
+    if (stageDays === 0) {
+      return "Today";
+    }
+
+    if (stageDays === 1) {
+      return "1 day";
+    }
+
+    return `${stageDays} days`;
+  };
+
+  const getDisplayScore = (candidate: EnhancedCandidate): number | undefined => {
+    if (selectedJob !== "all") {
+      return candidate.jobMatchScore;
+    }
+
+    const latestPredictiveScore = getLatestPredictiveScore(candidate);
+    return latestPredictiveScore === null ? undefined : latestPredictiveScore;
+  };
+
   const availableRoleFilters = React.useMemo(() => {
     const roleMap = new Map<string, string>();
 
@@ -465,26 +519,14 @@ const CandidateList: React.FC = () => {
       if (sortOption === "alpha_desc") return b.name.localeCompare(a.name);
 
       if (sortOption === "score_asc") {
-        const scoreA =
-          selectedJob !== "all"
-            ? a.jobMatchScore || 0
-            : calculateAverageScore(a.skills) || 0;
-        const scoreB =
-          selectedJob !== "all"
-            ? b.jobMatchScore || 0
-            : calculateAverageScore(b.skills) || 0;
+        const scoreA = getDisplayScore(a as EnhancedCandidate) || 0;
+        const scoreB = getDisplayScore(b as EnhancedCandidate) || 0;
         return scoreA - scoreB;
       }
 
       if (sortOption === "score_desc") {
-        const scoreA =
-          selectedJob !== "all"
-            ? a.jobMatchScore || 0
-            : calculateAverageScore(a.skills) || 0;
-        const scoreB =
-          selectedJob !== "all"
-            ? b.jobMatchScore || 0
-            : calculateAverageScore(b.skills) || 0;
+        const scoreA = getDisplayScore(a as EnhancedCandidate) || 0;
+        const scoreB = getDisplayScore(b as EnhancedCandidate) || 0;
         return scoreB - scoreA;
       }
 
@@ -1079,9 +1121,12 @@ const CandidateList: React.FC = () => {
             <tr>
               <th>{/* <img src="/images/sort.png" alt="Sort" /> */}</th>
               <th>Name</th>
-              <th>{selectedJob !== "all" ? "Job Match" : "Average Score"}</th>
+              <th>{selectedJob !== "all" ? "Job Match" : "Predictive Score"}</th>
               <th>Skills {selectedJob !== "all" ? "Match" : "(Amount)"}</th>
               <th>Status</th>
+              <th>Time In Status</th>
+              <th>Assigned User</th>
+              <th>Role</th>
               <th>Date Created</th>
               <th>Action</th>
             </tr>
@@ -1090,7 +1135,7 @@ const CandidateList: React.FC = () => {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={10}
                   style={{ textAlign: "center", padding: "20px" }}
                 >
                   Loading candidates...
@@ -1099,7 +1144,7 @@ const CandidateList: React.FC = () => {
             ) : error ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={10}
                   style={{
                     textAlign: "center",
                     padding: "20px",
@@ -1112,7 +1157,7 @@ const CandidateList: React.FC = () => {
             ) : filteredCandidates.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={10}
                   style={{
                     textAlign: "center",
                     padding: "20px",
@@ -1128,10 +1173,7 @@ const CandidateList: React.FC = () => {
                 const enhancedCandidate = c as EnhancedCandidate;
 
                 // Calculate the appropriate score based on context
-                const score =
-                  selectedJob !== "all"
-                    ? enhancedCandidate.jobMatchScore
-                    : calculateAverageScore(c.skills);
+                const score = getDisplayScore(enhancedCandidate);
 
                 // Get match category only for job-specific scoring
                 const category =
@@ -1143,6 +1185,10 @@ const CandidateList: React.FC = () => {
                 // Determine tooltip position based on row index
                 const totalRows = filteredCandidates.length;
                 const isTopHalf = idx < totalRows / 2;
+                const assignedUsers = getAssignedUserSummary(c);
+                const roleLabel = c.roleApplied
+                  ? getJobNameById(c.roleApplied)
+                  : "No Role";
 
                 return (
                   <tr
@@ -1157,21 +1203,10 @@ const CandidateList: React.FC = () => {
                       </a>
                     </td>
                     <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}
-                      >
+                      <div className="candidate-score-cell">
                         <span
-                          style={{
-                            color: category
-                              ? category.color
-                              : getScoreColor(score),
-                            fontWeight: "bold",
-                          }}
+                          className="candidate-score-value"
+                          style={{ color: category ? category.color : getScoreColor(score) }}
                         >
                           {formatScore(score)}
                           {selectedJob !== "all" ? "%" : ""}
@@ -1228,12 +1263,25 @@ const CandidateList: React.FC = () => {
                     </td>
                     <td>
                       <span
-                        style={{
-                          color: getStatusColor(c.status),
-                          fontWeight: "bold",
-                        }}
+                        className="candidate-status-pill"
+                        style={{ color: getStatusColor(c.status), borderColor: getStatusColor(c.status) }}
                       >
                         {c.status}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="candidate-time-in-status">
+                        {formatTimeInStatus(c)}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="assigned-users-cell" title={assignedUsers.title}>
+                        {assignedUsers.text}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="candidate-role-cell" title={roleLabel}>
+                        {roleLabel}
                       </span>
                     </td>
                     <td>{formatDate(c.dateCreated)}</td>

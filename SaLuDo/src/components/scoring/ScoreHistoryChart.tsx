@@ -195,7 +195,7 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
   history,
   isLoading = false,
   showList = true,
-  maxListItems = 5,
+  maxListItems = 0,
   onRefresh,
 }) => {
   const [selectedEntry, setSelectedEntry] = useState<ScoreHistoryEntry | null>(null);
@@ -272,6 +272,30 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
       year: 'numeric',
     });
   };
+
+  const getScoreContextLabel = (entry: ScoreHistoryEntry): string => {
+    if (entry.jobTitle) {
+      return entry.jobTitle;
+    }
+
+    if (entry.mode === 'job-specific') {
+      return 'Job-specific';
+    }
+
+    return 'General Assessment';
+  };
+
+  const sortedHistory = useMemo(() => {
+    const ordered = history
+      .slice()
+      .sort((a, b) => new Date(b.calculatedAt).getTime() - new Date(a.calculatedAt).getTime());
+
+    if (maxListItems > 0) {
+      return ordered.slice(0, maxListItems);
+    }
+
+    return ordered;
+  }, [history, maxListItems]);
 
   // Empty state
   if ((!history || history.length === 0) && !isLoading) {
@@ -418,32 +442,41 @@ export const ScoreHistoryChart: React.FC<ScoreHistoryChartProps> = ({
       {/* History List */}
       {showList && history.length > 0 && (
         <div className="score-history-list">
-          <h4 className="history-list-title">Recent Scores</h4>
-          {history
-            .slice()
-            .sort((a, b) => new Date(b.calculatedAt).getTime() - new Date(a.calculatedAt).getTime())
-            .slice(0, maxListItems)
-            .map((entry, index) => (
-              <div 
-                key={index} 
-                className="history-item history-item-clickable"
-                onClick={() => setSelectedEntry(entry)}
-                title="Click to view details"
-              >
-                <div className="history-item-info">
-                  <span className="history-item-date">{formatListDate(entry.calculatedAt)}</span>
-                  {entry.jobTitle && (
-                    <span className="history-item-job">{entry.jobTitle}</span>
-                  )}
-                </div>
-                <span
-                  className="history-item-score"
-                  style={{ color: getScoreColor(entry.score ?? 0) }}
-                >
-                  {(entry.score ?? 0).toFixed(1)}
-                </span>
-              </div>
-            ))}
+          <h4 className="history-list-title">Score History</h4>
+          <div className="score-history-table-wrap">
+            <table className="score-history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Score Context</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedHistory.map((entry, index) => (
+                  <tr
+                    key={`${entry.calculatedAt}-${index}`}
+                    className="history-item-clickable"
+                    onClick={() => setSelectedEntry(entry)}
+                    title="Click to view details"
+                  >
+                    <td className="history-item-date">{formatListDate(entry.calculatedAt)}</td>
+                    <td className="history-item-job" title={getScoreContextLabel(entry)}>
+                      {getScoreContextLabel(entry)}
+                    </td>
+                    <td>
+                      <span
+                        className="history-item-score"
+                        style={{ color: getScoreColor(entry.score ?? 0) }}
+                      >
+                        {(entry.score ?? 0).toFixed(1)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

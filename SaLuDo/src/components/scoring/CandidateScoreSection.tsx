@@ -145,7 +145,6 @@ export const CandidateScoreSection: React.FC<CandidateScoreSectionProps> = ({
             history={history}
             isLoading={isLoadingHistory}
             showList={true}
-            maxListItems={3}
             onRefresh={fetchHistory}
           />
         </div>

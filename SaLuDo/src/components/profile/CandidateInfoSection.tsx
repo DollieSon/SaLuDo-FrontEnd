@@ -10,6 +10,7 @@ import {
 
 interface CandidateInfoSectionProps {
   candidate: CandidateProfile;
+  assignedUsersDisplay: string;
   isEditing: boolean;
   editedData: {
     name: string;
@@ -45,6 +46,7 @@ interface CandidateInfoSectionProps {
 
 export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
   candidate,
+  assignedUsersDisplay,
   isEditing,
   editedData,
   uploadingTranscript,
@@ -167,6 +169,10 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
         <div className="info-item">
           <div className="info-label">Last Updated</div>
           <div className="info-value">{formatDate(candidate.dateUpdated)}</div>
+        </div>
+        <div className="info-item">
+          <div className="info-label">Assigned User</div>
+          <div className="info-value">{assignedUsersDisplay}</div>
         </div>
         <div className="info-item">
           <div className="info-label">Role Applied</div>

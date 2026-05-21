@@ -1,7 +1,7 @@
 import "./css/Profile.css";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { candidatesApi, skillsApi } from "../utils/api";
+import { candidatesApi, skillsApi, usersApi } from "../utils/api";
 import Comments from "./Comments";
 import { CommentEntityType } from "../types/comment";
 import {
@@ -44,6 +44,9 @@ const Profile: React.FC = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [statusChanging, setStatusChanging] = useState(false);
+  const [assignmentUsers, setAssignmentUsers] = useState<
+    Array<{ userId: string; firstName: string; lastName: string }>
+  >([]);
   const [editedData, setEditedData] = useState({
     name: "",
     email: [] as string[],
@@ -353,6 +356,35 @@ const Profile: React.FC = () => {
     }
   };
 
+  const fetchAssignmentUsers = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        setAssignmentUsers([]);
+        return;
+      }
+
+      const response = await usersApi.getAllUsers(token, {
+        page: 1,
+        limit: 200,
+        isActive: true,
+      });
+
+      if (response.success && Array.isArray(response.data)) {
+        setAssignmentUsers(
+          response.data.map((user: any) => ({
+            userId: user.userId,
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+          })),
+        );
+      }
+    } catch (err) {
+      console.error("Failed to load assignment users:", err);
+      setAssignmentUsers([]);
+    }
+  };
+
   const handleStatusChange = async (newStatus: string, reason?: string) => {
     if (!id) return;
     
@@ -404,7 +436,26 @@ const Profile: React.FC = () => {
   useEffect(() => {
     fetchCandidateData();
     fetchStatusHistory();
+    fetchAssignmentUsers();
   }, [id]);
+
+  const assignedUsersDisplay = useMemo(() => {
+    if (!candidate?.assignedHRUserIds || candidate.assignedHRUserIds.length === 0) {
+      return "Unassigned";
+    }
+
+    const labels = candidate.assignedHRUserIds.map((assignedUserId) => {
+      const matched = assignmentUsers.find((user) => user.userId === assignedUserId);
+      if (!matched) {
+        return assignedUserId;
+      }
+
+      const fullName = `${matched.firstName} ${matched.lastName}`.trim();
+      return fullName || assignedUserId;
+    });
+
+    return labels.join(", ");
+  }, [assignmentUsers, candidate]);
 
   const handleDownload = (
     filename: string,
@@ -1134,6 +1185,7 @@ const Profile: React.FC = () => {
           <div className="profile-content">
             <CandidateInfoSection
               candidate={candidate}
+              assignedUsersDisplay={assignedUsersDisplay}
               isEditing={isEditing}
               editedData={editedData}
               uploadingTranscript={uploadingTranscript}
