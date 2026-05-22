@@ -122,35 +122,50 @@ const UserProfile: React.FC = () => {
   const canEdit = currentUserId === targetUserId || currentUser?.role === 'admin';
 
   if (isLoading) {
-    return null;
+    return (
+      <main className="user-profile-page">
+        <div className="user-profile-state">
+          <div className="spinner" aria-hidden="true" />
+          <p>Loading profile…</p>
+        </div>
+      </main>
+    );
   }
 
   if (error || !user) {
     return (
-      <div className="user-profile-page">
-        <div className="error-message">
+      <main className="user-profile-page">
+        <div className="user-profile-state error">
           <p>{error || "User not found"}</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <main className="profile">
+    <main className="user-profile-page">
+      <div className="user-profile-shell">
       {toast && (
         <div className={`toast ${toast.type}`}>
           {toast.message}
         </div>
       )}
 
-      <div className="profile-header">
+      <header className="user-profile-header">
         <div
           className="back-label"
         >
           <div className="left-section">
-            <img src="/images/back.png" alt="Back" onClick={handleGoBack} />
-            <h2>{user.fullName}</h2>
-            <span className="profile-role">{user.role.replace('_', ' ')}</span>
+            <button type="button" className="back-button" onClick={handleGoBack} aria-label="Go back">
+              <img src="/images/back.png" alt="" aria-hidden="true" />
+            </button>
+            <div className="user-profile-title-block">
+              <h1>{user.fullName}</h1>
+              <div className="user-profile-meta">
+                <span className="profile-role">{user.role.replace('_', ' ')}</span>
+                <span className="profile-email">{user.email}</span>
+              </div>
+            </div>
           </div>
           {canEdit && (
             <div className="profile-actions">
@@ -163,9 +178,9 @@ const UserProfile: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </header>
 
-      <div className="card">
+      <section className="user-profile-card">
         <ProfilePhotoUpload
           userId={targetUserId}
           fullName={user.fullName}
@@ -174,9 +189,9 @@ const UserProfile: React.FC = () => {
           onUpload={handlePhotoUpload}
           onDelete={handlePhotoDelete}
         />
-      </div>
+      </section>
 
-      <div className="profile-tabs">
+      <nav className="user-profile-tabs" aria-label="User profile sections">
         <button
           className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
@@ -203,9 +218,9 @@ const UserProfile: React.FC = () => {
             Settings
           </button>
         )}
-      </div>
+      </nav>
 
-      <div className="profile-content">
+      <section className="user-profile-content">
         {activeTab === 'profile' && (
           isEditing ? (
             <ProfileEditForm
@@ -345,6 +360,7 @@ const UserProfile: React.FC = () => {
         {activeTab === 'settings' && canEdit && (
           <ProfileSettings userId={targetUserId} accessToken={accessToken} />
         )}
+      </section>
       </div>
     </main>
   );

@@ -1,4 +1,5 @@
 .profile-photo-upload {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -7,8 +8,8 @@
 
 .photo-container {
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -65,7 +66,10 @@
 
 .photo-actions {
   display: flex;
+  width: 100%;
   gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .btn {

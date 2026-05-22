@@ -75,6 +75,10 @@ const AICallDetailsModal: React.FC<AICallDetailsModalProps> = ({ call, onClose }
                 <span className="detail-value">{SERVICE_DISPLAY_NAMES[call.service]}</span>
               </div>
               <div className="detail-item">
+                <span className="detail-label">Model Version:</span>
+                <span className="detail-value">{call.modelVersion}</span>
+              </div>
+              <div className="detail-item">
                 <span className="detail-label">Timestamp:</span>
                 <span className="detail-value">{formatDate(call.timestamp)}</span>
               </div>

@@ -211,16 +211,19 @@
   display: flex;
   align-items: center;
   padding: 0.75rem;
-  background: rgba(148, 163, 184, 0.05);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.94) 0%, rgba(51, 65, 85, 0.9) 100%);
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
   gap: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.28);
+  color: #f8fafc;
 }
 
 .user-profile-card:hover {
-  background: rgba(148, 163, 184, 0.1);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(71, 85, 105, 0.94) 100%);
   transform: translateY(-2px);
 }
 
@@ -231,7 +234,7 @@
 .user-avatar {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #e30022, #ff6b35);
+  background: linear-gradient(135deg, #e30022, #fb7185);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -239,21 +242,33 @@
   font-weight: bold;
   font-size: 0.875rem;
   margin-right: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .user-info h4 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: white;
+  color: #f8fafc;
   margin: 0;
   margin-bottom: 0.25rem;
 }
 
 .user-info p {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #cbd5e1;
   margin: 0;
+}
+
+.user-profile-card .notification-bell-button {
+  color: #f8fafc;
+}
+
+.user-profile-card .notification-bell-button:hover {
+  color: #fecaca;
+}
+
+.user-profile-card .bell-icon {
+  opacity: 0.95;
 }
 
 /* Logout Button */

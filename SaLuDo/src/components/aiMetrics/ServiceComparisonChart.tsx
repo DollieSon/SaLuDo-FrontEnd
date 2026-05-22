@@ -59,6 +59,7 @@ export const ServiceComparisonChart = ({ data, metric }: ServiceComparisonChartP
         data={chartData}
         layout="vertical"
         margin={{ top: 10, right: 30, left: 100, bottom: 0 }}
+        isAnimationActive={false}
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={true} vertical={false} />
         <XAxis

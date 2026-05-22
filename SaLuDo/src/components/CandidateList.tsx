@@ -2,6 +2,7 @@ import "./css/CandidateList.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { candidatesApi, jobsApi, skillsApi, usersApi } from "../utils/api";
+import { predictiveScoreApi } from "../utils/scoringApi";
 import { useAuth } from "../context/AuthContext";
 import { CandidateProfile } from "../types/profile";
 import { CandidateStatus as CandidateStatusEnum } from "../../ForFrontEnd/types/CandidateApiTypes";
@@ -77,6 +78,7 @@ const CandidateList: React.FC = () => {
   const [jobSearchTerm, setJobSearchTerm] = useState<string>("");
   const [roleSearchTerm, setRoleSearchTerm] = useState<string>("");
   const [assignmentSearchTerm, setAssignmentSearchTerm] = useState<string>("");
+  const [predictiveScoreMap, setPredictiveScoreMap] = useState<Record<string, number>>({});
 
   // Fetch candidates and jobs from API
   const fetchData = async () => {
@@ -245,19 +247,6 @@ const CandidateList: React.FC = () => {
     }
   }, [selectedJob]);
 
-  // Calculate average score from skills
-  const calculateAverageScore = (
-    skills: CandidateProfile["skills"],
-  ): number | undefined => {
-    if (!skills || skills.length === 0) return undefined;
-    const validScores = skills.filter(
-      (s) => s.score !== undefined && !isNaN(s.score),
-    );
-    if (validScores.length === 0) return undefined;
-    const total = validScores.reduce((sum, s) => sum + (s.score || 0), 0);
-    return total / validScores.length;
-  };
-
   const NO_ROLE_FILTER_KEY = "__NO_ROLE__";
   const UNASSIGNED_ASSIGNMENT_KEY = "__UNASSIGNED__";
 
@@ -280,21 +269,29 @@ const CandidateList: React.FC = () => {
   }
 
   const getLatestPredictiveScore = (candidate: CandidateProfile): number | null => {
-    const history = candidate.scoreHistory;
+    const history = candidate.scoreHistory as
+      | Array<{ overallScore?: number; score?: number; calculatedAt?: string }>
+      | undefined;
+
     if (!history || history.length === 0) {
       return null;
     }
 
     const latestEntry = [...history].sort(
       (a, b) =>
-        new Date(b.calculatedAt).getTime() - new Date(a.calculatedAt).getTime(),
+        new Date(b.calculatedAt || 0).getTime() - new Date(a.calculatedAt || 0).getTime(),
     )[0];
 
-    if (!latestEntry || Number.isNaN(Number(latestEntry.overallScore))) {
+    const resolvedScore =
+      typeof latestEntry?.overallScore === "number"
+        ? latestEntry.overallScore
+        : latestEntry?.score;
+
+    if (resolvedScore === undefined || Number.isNaN(Number(resolvedScore))) {
       return null;
     }
 
-    return Number(latestEntry.overallScore);
+    return Number(resolvedScore);
   };
 
   const getCurrentStageDays = (candidate: CandidateProfile): number => {
@@ -322,7 +319,7 @@ const CandidateList: React.FC = () => {
   const getAssignedUserNameById = (userId: string): string => {
     const foundUser = assignmentUsers.find((user) => user.userId === userId);
     if (!foundUser) {
-      return userId;
+      return "Deleted User";
     }
 
     const fullName = `${foundUser.firstName} ${foundUser.lastName}`.trim();
@@ -369,9 +366,62 @@ const CandidateList: React.FC = () => {
       return candidate.jobMatchScore;
     }
 
+    const mappedScore = predictiveScoreMap[candidate.candidateId];
+    if (typeof mappedScore === "number" && !Number.isNaN(mappedScore)) {
+      return mappedScore;
+    }
+
     const latestPredictiveScore = getLatestPredictiveScore(candidate);
     return latestPredictiveScore === null ? undefined : latestPredictiveScore;
   };
+
+  const fetchMissingPredictiveScores = React.useCallback(async () => {
+    if (selectedJob !== "all" || candidates.length === 0) {
+      return;
+    }
+
+    const candidatesNeedingScore = candidates.filter((candidate) => {
+      const hasHistoryScore = getLatestPredictiveScore(candidate) !== null;
+      const hasMappedScore = typeof predictiveScoreMap[candidate.candidateId] === "number";
+      return !hasHistoryScore && !hasMappedScore;
+    });
+
+    if (candidatesNeedingScore.length === 0) {
+      return;
+    }
+
+    const results = await Promise.allSettled(
+      candidatesNeedingScore.map(async (candidate) => {
+        const response = await predictiveScoreApi.calculateScore(candidate.candidateId);
+        return {
+          candidateId: candidate.candidateId,
+          score: response.score?.overallScore,
+        };
+      }),
+    );
+
+    const nextScores: Record<string, number> = {};
+    results.forEach((result) => {
+      if (
+        result.status === "fulfilled" &&
+        typeof result.value.score === "number" &&
+        !Number.isNaN(result.value.score)
+      ) {
+        nextScores[result.value.candidateId] = result.value.score;
+      }
+    });
+
+    if (Object.keys(nextScores).length > 0) {
+      setPredictiveScoreMap((prev) => ({
+        ...prev,
+        ...nextScores,
+      }));
+    }
+  }, [candidates, predictiveScoreMap, selectedJob]);
+
+  useEffect(() => {
+    fetchMissingPredictiveScores();
+  }, [fetchMissingPredictiveScores]);
 
   const availableRoleFilters = React.useMemo(() => {
     const roleMap = new Map<string, string>();

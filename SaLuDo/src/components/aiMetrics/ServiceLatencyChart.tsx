@@ -49,7 +49,7 @@ const ServiceLatencyChart: React.FC<ServiceLatencyChartProps> = ({ perServiceTre
 
   return (
     <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={chartData}>
+      <LineChart data={chartData} isAnimationActive={false}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="date"
@@ -91,6 +91,7 @@ const ServiceLatencyChart: React.FC<ServiceLatencyChartProps> = ({ perServiceTre
             dot={false}
             activeDot={{ r: 4 }}
             connectNulls
+            isAnimationActive={false}
           />
         ))}
       </LineChart>

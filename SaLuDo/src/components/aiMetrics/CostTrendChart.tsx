@@ -35,7 +35,7 @@ export const CostTrendChart = ({ data }: CostTrendChartProps) => {
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+      <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} isAnimationActive={false}>
         <defs>
           <linearGradient id="colorInput" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
@@ -83,6 +83,7 @@ export const CostTrendChart = ({ data }: CostTrendChartProps) => {
           fillOpacity={1}
           fill="url(#colorInput)"
           strokeWidth={2}
+          isAnimationActive={false}
         />
         <Area
           type="monotone"
@@ -91,6 +92,7 @@ export const CostTrendChart = ({ data }: CostTrendChartProps) => {
           fillOpacity={1}
           fill="url(#colorOutput)"
           strokeWidth={2}
+          isAnimationActive={false}
         />
       </AreaChart>
     </ResponsiveContainer>

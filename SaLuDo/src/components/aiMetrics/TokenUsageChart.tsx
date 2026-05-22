@@ -41,7 +41,7 @@ export const TokenUsageChart = ({ data }: TokenUsageChartProps) => {
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+      <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} isAnimationActive={false}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis
           dataKey="date"

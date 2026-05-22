@@ -37,7 +37,7 @@ export const LatencyChart = ({ data }: LatencyChartProps) => {
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} isAnimationActive={false}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis
           dataKey="hour"
@@ -75,6 +75,7 @@ export const LatencyChart = ({ data }: LatencyChartProps) => {
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
+          isAnimationActive={false}
         />
         <Line
           type="monotone"
@@ -83,6 +84,7 @@ export const LatencyChart = ({ data }: LatencyChartProps) => {
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
+          isAnimationActive={false}
         />
       </LineChart>
     </ResponsiveContainer>
