@@ -1165,7 +1165,7 @@ const CandidateList: React.FC = () => {
         </button>
       </div>
 
-      <div className="table-wrapper" style={{ maxHeight: "50%" }}>
+      <div className="table-wrapper" style={{ maxHeight: "60%" }}>
         <table>
           <thead>
             <tr>

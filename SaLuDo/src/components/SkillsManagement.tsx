@@ -64,7 +64,40 @@ const SkillsManagement: React.FC = () => {
           updatedAt: new Date(skill.updatedAt || new Date()),
         }));
         setSkills(skillsData);
-        calculateStats(skillsData);
+
+        // Try to fetch usage counts for skills to determine "most used"
+        try {
+          const usedResp: any = await skillsApi.getUsedMasterSkills();
+          let mostUsedName: string | undefined;
+          let mostUsedCount: number = 0;
+
+          if (usedResp && usedResp.success && Array.isArray(usedResp.data)) {
+            // Expecting array of { skillName?, count? }
+            usedResp.data.forEach((u: any) => {
+              const name = u.skillName || u.skill || u._id || u.skillId;
+              const count = Number(u.count || u.usage || u.countUsers || 0) || 0;
+              if (!mostUsedName || count > mostUsedCount) {
+                mostUsedName = name;
+                mostUsedCount = count;
+              }
+            });
+          } else if (usedResp && usedResp.data && typeof usedResp.data === "object") {
+            // If response is a map like { skillName: count }
+            Object.entries(usedResp.data).forEach(([name, value]: any) => {
+              const count = Number(value) || 0;
+              if (!mostUsedName || count > mostUsedCount) {
+                mostUsedName = name;
+                mostUsedCount = count;
+              }
+            });
+          }
+
+          calculateStats(skillsData, mostUsedName, mostUsedCount);
+        } catch (err) {
+          // If used skills endpoint fails, fall back to local calculation
+          console.warn("Failed to fetch used skills stats:", err);
+          calculateStats(skillsData);
+        }
         setError(null); // Clear any previous errors
       } else {
         throw new Error("Invalid response format");
@@ -104,7 +137,11 @@ const SkillsManagement: React.FC = () => {
   };
 
   // Calculate statistics
-  const calculateStats = (skillsData: SkillMaster[]) => {
+  const calculateStats = (
+    skillsData: SkillMaster[],
+    mostUsedName?: string,
+    mostUsedCount?: number,
+  ) => {
     const total = skillsData.length;
     const accepted = skillsData.filter((skill) => skill.isAccepted).length;
     const pending = total - accepted;
@@ -113,8 +150,8 @@ const SkillsManagement: React.FC = () => {
       total,
       accepted,
       pending,
-      mostUsed: skillsData.length > 0 ? skillsData[0].skillName : undefined,
-      mostUsedCount: 0,
+      mostUsed: mostUsedName || (skillsData.length > 0 ? skillsData[0].skillName : undefined),
+      mostUsedCount: mostUsedCount || 0,
     });
   };
 
@@ -153,6 +190,10 @@ const SkillsManagement: React.FC = () => {
   const totalPages = Math.ceil(filteredSkills.length / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, filteredSkills.length);
+
+  // Derived counts for display in summary cards
+  const filteredAcceptedCount = filteredSkills.filter((s) => s.isAccepted).length;
+  const filteredPendingCount = filteredSkills.filter((s) => !s.isAccepted).length;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -367,27 +408,27 @@ const SkillsManagement: React.FC = () => {
         <div className="card">
           <h4>Total Skills</h4>
           <div className="number">{stats.total}</div>
-          <div className="detail">0 Shown</div>
+          {/* <div className="detail">{filteredSkills.length} Shown</div> */}
           <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Accepted</h4>
           <div className="number">{stats.accepted}</div>
-          <div className="detail">0 Shown</div>
+          {/* <div className="detail">{filteredAcceptedCount} Shown</div> */}
           <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Pending</h4>
           <div className="number">{stats.pending}</div>
-          <div className="detail">0 Shown</div>
+          {/* <div className="detail">{filteredPendingCount} Shown</div> */}
           <a className="view-more" href="/dashboard">View more →</a>
         </div>
         <div className="card">
           <h4>Most Used</h4>
           <div className="number">{stats.mostUsed || "None"}</div>
-          <div className="detail">
-            {stats.mostUsed ? stats.mostUsedCount + " Users" : "No Data"}
-          </div>
+          {/* <div className="detail"> */}
+            {/* {stats.mostUsed ? stats.mostUsedCount + " Users" : "No Data"} */}
+          {/* </div> */}
           <a className="view-more" href="/dashboard">View more →</a>
         </div>
       </div>

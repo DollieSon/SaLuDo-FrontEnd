@@ -263,13 +263,39 @@
   display: flex;
   align-items: center;
   padding-bottom: 10px;
+  gap: 0.5rem;
+  cursor: default;
 }
 
 .card .detail::before {
   content: "↗";
-  margin-right: 0.5rem;
+  display: inline-block;
+  margin-right: 0.25rem;
   color: #10b981;
-  font-weight: bold;
+  font-weight: 700;
+  transform: translateY(-1px);
+}
+
+/* Make `.detail` behave like a small interactive control when JS adds interactivity
+   (e.g. clickable summary or link). Also provide keyboard focus styles for accessibility. */
+.card .detail.interactive,
+.card .detail[role="button"],
+.card .detail[tabindex] {
+  cursor: pointer;
+}
+
+.card .detail.interactive:hover,
+.card .detail[role="button"]:hover,
+.card .detail[tabindex]:hover {
+  color: #e30022;
+}
+
+.card .detail[tabindex]:focus-visible,
+.card .detail[role="button"]:focus-visible,
+.card .detail.interactive:focus-visible {
+  outline: 3px solid rgba(227, 0, 34, 0.14);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .card:nth-child(2) .number {
