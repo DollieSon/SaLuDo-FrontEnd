@@ -2,6 +2,8 @@
 // CANDIDATE API USAGE EXAMPLES FOR FRONTEND
 // ===========================================
 
+// All API calls must carry the access token (and refresh it on 401)
+import { authFetch as fetch } from "../../src/utils/authFetch";
 import { 
     CandidateData,
     CreateCandidateData,

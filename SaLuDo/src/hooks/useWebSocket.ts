@@ -31,6 +31,9 @@ export const useWebSocket = ({
     console.log('[WebSocket] Connecting to:', SOCKET_URL);
 
     const socket = io(SOCKET_URL, {
+      // The server authenticates the handshake with the access token; the callback
+      // form re-reads it on every reconnect so refreshed tokens are picked up
+      auth: (cb) => cb({ token: localStorage.getItem('accessToken') }),
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,

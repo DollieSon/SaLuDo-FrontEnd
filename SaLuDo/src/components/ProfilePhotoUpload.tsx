@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo } from "react";
 import { ProfilePhotoMetadata } from "../types/user";
 import { usersApi } from "../utils/api";
+import { useAuthenticatedImage } from "../hooks/useAuthenticatedImage";
 import "./css/ProfilePhotoUpload.css";
 
 interface ProfilePhotoUploadProps {
@@ -26,11 +27,13 @@ const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Add timestamp to force cache refresh when photo changes
-  const photoUrl = useMemo(() => {
+  const photoApiUrl = useMemo(() => {
     if (!photoMetadata) return null;
     const timestamp = photoMetadata.uploadedAt ? new Date(photoMetadata.uploadedAt).getTime() : Date.now();
     return `${usersApi.getProfilePhotoUrl(userId, false)}?t=${timestamp}`;
   }, [photoMetadata, userId]);
+  // The photo endpoint requires auth: load it with the token as a blob URL
+  const { src: photoUrl } = useAuthenticatedImage(photoApiUrl);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -151,10 +154,10 @@ const ProfilePhotoUpload: React.FC<ProfilePhotoUploadProps> = ({
             onClick={triggerFileInput}
             disabled={isUploading}
           >
-            {photoUrl ? 'Change Photo' : 'Upload Photo'}
+            {photoApiUrl ? 'Change Photo' : 'Upload Photo'}
           </button>
 
-          {photoUrl && (
+          {photoApiUrl && (
             <button
               className="btn btn-small btn-danger"
               onClick={() => setShowDeleteConfirm(true)}

@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { buildApiUrl, getApiBaseUrl } from './backendUrl';
+import { getApiBaseUrl } from './backendUrl';
+import { clearStoredAuth, refreshAccessToken } from './authFetch';
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -71,9 +72,7 @@ apiClient.interceptors.response.use(
       console.log('[apiClient] Token refresh failed on retry, logging out');
       
       // Clear auth state and redirect to login
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      clearStoredAuth();
       
       // Redirect to login page
       if (window.location.pathname !== '/login') {
@@ -103,45 +102,13 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
 
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-      console.log('[apiClient] No refresh token available, logging out');
-      isRefreshing = false;
-      
-      // Clear auth state
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
-      
-      // Redirect to login
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-      
-      return Promise.reject(error);
-    }
-
     try {
       console.log('[apiClient] Access token expired, refreshing...');
-      
-      // Call refresh endpoint
-      const response = await axios.post(
-        buildApiUrl('users/auth/refresh'),
-        { refreshToken },
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
 
-      if (response.data.success) {
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
+      // Uses the HttpOnly refresh-token cookie; shared with fetch-based calls
+      const newAccessToken = await refreshAccessToken();
 
-        // Update tokens in localStorage
-        localStorage.setItem('accessToken', newAccessToken);
-        if (newRefreshToken) {
-          localStorage.setItem('refreshToken', newRefreshToken);
-        }
-
+      if (newAccessToken) {
         console.log('[apiClient] ✅ Token refreshed successfully');
 
         // Update the authorization header
@@ -166,9 +133,7 @@ apiClient.interceptors.response.use(
       isRefreshing = false;
 
       // Clear auth state
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      clearStoredAuth();
 
       // Redirect to login
       if (window.location.pathname !== '/login') {

@@ -1,3 +1,5 @@
+// All API calls must carry the access token (and refresh it on 401)
+import { authFetch as fetch, refreshAccessToken } from "./authFetch";
 import { Data } from "../types/data";
 import {
   AuditEventType,
@@ -758,32 +760,26 @@ export const usersApi = {
   },
 
   // Logout
-  logout: async (
-    accessToken: string,
-    refreshToken?: string,
-    revokeAllSessions: boolean = false,
-  ) => {
+  // The refresh token lives in an HttpOnly cookie, so it is sent with credentials
+  logout: async (accessToken: string, revokeAllSessions: boolean = false) => {
     const response = await fetch(`${apiUrl}users/auth/logout`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ refreshToken, revokeAllSessions }),
+      body: JSON.stringify({ revokeAllSessions }),
     });
     if (!response.ok) throw new Error("Logout failed");
     return response.json();
   },
 
-  // Refresh token
-  refreshToken: async (refreshToken: string) => {
-    const response = await fetch(`${apiUrl}users/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-    if (!response.ok) throw new Error("Token refresh failed");
-    return response.json();
+  // Refresh the access token using the HttpOnly refresh-token cookie
+  refreshToken: async () => {
+    const accessToken = await refreshAccessToken();
+    if (!accessToken) throw new Error("Token refresh failed");
+    return { success: true, data: { accessToken } };
   },
 
   // Change password
