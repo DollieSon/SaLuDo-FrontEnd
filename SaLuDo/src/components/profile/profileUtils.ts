@@ -188,7 +188,7 @@ export const getFileDownloadUrl = (fileId: string) => {
 };
 
 export const getTranscriptDownloadUrl = (fileId: string) => {
-  return buildApiUrl(`candidates/transcripts/${fileId}/download`);
+  return buildApiUrl(`files/transcripts/${fileId}`);
 };
 
 export const getInterviewVideoDownloadUrl = (id: string, fileId: string) => {

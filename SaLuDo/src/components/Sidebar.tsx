@@ -3,9 +3,16 @@ import "./css/Sidebar.css";
 import { useAuth } from "../context/AuthContext";
 import { NotificationBell } from "./NotificationBell";
 import { buildApiUrl } from "../utils/backendUrl";
+import { useAuthenticatedImage } from "../hooks/useAuthenticatedImage";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
+  // Profile photos require auth, so they are loaded with the token as a blob URL
+  const { src: avatarSrc } = useAuthenticatedImage(
+    user?.photoMetadata
+      ? buildApiUrl(`users/${user.userId}/profile/photo?thumbnail=true&t=${new Date(user.photoMetadata.uploadedAt).getTime()}`)
+      : null
+  );
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -180,21 +187,11 @@ const Sidebar = () => {
           title="View my profile"
         >
           <div className="user-avatar">
-            {user?.photoMetadata ? (
-              <img 
-                key={new Date(user.photoMetadata.uploadedAt).getTime()}
-                src={buildApiUrl(`users/${user.userId}/profile/photo?thumbnail=true&t=${new Date(user.photoMetadata.uploadedAt).getTime()}`)}
-                alt={user.fullName}
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt={user?.fullName}
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                onError={(e) => {
-                  // Fallback to initials if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent) {
-                    parent.textContent = `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`;
-                  }
-                }}
               />
             ) : (
               <>

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Sourced by the nginx image entrypoint before templates are rendered.
+# Derives the backend origins used by the Content-Security-Policy from
+# VITE_API_URL unless API_ORIGIN / API_WS_ORIGIN are set explicitly.
+#   https://api.example.com/api/  ->  https://api.example.com  and  wss://api.example.com
+
+if [ -z "${API_ORIGIN:-}" ]; then
+    API_ORIGIN=$(printf '%s' "${VITE_API_URL:-http://localhost:3000/api/}" | sed -E 's#^(https?://[^/]+).*#\1#')
+    export API_ORIGIN
+fi
+
+if [ -z "${API_WS_ORIGIN:-}" ]; then
+    API_WS_ORIGIN=$(printf '%s' "$API_ORIGIN" | sed -E 's#^http#ws#')
+    export API_WS_ORIGIN
+fi

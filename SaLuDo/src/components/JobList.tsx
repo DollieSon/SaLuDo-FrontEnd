@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jobsApi, candidatesApi } from '../utils/api';
 import { Job } from '../types/job';
+import { useAuth } from '../context/AuthContext';
 
 const JobList: React.FC = () => {
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const isAdmin = user.role === "admin";
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const [searchTerm, setSearchTerm] = useState('');
   const [jobs, setJobs] = useState<Job[]>([]);

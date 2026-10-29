@@ -1,3 +1,5 @@
+// All API calls must carry the access token (and refresh it on 401)
+import { authFetch as fetch } from "../utils/authFetch";
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { apiUrl } from "../utils/api";

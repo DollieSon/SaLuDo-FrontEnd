@@ -1,5 +1,6 @@
 import React from "react";
 import { CandidateProfile } from "../../types/profile";
+import { downloadAuthenticatedFile } from "../../utils/fileDownload";
 import {
   formatDate,
   getFileDownloadUrl,
@@ -348,10 +349,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                     e.preventDefault();
                     const resumeData =
                       candidate.resumeMetadata || candidate.resume;
-                    window.open(
-                      getFileDownloadUrl(resumeData!.fileId),
-                      "_blank",
-                    );
+                    void downloadAuthenticatedFile(getFileDownloadUrl(resumeData!.fileId), resumeData!.filename);
                     onDownload(resumeData!.filename, "resume");
                   }}
                 >
@@ -407,10 +405,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                       className="download-link"
                       onClick={(e) => {
                         e.preventDefault();
-                        window.open(
-                          getTranscriptDownloadUrl(transcript.fileId),
-                          "_blank",
-                        );
+                        void downloadAuthenticatedFile(getTranscriptDownloadUrl(transcript.fileId), transcript.filename);
                         onDownload(transcript.filename, "transcript");
                       }}
                     >
@@ -505,13 +500,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                       className="download-link"
                       onClick={(e) => {
                         e.preventDefault();
-                        window.open(
-                          getInterviewVideoDownloadUrl(
-                            candidate.candidateId,
-                            video.fileId,
-                          ),
-                          "_blank",
-                        );
+                        void downloadAuthenticatedFile(getInterviewVideoDownloadUrl(candidate.candidateId, video.fileId), video.filename);
                         onDownload(video.filename, "interview-video");
                       }}
                     >
@@ -634,13 +623,7 @@ export const CandidateInfoSection: React.FC<CandidateInfoSectionProps> = ({
                       className="download-link"
                       onClick={(e) => {
                         e.preventDefault();
-                        window.open(
-                          getIntroductionVideoDownloadUrl(
-                            candidate.candidateId,
-                            video.fileId,
-                          ),
-                          "_blank",
-                        );
+                        void downloadAuthenticatedFile(getIntroductionVideoDownloadUrl(candidate.candidateId, video.fileId), video.filename);
                         onDownload(video.filename, "introduction-video");
                       }}
                     >

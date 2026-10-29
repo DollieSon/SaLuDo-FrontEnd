@@ -1,4 +1,5 @@
 import "./css/CandidateList.css";
+import { getAccessToken } from "../utils/tokenStore";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { candidatesApi, jobsApi, skillsApi, usersApi } from "../utils/api";
@@ -86,7 +87,7 @@ const CandidateList: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      const token = accessToken || localStorage.getItem("accessToken") || undefined;
+      const token = accessToken || getAccessToken() || undefined;
 
       const usersRequest = token
         ? usersApi.getAllUsers(token, {

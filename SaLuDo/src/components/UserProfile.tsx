@@ -12,7 +12,7 @@ import ProfileSettings from "./ProfileSettings.tsx";
 
 const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { user: currentUser, refreshUser } = useAuth();
+  const { user: currentUser, refreshUser, accessToken: storedAccessToken } = useAuth();
   
   const [user, setUser] = useState<UserProfileType | null>(null);
   const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -23,7 +23,7 @@ const UserProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'stats' | 'activity' | 'settings'>('profile');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const accessToken = localStorage.getItem("accessToken") || "";
+  const accessToken = storedAccessToken || "";
   const currentUserId = currentUser?.userId || "";
   const targetUserId = userId || currentUserId;
   const navigate = useNavigate();

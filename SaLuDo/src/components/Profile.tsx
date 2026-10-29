@@ -1,4 +1,5 @@
 import "./css/Profile.css";
+import { getAccessToken } from "../utils/tokenStore";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { candidatesApi, skillsApi, usersApi } from "../utils/api";
@@ -358,7 +359,7 @@ const Profile: React.FC = () => {
 
   const fetchAssignmentUsers = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (!token) {
         setAssignmentUsers([]);
         return;

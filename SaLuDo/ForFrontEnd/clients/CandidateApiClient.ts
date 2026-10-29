@@ -2,6 +2,9 @@
 // CANDIDATE API USAGE EXAMPLES FOR FRONTEND
 // ===========================================
 
+// All API calls must carry the access token (and refresh it on 401)
+import { authFetch as fetch } from "../../src/utils/authFetch";
+import { getAccessToken } from "../../src/utils/tokenStore";
 import { 
     CandidateData,
     CreateCandidateData,
@@ -38,8 +41,8 @@ async function apiCall<T>(
 ): Promise<T> {
     const url = buildApiUrl(endpoint);
     
-    // Get auth token from localStorage
-    const token = localStorage.getItem("accessToken");
+    // Get the in-memory access token
+    const token = getAccessToken();
     const headers: HeadersInit = {};
     
     // Don't set Content-Type for FormData (browser sets it with boundary)

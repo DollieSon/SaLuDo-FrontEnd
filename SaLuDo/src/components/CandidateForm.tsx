@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./css/CandidateForm.css";
-import { apiUrl, candidatesApi } from "../utils/api";
+import { apiUrl } from "../utils/api";
 
 interface Job {
   _id: string;
@@ -110,7 +110,9 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
         submitData.append("socialLinks", JSON.stringify(formData.socialLinks));
       }
 
-      const response = await fetch(`${apiUrl}candidates`, {
+      // Applicants are not logged in: the public application endpoint is the
+      // only anonymous way to create a candidate (rate-limited, validated)
+      const response = await fetch(`${apiUrl}public/applications`, {
         method: "POST",
         body: submitData,
       });
@@ -126,11 +128,22 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
       // If an introduction video was provided, upload it to the candidate's video endpoint
       try {
         const candidateId = result?.data?.candidateId;
-        if (formData.introductionVideo && candidateId) {
+        const uploadToken = result?.data?.uploadToken;
+        if (formData.introductionVideo && candidateId && uploadToken) {
           const introForm = new FormData();
           introForm.append("video", formData.introductionVideo);
-          // Use the existing API helper so headers/urls remain consistent
-          await candidatesApi.uploadIntroductionVideo(candidateId, introForm);
+          // The short-lived upload token only allows this application's intro video
+          const videoResponse = await fetch(
+            `${apiUrl}public/applications/${encodeURIComponent(candidateId)}/introduction-video`,
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${uploadToken}` },
+              body: introForm,
+            }
+          );
+          if (!videoResponse.ok) {
+            throw new Error("Introduction video upload failed");
+          }
           console.log(
             "Introduction video uploaded successfully for candidate",
             candidateId
@@ -188,7 +201,9 @@ const CandidateForm: React.FC<{ jobId: string }> = ({ jobId }) => {
 
       try {
         setIsLoadingJob(true);
-        const response = await fetch(`${apiUrl}jobs/${jobId}`);
+        const response = await fetch(
+          `${apiUrl}public/jobs/${encodeURIComponent(jobId)}`
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch job details");

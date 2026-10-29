@@ -1,11 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { usersApi } from "../utils/api";
 import { UserProfile } from "../types/user";
+import { clearStoredAuth, refreshAccessToken, refreshSession } from "../utils/authFetch";
+import {
+  getAccessToken,
+  setAccessToken as storeAccessToken,
+  subscribeToAccessToken,
+} from "../utils/tokenStore";
+
+// Access tokens last 15 minutes; refresh a little early so open sockets and
+// long-lived pages always hold a valid one
+const PROACTIVE_REFRESH_MS = 12 * 60 * 1000;
 
 interface AuthContextType {
   user: UserProfile | null;
   accessToken: string | null;
-  refreshToken: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -19,73 +28,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(getAccessToken);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load auth state from localStorage on mount
-  useEffect(() => {
-    const storedAccessToken = localStorage.getItem("accessToken");
-    const storedRefreshToken = localStorage.getItem("refreshToken");
-    const storedUser = localStorage.getItem("user");
+  // Mirror the in-memory token, which changes whenever a request refreshes it
+  useEffect(() => subscribeToAccessToken(setAccessToken), []);
 
-    if (storedAccessToken && storedUser) {
-      setAccessToken(storedAccessToken);
-      setRefreshToken(storedRefreshToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+  // Restore the session on page load. Nothing is kept in browser storage: the
+  // HttpOnly refresh cookie yields a fresh access token and the user's profile.
+  useEffect(() => {
+    let cancelled = false;
+
+    refreshSession().then((session) => {
+      if (cancelled) return;
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        clearStoredAuth();
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Auto-refresh token before it expires (every 7 hours, token expires in 8 hours)
+  // Refresh before the 15-minute access token expires.
+  // The refresh token itself is an HttpOnly cookie that scripts never see.
   useEffect(() => {
-    if (!accessToken || !refreshToken) return;
+    if (!accessToken) return;
 
-    const refreshInterval = setInterval(async () => {
-      try {
-        console.log("🔄 Auto-refreshing token...");
-        const response = await usersApi.refreshToken(refreshToken);
-
-        if (response.success) {
-          const newAccessToken = response.data.accessToken;
-          const newRefreshToken = response.data.refreshToken;
-          
-          setAccessToken(newAccessToken);
-          localStorage.setItem("accessToken", newAccessToken);
-          
-          // Update refresh token if rotated
-          if (newRefreshToken) {
-            setRefreshToken(newRefreshToken);
-            localStorage.setItem("refreshToken", newRefreshToken);
-          }
-          
-          console.log("✅ Token refreshed successfully");
-        }
-      } catch (error) {
-        console.error("❌ Auto-refresh failed:", error);
-        // Note: Don't logout here - the 401 interceptor will handle expired tokens
+    const refreshTimer = setTimeout(async () => {
+      const newToken = await refreshAccessToken();
+      if (!newToken) {
+        // Session ended (revoked, expired or signed out elsewhere)
+        clearStoredAuth();
+        setUser(null);
       }
-    }, 7 * 60 * 60 * 1000); // Refresh every 7 hours (token expires in 8 hours)
+    }, PROACTIVE_REFRESH_MS);
 
-    return () => clearInterval(refreshInterval);
-  }, [accessToken, refreshToken]);
+    return () => clearTimeout(refreshTimer);
+  }, [accessToken]);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await usersApi.login(email, password);
 
       if (response.success) {
-        const { user, accessToken, refreshToken } = response.data;
+        const { user, accessToken } = response.data;
 
-        // Store in state
+        // Kept in memory only
+        clearStoredAuth();
+        storeAccessToken(accessToken);
         setUser(user);
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
-
-        // Store in localStorage
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-        localStorage.setItem("user", JSON.stringify(user));
       } else {
         throw new Error(response.message || "Login failed");
       }
@@ -98,33 +94,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       if (accessToken) {
-        await usersApi.logout(accessToken, refreshToken || undefined);
+        await usersApi.logout(accessToken);
       }
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Clear state
+      clearStoredAuth();
       setUser(null);
-      setAccessToken(null);
-      setRefreshToken(null);
-
-      // Clear localStorage
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("user");
     }
   };
 
   const refreshUser = async () => {
     if (!accessToken || !user?.userId) return;
-    
+
     try {
-      console.log('Refreshing user data for sidebar...');
       const response = await usersApi.getUserById(accessToken, user.userId);
       if (response.success) {
-        console.log('User data refreshed:', response.data);
         setUser(response.data);
-        localStorage.setItem("user", JSON.stringify(response.data));
       }
     } catch (error) {
       console.error("Failed to refresh user data:", error);
@@ -134,7 +120,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value = {
     user,
     accessToken,
-    refreshToken,
     login,
     logout,
     refreshUser,
