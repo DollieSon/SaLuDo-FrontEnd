@@ -262,8 +262,8 @@ function CandidateComparisonPage() {
 }
 
 function UserManagementPage() {
-  // For now, we'll use a mock token. In production, this should come from auth context
-  const accessToken = localStorage.getItem("accessToken") || "";
+  const { accessToken: storedAccessToken } = useAuth();
+  const accessToken = storedAccessToken || "";
 
   return (
     <ProtectedRoute requiredRole="admin">
@@ -295,8 +295,8 @@ function AuditLogsPage() {
 }
 
 function DashboardPage() {
-  // For now, we'll use a mock token. In production, this should come from auth context
-  const accessToken = localStorage.getItem("accessToken") || "";
+  const { accessToken: storedAccessToken } = useAuth();
+  const accessToken = storedAccessToken || "";
 
   return (
     <ProtectedRoute requiredRole="admin">

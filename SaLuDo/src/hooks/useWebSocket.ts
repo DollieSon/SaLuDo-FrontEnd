@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { getAccessToken } from '../utils/tokenStore';
 import { io, Socket } from 'socket.io-client';
 import { Notification } from '../types/notification';
 import { getSocketBaseUrl } from '../utils/backendUrl';
@@ -33,7 +34,7 @@ export const useWebSocket = ({
     const socket = io(SOCKET_URL, {
       // The server authenticates the handshake with the access token; the callback
       // form re-reads it on every reconnect so refreshed tokens are picked up
-      auth: (cb) => cb({ token: localStorage.getItem('accessToken') }),
+      auth: (cb) => cb({ token: getAccessToken() }),
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,

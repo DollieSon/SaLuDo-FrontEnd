@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { getApiBaseUrl } from './backendUrl';
 import { clearStoredAuth, refreshAccessToken } from './authFetch';
+import { getAccessToken } from './tokenStore';
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -35,7 +36,7 @@ const processQueue = (error: any = null, token: string | null = null) => {
 // Request interceptor - automatically add Bearer token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

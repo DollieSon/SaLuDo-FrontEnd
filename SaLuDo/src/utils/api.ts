@@ -1,5 +1,6 @@
 // All API calls must carry the access token (and refresh it on 401)
 import { authFetch as fetch, refreshAccessToken } from "./authFetch";
+import { getAccessToken } from "./tokenStore";
 import { Data } from "../types/data";
 import {
   AuditEventType,
@@ -31,7 +32,7 @@ export const skillsApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -48,7 +49,7 @@ export const skillsApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -83,7 +84,7 @@ export const skillsApi = {
   // Create new skill master - AVAILABLE: POST /api/skills/master
   createSkillMaster: async (skillName: string) => {
     const headers: HeadersInit = { "Content-Type": "application/json" };
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -113,7 +114,7 @@ export const skillsApi = {
   // Search skills by name - AVAILABLE: GET /api/skills/search/:skillName
   searchSkills: async (skillName: string) => {
     const headers: HeadersInit = {};
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -160,7 +161,7 @@ export const jobsApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -183,7 +184,7 @@ export const jobsApi = {
   // Create new job
   createJob: async (jobData: any) => {
     const headers: HeadersInit = { "Content-Type": "application/json" };
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -200,7 +201,7 @@ export const jobsApi = {
   // Update job
   updateJob: async (jobId: string, updates: any) => {
     const headers: HeadersInit = { "Content-Type": "application/json" };
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -217,7 +218,7 @@ export const jobsApi = {
   // Delete job
   deleteJob: async (jobId: string) => {
     const headers: HeadersInit = {};
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -236,7 +237,7 @@ export const jobsApi = {
     skillData: { skillId: string; requiredLevel: number; evidence?: string },
   ) => {
     const headers: HeadersInit = { "Content-Type": "application/json" };
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -253,7 +254,7 @@ export const jobsApi = {
   // Remove skill from job
   removeSkillFromJob: async (jobId: string, skillId: string) => {
     const headers: HeadersInit = {};
-    const token = localStorage.getItem("accessToken");
+    const token = getAccessToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -275,8 +276,8 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      // Try to get token from localStorage
-      const token = localStorage.getItem("accessToken");
+      // Fall back to the in-memory access token
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -293,7 +294,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -318,7 +319,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -341,7 +342,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -365,7 +366,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -386,7 +387,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -410,7 +411,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -438,7 +439,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -465,7 +466,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -493,7 +494,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -521,7 +522,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -548,7 +549,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -571,7 +572,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -595,7 +596,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -618,7 +619,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -652,7 +653,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -678,7 +679,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -705,7 +706,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -731,7 +732,7 @@ export const candidatesApi = {
     if (accessToken) {
       headers["Authorization"] = `Bearer ${accessToken}`;
     } else {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
