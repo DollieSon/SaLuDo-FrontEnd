@@ -14,14 +14,17 @@ RUN npm run build
 # Serve with the unprivileged nginx image (runs as a non-root user, listens on 8080)
 FROM nginxinc/nginx-unprivileged:1.28-alpine AS runner
 
-# Backend origins allowed by the Content-Security-Policy connect-src.
-# Override at runtime, e.g. API_ORIGIN=https://api.example.com API_WS_ORIGIN=wss://api.example.com
-ENV API_ORIGIN=http://localhost:3000 \
-    API_WS_ORIGIN=ws://localhost:3000
-
 # Templates are rendered with envsubst into /etc/nginx/conf.d at startup
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY security-headers.inc /etc/nginx/templates/security-headers.inc.template
+
+# The CSP connect-src must allow the backend. Its origins default to the same
+# VITE_API_URL the bundle was built with (https://x/api/ -> https://x and wss://x),
+# so no extra configuration is needed; API_ORIGIN / API_WS_ORIGIN can still be
+# overridden at runtime.
+ARG VITE_API_URL=http://localhost:3000/api/
+ENV VITE_API_URL=${VITE_API_URL}
+COPY --chmod=755 derive-api-origin.envsh /docker-entrypoint.d/15-derive-api-origin.envsh
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
